@@ -57,6 +57,16 @@ class KeyEncryption {
   // Get minimum passphrase length requirement
   static constexpr size_t GetMinPassphraseLength() { return 12; }
   
+  // Static utility methods for data encryption/decryption
+  // Used by file fallback storage
+  static std::optional<std::vector<uint8_t>> EncryptData(
+      base::span<const uint8_t> data,
+      const std::string& key);
+  
+  static std::optional<std::vector<uint8_t>> DecryptData(
+      base::span<const uint8_t> encrypted_data,
+      const std::string& key);
+  
  private:
   // Perform AES-GCM encryption
   std::optional<std::vector<uint8_t>> EncryptAESGCM(
