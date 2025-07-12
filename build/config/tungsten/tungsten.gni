@@ -1,0 +1,75 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This file defines build flags and configuration for Tungsten features
+
+declare_args() {
+  # Main toggle for all Nostr functionality
+  enable_nostr = true
+  
+  # Enable the local Nostr relay (SQLite-based)
+  enable_local_relay = true
+  
+  # Enable the local Blossom server (file storage)
+  enable_blossom_server = true
+  
+  # Bundle Nostr JavaScript libraries (NDK, nostr-tools, etc.)
+  bundle_nostr_libs = true
+  
+  # Enable Nsite static website support
+  enable_nsite = true
+  
+  # Enable hardware wallet support for Nostr keys
+  enable_nostr_hardware_wallet = false
+  
+  # Enable developer mode features
+  enable_nostr_dev_mode = false
+  
+  # Default local relay port
+  nostr_local_relay_port = 8081
+  
+  # Default local Blossom server port
+  blossom_server_port = 8080
+  
+  # Maximum storage for local relay (in GB)
+  nostr_relay_max_storage_gb = 10
+  
+  # Maximum storage for Blossom server (in GB)
+  blossom_max_storage_gb = 50
+}
+
+# Ensure dependencies are met
+assert(!enable_local_relay || enable_nostr,
+       "enable_local_relay requires enable_nostr")
+assert(!enable_blossom_server || enable_nostr,
+       "enable_blossom_server requires enable_nostr")
+assert(!enable_nsite || enable_nostr,
+       "enable_nsite requires enable_nostr")
+
+# Define a template for Nostr component builds
+template("nostr_component") {
+  component(target_name) {
+    forward_variables_from(invoker, "*")
+    
+    if (!defined(defines)) {
+      defines = []
+    }
+    
+    if (enable_nostr) {
+      defines += [ "ENABLE_NOSTR=1" ]
+    }
+    
+    if (enable_local_relay) {
+      defines += [ "ENABLE_LOCAL_RELAY=1" ]
+    }
+    
+    if (enable_blossom_server) {
+      defines += [ "ENABLE_BLOSSOM_SERVER=1" ]
+    }
+    
+    if (enable_nsite) {
+      defines += [ "ENABLE_NSITE=1" ]
+    }
+  }
+}

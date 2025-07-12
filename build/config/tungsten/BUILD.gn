@@ -1,0 +1,28 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/buildflag_header.gni")
+import("//build/config/tungsten/tungsten.gni")
+
+buildflag_header("tungsten_buildflags") {
+  header = "tungsten_buildflags.h"
+  
+  flags = [
+    "ENABLE_NOSTR=$enable_nostr",
+    "ENABLE_LOCAL_RELAY=$enable_local_relay",
+    "ENABLE_BLOSSOM_SERVER=$enable_blossom_server",
+    "ENABLE_NSITE=$enable_nsite",
+    "BUNDLE_NOSTR_LIBS=$bundle_nostr_libs",
+    "ENABLE_NOSTR_HARDWARE_WALLET=$enable_nostr_hardware_wallet",
+    "ENABLE_NOSTR_DEV_MODE=$enable_nostr_dev_mode",
+  ]
+}
+
+config("tungsten_implementation") {
+  defines = []
+  
+  if (enable_nostr) {
+    defines += [ "TUNGSTEN_IMPLEMENTATION" ]
+  }
+}

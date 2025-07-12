@@ -1,0 +1,42 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/tungsten/tungsten.gni")
+
+if (bundle_nostr_libs) {
+  group("nostr_libs") {
+    deps = [
+      ":ndk",
+      ":nostr_tools",
+      ":applesauce",
+      ":nostrify",
+      ":alby_sdk",
+    ]
+  }
+
+  copy("ndk") {
+    sources = [ "ndk-2.0.0.min.js" ]
+    outputs = [ "$root_out_dir/nostr_libs/ndk.js" ]
+  }
+
+  copy("nostr_tools") {
+    sources = [ "nostr-tools-1.17.0.min.js" ]
+    outputs = [ "$root_out_dir/nostr_libs/nostr-tools.js" ]
+  }
+
+  copy("applesauce") {
+    sources = [ "applesauce-0.5.0.min.js" ]
+    outputs = [ "$root_out_dir/nostr_libs/applesauce.js" ]
+  }
+
+  copy("nostrify") {
+    sources = [ "nostrify-1.2.0.min.js" ]
+    outputs = [ "$root_out_dir/nostr_libs/nostrify.js" ]
+  }
+
+  copy("alby_sdk") {
+    sources = [ "alby-sdk-3.0.0.min.js" ]
+    outputs = [ "$root_out_dir/nostr_libs/alby-sdk.js" ]
+  }
+}

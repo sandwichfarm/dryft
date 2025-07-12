@@ -1,0 +1,57 @@
+Name: Nostr JavaScript Libraries
+Short Name: nostr-libs
+URL: Various (see below)
+Version: Various (see below)
+License: MIT
+License File: LICENSE
+Security Critical: Yes
+Shipped: Yes
+
+Description:
+This directory contains JavaScript libraries for Nostr protocol support in
+Tungsten browser. These libraries are bundled and served via chrome:// URLs
+to provide a secure, consistent API for web applications.
+
+Libraries included:
+
+1. NDK (Nostr Development Kit)
+   URL: https://github.com/nostr-dev-kit/ndk
+   Version: 2.0.0
+   License: MIT
+   Description: Comprehensive Nostr client library
+
+2. nostr-tools
+   URL: https://github.com/nbd-wtf/nostr-tools
+   Version: 1.17.0
+   License: MIT
+   Description: Core utilities for Nostr protocol
+
+3. Applesauce
+   URL: https://github.com/coracle-social/applesauce
+   Version: 0.5.0
+   License: MIT
+   Description: Nostr event rendering library
+
+4. Nostrify
+   URL: https://github.com/soapbox-pub/nostrify
+   Version: 1.2.0
+   License: MIT
+   Description: Nostr framework for applications
+
+5. Alby SDK
+   URL: https://github.com/getAlby/sdk
+   Version: 3.0.0
+   License: MIT
+   Description: SDK for Alby wallet integration
+
+Local Modifications:
+- Minified versions are used for production builds
+- Source maps are preserved for debugging
+- No modifications to the library code itself
+
+Update Process:
+1. Download new versions from the respective repositories
+2. Verify the integrity and license compliance
+3. Update this README with new version information
+4. Update BUILD.gn with new filenames
+5. Run security audit on new versions
