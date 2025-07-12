@@ -24,7 +24,11 @@ This directory contains the implementation of secure key storage for Nostr priva
 
 ### Platform Implementations
 
-- **Windows**: Windows Credential Manager (Issue B-3)
+- **Windows**: Windows Credential Manager (`key_storage_windows.h/cc`)
+  - Uses Windows Credential Management API
+  - Stores credentials as CRED_TYPE_GENERIC
+  - Persists with CRED_PERSIST_LOCAL_MACHINE
+  - Separate credentials for key data and metadata
 - **macOS**: macOS Keychain (Issue B-4)
 - **Linux**: libsecret/GNOME Keyring (Issue B-5)
 - **Fallback**: Encrypted preferences storage
@@ -86,6 +90,9 @@ Run unit tests:
 ```bash
 ./out/Default/chrome_test --gtest_filter="KeyEncryptionTest.*"
 ./out/Default/chrome_test --gtest_filter="KeyStorageIntegrationTest.*"
+
+# Windows-specific tests
+./out/Default/chrome_test --gtest_filter="KeyStorageWindowsTest.*"
 ```
 
 ## Future Improvements

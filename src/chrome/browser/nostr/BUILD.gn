@@ -45,6 +45,13 @@ if (enable_nostr) {
       "//ui/views",
       "//url",
     ]
+    
+    if (is_win) {
+      sources += [
+        "key_storage_windows.cc",
+        "key_storage_windows.h",
+      ]
+    }
   }
 
   source_set("nostr_browser_tests") {
@@ -69,10 +76,16 @@ if (enable_nostr) {
       "key_encryption_unittest.cc",
       "key_storage_integration_unittest.cc",
     ]
+    
+    if (is_win) {
+      sources += [ "key_storage_windows_unittest.cc" ]
+    }
 
     deps = [
       ":nostr",
       "//base",
+      "//chrome/test:test_support",
+      "//content/test:test_support",
       "//testing/gtest",
     ]
   }

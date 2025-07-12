@@ -9,6 +9,10 @@
 #include "chrome/browser/nostr/key_storage_in_memory.h"
 #include "chrome/browser/profiles/profile.h"
 
+#if BUILDFLAG(IS_WIN)
+#include "chrome/browser/nostr/key_storage_windows.h"
+#endif
+
 namespace nostr {
 
 // static
@@ -132,9 +136,12 @@ std::string KeyStorageFactory::GetBackendName(StorageBackend backend) {
 // static
 std::unique_ptr<KeyStorage> KeyStorageFactory::CreateWindowsKeyStorage(
     Profile* profile) {
-  // TODO: Implement Windows Credential Manager storage (Issue B-3)
-  LOG(ERROR) << "Windows key storage not implemented yet";
+#if BUILDFLAG(IS_WIN)
+  return std::make_unique<KeyStorageWindows>(profile);
+#else
+  LOG(ERROR) << "Windows key storage not available on this platform";
   return CreateEncryptedPrefsKeyStorage(profile);
+#endif
 }
 
 // static
