@@ -8,6 +8,13 @@ import("//components/nostr/BUILD.gn")
 if (enable_nostr) {
   source_set("nostr") {
     sources = [
+      "key_encryption.cc",
+      "key_encryption.h",
+      "key_storage_factory.cc",
+      "key_storage_factory.h",
+      "key_storage_in_memory.cc",
+      "key_storage_in_memory.h",
+      "key_storage_interface.h",
       "nostr_browser_utils.cc",
       "nostr_browser_utils.h",
       "nostr_service_factory.cc",
@@ -32,7 +39,9 @@ if (enable_nostr) {
       "//components/nostr",
       "//components/prefs",
       "//content/public/browser",
+      "//crypto",
       "//net",
+      "//third_party/boringssl",
       "//ui/views",
       "//url",
     ]
@@ -50,6 +59,20 @@ if (enable_nostr) {
       "//chrome/test:test_support",
       "//chrome/test:test_support_ui",
       "//components/nostr:nostr",
+      "//testing/gtest",
+    ]
+  }
+
+  source_set("unit_tests") {
+    testonly = true
+    sources = [
+      "key_encryption_unittest.cc",
+      "key_storage_integration_unittest.cc",
+    ]
+
+    deps = [
+      ":nostr",
+      "//base",
       "//testing/gtest",
     ]
   }
