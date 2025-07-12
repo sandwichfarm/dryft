@@ -16,8 +16,10 @@ if (enable_nostr) {
 
     deps = [
       "//base",
+      "//chrome/common",
       "//content/public/renderer",
       "//gin",
+      "//ipc",
       "//third_party/blink/public:blink",
       "//url",
       "//v8",
@@ -28,11 +30,16 @@ if (enable_nostr) {
 
   source_set("nostr_unittests") {
     testonly = true
-    sources = [ "nostr_bindings_unittest.cc" ]
+    sources = [ 
+      "nostr_bindings_unittest.cc",
+      "nip07_integration_test.cc",
+      "multi_account_test.cc"
+    ]
 
     deps = [
       ":nostr",
       "//base/test:test_support",
+      "//chrome/common",
       "//content/public/test:test_support",
       "//gin:gin_test",
       "//testing/gtest",

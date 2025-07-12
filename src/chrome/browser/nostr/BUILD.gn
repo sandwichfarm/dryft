@@ -17,20 +17,14 @@ if (enable_nostr) {
       "key_storage_interface.h",
       "nostr_browser_utils.cc",
       "nostr_browser_utils.h",
-      "nostr_service_factory.cc",
-      "nostr_service_factory.h",
-      "nostr_profile_service.cc",
-      "nostr_profile_service.h",
-      "nostr_protocol_handler.cc",
-      "nostr_protocol_handler.h",
-      "nostr_permission_dialog.cc",
-      "nostr_permission_dialog.h",
-      "nostr_preferences.cc",
-      "nostr_preferences.h",
       "nostr_permission_manager.cc",
       "nostr_permission_manager.h",
       "nostr_permission_manager_factory.cc",
       "nostr_permission_manager_factory.h",
+      "nostr_service.cc",
+      "nostr_service.h",
+      "nostr_service_factory.cc",
+      "nostr_service_factory.h",
     ]
 
     deps = [
@@ -111,6 +105,7 @@ if (enable_nostr) {
       "key_encryption_unittest.cc",
       "key_storage_integration_unittest.cc",
       "nostr_permission_manager_unittest.cc",
+      "multi_account_service_test.cc",
     ]
     
     if (is_win) {
