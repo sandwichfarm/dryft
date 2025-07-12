@@ -27,6 +27,10 @@ if (enable_nostr) {
       "nostr_permission_dialog.h",
       "nostr_preferences.cc",
       "nostr_preferences.h",
+      "nostr_permission_manager.cc",
+      "nostr_permission_manager.h",
+      "nostr_permission_manager_factory.cc",
+      "nostr_permission_manager_factory.h",
     ]
 
     deps = [
@@ -106,6 +110,7 @@ if (enable_nostr) {
     sources = [
       "key_encryption_unittest.cc",
       "key_storage_integration_unittest.cc",
+      "nostr_permission_manager_unittest.cc",
     ]
     
     if (is_win) {

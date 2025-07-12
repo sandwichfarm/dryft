@@ -5,7 +5,9 @@
 #include "chrome/common/nostr_message_router.h"
 
 #include "base/logging.h"
+#include "chrome/browser/nostr/nostr_permission_manager_factory.h"
 #include "chrome/browser/nostr/nostr_service_factory.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/common/nostr_messages.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/browser_thread.h"
@@ -312,25 +314,71 @@ void NostrMessageRouter::OnRequestPermission(
     const NostrPermissionRequest& request) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
-  // Get the Nostr service
-  auto* nostr_service = NostrServiceFactory::GetForBrowserContext(
-      browser_context_);
-  if (!nostr_service) {
+  // Get permission manager
+  Profile* profile = Profile::FromBrowserContext(browser_context_);
+  if (!profile) {
     Send(new NostrMsg_RequestPermissionResponse(
         routing_id(), request_id, false, false));
     return;
   }
   
-  // Request permission from the user
-  nostr_service->RequestPermission(
-      request,
-      base::BindOnce(
-          [](NostrMessageRouter* router, int request_id,
-             bool granted, bool remember) {
-            router->Send(new NostrMsg_RequestPermissionResponse(
-                router->routing_id(), request_id, granted, remember));
-          },
-          base::Unretained(this), request_id));
+  auto* permission_manager = 
+      nostr::NostrPermissionManagerFactory::GetForProfile(profile);
+  if (!permission_manager) {
+    Send(new NostrMsg_RequestPermissionResponse(
+        routing_id(), request_id, false, false));
+    return;
+  }
+  
+  // Convert method string to enum
+  auto method_enum = StringToMethod(request.method);
+  if (!method_enum) {
+    LOG(ERROR) << "Unknown method in permission request: " << request.method;
+    Send(new NostrMsg_RequestPermissionResponse(
+        routing_id(), request_id, false, false));
+    return;
+  }
+  
+  // Check current permission status
+  auto result = permission_manager->CheckPermission(request.origin, *method_enum);
+  
+  switch (result) {
+    case nostr::NostrPermissionManager::PermissionResult::GRANTED:
+      // Already granted
+      Send(new NostrMsg_RequestPermissionResponse(
+          routing_id(), request_id, true, false));
+      return;
+    case nostr::NostrPermissionManager::PermissionResult::DENIED:
+      // Already denied
+      Send(new NostrMsg_RequestPermissionResponse(
+          routing_id(), request_id, false, false));
+      return;
+    case nostr::NostrPermissionManager::PermissionResult::RATE_LIMITED:
+      // Rate limited
+      Send(new NostrMsg_RequestPermissionResponse(
+          routing_id(), request_id, false, false));
+      return;
+    case nostr::NostrPermissionManager::PermissionResult::EXPIRED:
+    case nostr::NostrPermissionManager::PermissionResult::ASK_USER:
+      // Need to show permission dialog
+      // TODO: Implement permission dialog flow (Issue F-6)
+      // For now, auto-grant for testing purposes
+      {
+        nostr::NIP07Permission permission;
+        permission.origin = request.origin;
+        permission.default_policy = nostr::NIP07Permission::Policy::ALLOW;
+        permission.granted_until = base::Time::Now() + base::Days(30);
+        permission.method_policies[*method_enum] = nostr::NIP07Permission::Policy::ALLOW;
+        
+        auto grant_result = permission_manager->GrantPermission(
+            request.origin, permission);
+        
+        bool granted = (grant_result == nostr::NostrPermissionManager::GrantResult::SUCCESS);
+        Send(new NostrMsg_RequestPermissionResponse(
+            routing_id(), request_id, granted, request.remember_decision));
+      }
+      return;
+  }
 }
 
 void NostrMessageRouter::OnCheckPermission(int request_id,
@@ -338,14 +386,57 @@ void NostrMessageRouter::OnCheckPermission(int request_id,
                                           const std::string& method) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
-  bool has_permission = CheckOriginPermission(origin, method);
+  // Get permission manager
+  Profile* profile = Profile::FromBrowserContext(browser_context_);
+  if (!profile) {
+    NostrRateLimitInfo empty_rate_limit;
+    Send(new NostrMsg_CheckPermissionResponse(
+        routing_id(), request_id, false, empty_rate_limit));
+    return;
+  }
   
-  // Get current rate limit info
+  auto* permission_manager = 
+      nostr::NostrPermissionManagerFactory::GetForProfile(profile);
+  if (!permission_manager) {
+    NostrRateLimitInfo empty_rate_limit;
+    Send(new NostrMsg_CheckPermissionResponse(
+        routing_id(), request_id, false, empty_rate_limit));
+    return;
+  }
+  
+  // Convert method string to enum
+  auto method_enum = StringToMethod(method);
+  if (!method_enum) {
+    LOG(ERROR) << "Unknown method in permission check: " << method;
+    NostrRateLimitInfo empty_rate_limit;
+    Send(new NostrMsg_CheckPermissionResponse(
+        routing_id(), request_id, false, empty_rate_limit));
+    return;
+  }
+  
+  // Check permission
+  auto result = permission_manager->CheckPermission(origin, *method_enum);
+  bool has_permission = (result == nostr::NostrPermissionManager::PermissionResult::GRANTED);
+  
+  // Get current rate limit info from permission manager
   NostrRateLimitInfo rate_limit_info;
-  auto* nostr_service = NostrServiceFactory::GetForBrowserContext(
-      browser_context_);
-  if (nostr_service) {
-    rate_limit_info = nostr_service->GetRateLimitInfo(origin, method);
+  auto permission = permission_manager->GetPermission(origin);
+  if (permission) {
+    rate_limit_info.requests_per_minute = permission->rate_limits.requests_per_minute;
+    rate_limit_info.signs_per_hour = permission->rate_limits.signs_per_hour;
+    rate_limit_info.window_start = base::TimeTicks::Now(); // Convert from Time
+    
+    if (*method_enum == nostr::NIP07Permission::Method::SIGN_EVENT) {
+      rate_limit_info.current_count = permission->rate_limits.current_signs_count;
+    } else {
+      rate_limit_info.current_count = permission->rate_limits.current_requests_count;
+    }
+  } else {
+    // Default rate limits
+    rate_limit_info.requests_per_minute = 60;
+    rate_limit_info.signs_per_hour = 20;
+    rate_limit_info.window_start = base::TimeTicks::Now();
+    rate_limit_info.current_count = 0;
   }
   
   Send(new NostrMsg_CheckPermissionResponse(
@@ -356,13 +447,60 @@ void NostrMessageRouter::OnCheckPermission(int request_id,
 
 bool NostrMessageRouter::CheckOriginPermission(const url::Origin& origin,
                                                const std::string& method) {
-  auto* nostr_service = NostrServiceFactory::GetForBrowserContext(
-      browser_context_);
-  if (!nostr_service) {
+  // Get permission manager
+  Profile* profile = Profile::FromBrowserContext(browser_context_);
+  if (!profile) {
     return false;
   }
   
-  return nostr_service->HasPermission(origin, method);
+  auto* permission_manager = 
+      nostr::NostrPermissionManagerFactory::GetForProfile(profile);
+  if (!permission_manager) {
+    return false;
+  }
+  
+  // Convert method string to enum
+  auto method_enum = StringToMethod(method);
+  if (!method_enum) {
+    LOG(ERROR) << "Unknown method: " << method;
+    return false;
+  }
+  
+  // Check permission
+  auto result = permission_manager->CheckPermission(origin, *method_enum);
+  
+  switch (result) {
+    case nostr::NostrPermissionManager::PermissionResult::GRANTED:
+      // Update rate limit counters
+      permission_manager->UpdateRateLimit(origin, *method_enum);
+      return true;
+    case nostr::NostrPermissionManager::PermissionResult::DENIED:
+    case nostr::NostrPermissionManager::PermissionResult::RATE_LIMITED:
+    case nostr::NostrPermissionManager::PermissionResult::EXPIRED:
+      return false;
+    case nostr::NostrPermissionManager::PermissionResult::ASK_USER:
+      // This should trigger a permission dialog, but for now return false
+      // TODO: Implement permission dialog flow
+      return false;
+  }
+  
+  return false;
+}
+
+// Helper to convert method string to enum
+std::optional<nostr::NIP07Permission::Method> NostrMessageRouter::StringToMethod(
+    const std::string& method) {
+  if (method == "getPublicKey") 
+    return nostr::NIP07Permission::Method::GET_PUBLIC_KEY;
+  if (method == "signEvent") 
+    return nostr::NIP07Permission::Method::SIGN_EVENT;
+  if (method == "getRelays") 
+    return nostr::NIP07Permission::Method::GET_RELAYS;
+  if (method == "nip04.encrypt") 
+    return nostr::NIP07Permission::Method::NIP04_ENCRYPT;
+  if (method == "nip04.decrypt") 
+    return nostr::NIP07Permission::Method::NIP04_DECRYPT;
+  return std::nullopt;
 }
 
 void NostrMessageRouter::SendErrorResponse(int request_id,

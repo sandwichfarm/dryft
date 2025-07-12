@@ -9,6 +9,7 @@
 
 #include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
+#include "chrome/browser/nostr/nostr_permission_manager.h"
 #include "content/public/browser/browser_message_filter.h"
 #include "url/origin.h"
 
@@ -115,6 +116,8 @@ class NostrMessageRouter : public content::BrowserMessageFilter {
   content::RenderFrameHost* GetRenderFrameHost();
   bool CheckOriginPermission(const url::Origin& origin, 
                             const std::string& method);
+  std::optional<nostr::NIP07Permission::Method> StringToMethod(
+      const std::string& method);
   void SendErrorResponse(int request_id, const std::string& error);
 
   // Browser context for accessing profile-specific services
