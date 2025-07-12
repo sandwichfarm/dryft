@@ -8,6 +8,8 @@ import("//components/nostr/BUILD.gn")
 if (enable_nostr) {
   source_set("nostr") {
     sources = [
+      "nostr_browser_utils.cc",
+      "nostr_browser_utils.h",
       "nostr_service_factory.cc",
       "nostr_service_factory.h",
       "nostr_profile_service.cc",
@@ -23,6 +25,7 @@ if (enable_nostr) {
     deps = [
       "//base",
       "//chrome/browser/profiles",
+      "//chrome/browser/resources:nostr_resource_handler",
       "//chrome/browser/ui",
       "//chrome/common",
       "//components/keyed_service/content",
