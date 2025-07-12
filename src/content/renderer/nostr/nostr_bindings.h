@@ -8,6 +8,7 @@
 #include <map>
 
 #include "base/memory/weak_ptr.h"
+#include "content/public/renderer/render_frame_observer.h"
 #include "gin/wrappable.h"
 #include "v8/include/v8.h"
 
@@ -19,7 +20,8 @@ namespace tungsten {
 
 // NostrBindings implements the window.nostr object that provides
 // NIP-07 functionality to web pages.
-class NostrBindings : public gin::Wrappable<NostrBindings> {
+class NostrBindings : public gin::Wrappable<NostrBindings>,
+                     public content::RenderFrameObserver {
  public:
   static gin::WrapperInfo kWrapperInfo;
 
@@ -67,6 +69,10 @@ class NostrBindings : public gin::Wrappable<NostrBindings> {
   void OnGetRelaysResponse(int request_id, bool success, const struct NostrRelayPolicy& result);
   void OnNip04EncryptResponse(int request_id, bool success, const std::string& result);
   void OnNip04DecryptResponse(int request_id, bool success, const std::string& result);
+
+  // content::RenderFrameObserver
+  bool OnMessageReceived(const IPC::Message& message) override;
+  void OnDestruct() override;
 
   // Send IPC messages
   void SendGetPublicKey(int request_id);

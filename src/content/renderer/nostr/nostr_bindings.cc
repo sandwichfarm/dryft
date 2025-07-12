@@ -8,7 +8,9 @@
 #include "base/logging.h"
 #include "base/values.h"
 #include "chrome/common/nostr_messages.h"
+#include "ipc/ipc_message_macros.h"
 #include "content/public/renderer/render_frame.h"
+#include "content/public/renderer/render_frame_observer.h"
 #include "gin/arguments.h"
 #include "gin/converter.h"
 #include "gin/dictionary.h"
@@ -29,11 +31,19 @@ namespace tungsten {
 gin::WrapperInfo NostrBindings::kWrapperInfo = {gin::kEmbedderNativeGin};
 
 NostrBindings::NostrBindings(content::RenderFrame* render_frame)
-    : render_frame_(render_frame), next_request_id_(1) {
+    : content::RenderFrameObserver(render_frame),
+      render_frame_(render_frame), 
+      next_request_id_(1) {
   DCHECK(render_frame_);
 }
 
 NostrBindings::~NostrBindings() = default;
+
+void NostrBindings::OnDestruct() {
+  // Clear any pending resolvers
+  pending_resolvers_.clear();
+  render_frame_ = nullptr;
+}
 
 // static
 void NostrBindings::Install(v8::Local<v8::Object> global,
@@ -65,6 +75,9 @@ void NostrBindings::Install(v8::Local<v8::Object> global,
   // Install as window.nostr
   gin::Dictionary global_dict(isolate, global);
   global_dict.Set("nostr", nostr_value);
+  
+  // The NostrBindings instance is now owned by V8 and will receive IPC messages
+  // as a RenderFrameObserver until the frame is destroyed
   
   VLOG(1) << "Installed window.nostr for origin: " << url.DeprecatedGetOriginAsURL();
 }
@@ -175,9 +188,19 @@ v8::Local<v8::Promise> NostrBindings::GetRelays(v8::Isolate* isolate) {
     return CreateErrorPromise(isolate, "Origin not allowed");
   }
   
-  // For now, return an error as this is a stub implementation
-  return CreateErrorPromise(isolate, 
-      "NIP-07 not yet implemented. This is a stub implementation.");
+  // Create promise for async operation
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Promise::Resolver> resolver = 
+      v8::Promise::Resolver::New(context).ToLocalChecked();
+  
+  // Generate request ID and store resolver
+  int request_id = GetNextRequestId();
+  pending_resolvers_[request_id] = v8::Global<v8::Promise::Resolver>(isolate, resolver);
+  
+  // Send IPC message
+  SendGetRelays(request_id);
+  
+  return resolver->GetPromise();
 }
 
 v8::Local<v8::Object> NostrBindings::GetNip04Object(v8::Isolate* isolate) {
@@ -224,9 +247,19 @@ v8::Local<v8::Promise> NostrBindings::Nip04Encrypt(
     return CreateErrorPromise(isolate, "Invalid parameters");
   }
   
-  // For now, return an error as this is a stub implementation
-  return CreateErrorPromise(isolate, 
-      "NIP-04 encryption not yet implemented. This is a stub implementation.");
+  // Create promise for async operation
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Promise::Resolver> resolver = 
+      v8::Promise::Resolver::New(context).ToLocalChecked();
+  
+  // Generate request ID and store resolver
+  int request_id = GetNextRequestId();
+  pending_resolvers_[request_id] = v8::Global<v8::Promise::Resolver>(isolate, resolver);
+  
+  // Send IPC message
+  SendNip04Encrypt(request_id, pubkey, plaintext);
+  
+  return resolver->GetPromise();
 }
 
 v8::Local<v8::Promise> NostrBindings::Nip04Decrypt(
@@ -244,9 +277,19 @@ v8::Local<v8::Promise> NostrBindings::Nip04Decrypt(
     return CreateErrorPromise(isolate, "Invalid parameters");
   }
   
-  // For now, return an error as this is a stub implementation
-  return CreateErrorPromise(isolate, 
-      "NIP-04 decryption not yet implemented. This is a stub implementation.");
+  // Create promise for async operation
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Promise::Resolver> resolver = 
+      v8::Promise::Resolver::New(context).ToLocalChecked();
+  
+  // Generate request ID and store resolver
+  int request_id = GetNextRequestId();
+  pending_resolvers_[request_id] = v8::Global<v8::Promise::Resolver>(isolate, resolver);
+  
+  // Send IPC message
+  SendNip04Decrypt(request_id, pubkey, ciphertext);
+  
+  return resolver->GetPromise();
 }
 
 bool NostrBindings::IsOriginAllowed() const {
@@ -406,6 +449,121 @@ void NostrBindings::OnSignEventResponse(int request_id, bool success,
   }
   
   pending_resolvers_.erase(it);
+}
+
+void NostrBindings::OnGetRelaysResponse(int request_id, bool success, 
+                                       const NostrRelayPolicy& result) {
+  auto it = pending_resolvers_.find(request_id);
+  if (it == pending_resolvers_.end()) {
+    return;
+  }
+  
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  
+  v8::Local<v8::Promise::Resolver> resolver = it->second.Get(isolate);
+  
+  if (success) {
+    // Convert NostrRelayPolicy to V8 object
+    v8::Local<v8::Object> result_obj = v8::Object::New(isolate);
+    
+    for (const auto& [url, config] : result.relays) {
+      v8::Local<v8::String> v8_url = gin::StringToV8(isolate, url);
+      v8::Local<v8::Object> config_obj = v8::Object::New(isolate);
+      
+      for (const auto& [key, value] : config) {
+        v8::Local<v8::String> v8_key = gin::StringToV8(isolate, key);
+        v8::Local<v8::Value> v8_value;
+        
+        if (value.is_bool()) {
+          v8_value = v8::Boolean::New(isolate, value.GetBool());
+        } else if (value.is_string()) {
+          v8_value = gin::StringToV8(isolate, value.GetString());
+        } else {
+          v8_value = v8::Null(isolate);
+        }
+        
+        config_obj->Set(context, v8_key, v8_value).Check();
+      }
+      
+      result_obj->Set(context, v8_url, config_obj).Check();
+    }
+    
+    resolver->Resolve(context, result_obj).Check();
+  } else {
+    v8::Local<v8::Value> error_value = 
+        v8::Exception::Error(gin::StringToV8(isolate, "Failed to get relays"));
+    resolver->Reject(context, error_value).Check();
+  }
+  
+  pending_resolvers_.erase(it);
+}
+
+void NostrBindings::OnNip04EncryptResponse(int request_id, bool success, 
+                                          const std::string& result) {
+  auto it = pending_resolvers_.find(request_id);
+  if (it == pending_resolvers_.end()) {
+    return;
+  }
+  
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  
+  v8::Local<v8::Promise::Resolver> resolver = it->second.Get(isolate);
+  
+  if (success) {
+    v8::Local<v8::Value> result_value = gin::StringToV8(isolate, result);
+    resolver->Resolve(context, result_value).Check();
+  } else {
+    v8::Local<v8::Value> error_value = 
+        v8::Exception::Error(gin::StringToV8(isolate, result));
+    resolver->Reject(context, error_value).Check();
+  }
+  
+  pending_resolvers_.erase(it);
+}
+
+void NostrBindings::OnNip04DecryptResponse(int request_id, bool success, 
+                                          const std::string& result) {
+  auto it = pending_resolvers_.find(request_id);
+  if (it == pending_resolvers_.end()) {
+    return;
+  }
+  
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  
+  v8::Local<v8::Promise::Resolver> resolver = it->second.Get(isolate);
+  
+  if (success) {
+    v8::Local<v8::Value> result_value = gin::StringToV8(isolate, result);
+    resolver->Resolve(context, result_value).Check();
+  } else {
+    v8::Local<v8::Value> error_value = 
+        v8::Exception::Error(gin::StringToV8(isolate, result));
+    resolver->Reject(context, error_value).Check();
+  }
+  
+  pending_resolvers_.erase(it);
+}
+
+// RenderFrameObserver Implementation
+
+bool NostrBindings::OnMessageReceived(const IPC::Message& message) {
+  bool handled = true;
+  IPC_BEGIN_MESSAGE_MAP(NostrBindings, message)
+    IPC_MESSAGE_HANDLER(NostrMsg_GetPublicKeyResponse, OnGetPublicKeyResponse)
+    IPC_MESSAGE_HANDLER(NostrMsg_SignEventResponse, OnSignEventResponse)
+    IPC_MESSAGE_HANDLER(NostrMsg_GetRelaysResponse, OnGetRelaysResponse)
+    IPC_MESSAGE_HANDLER(NostrMsg_Nip04EncryptResponse, OnNip04EncryptResponse)
+    IPC_MESSAGE_HANDLER(NostrMsg_Nip04DecryptResponse, OnNip04DecryptResponse)
+    IPC_MESSAGE_UNHANDLED(handled = false)
+  IPC_END_MESSAGE_MAP()
+  
+  return handled;
 }
 
 // Helper Methods
