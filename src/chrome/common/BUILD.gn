@@ -1,0 +1,45 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+import("//components/nostr/BUILD.gn")
+
+if (enable_nostr) {
+  source_set("nostr_messages") {
+    sources = [
+      "nostr_messages.cc",
+      "nostr_messages.h",
+      "nostr_message_router.cc",
+      "nostr_message_router.h",
+    ]
+
+    deps = [
+      "//base",
+      "//content/public/browser",
+      "//content/public/common",
+      "//ipc",
+      "//url",
+    ]
+
+    if (is_browser) {
+      deps += [
+        "//chrome/browser/nostr:nostr",
+      ]
+    }
+  }
+
+  source_set("nostr_messages_unittests") {
+    testonly = true
+    sources = [ "nostr_messages_unittest.cc" ]
+
+    deps = [
+      ":nostr_messages",
+      "//base",
+      "//base/test:test_support",
+      "//ipc",
+      "//testing/gtest",
+      "//url",
+    ]
+  }
+}
