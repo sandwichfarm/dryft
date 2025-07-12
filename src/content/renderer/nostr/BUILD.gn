@@ -1,0 +1,60 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+import("//build/config/tungsten/tungsten.gni")
+
+if (enable_nostr) {
+  source_set("nostr") {
+    sources = [
+      "nostr_bindings.cc",
+      "nostr_bindings.h",
+      "nostr_injection.cc",
+      "nostr_injection.h",
+    ]
+
+    deps = [
+      "//base",
+      "//content/public/renderer",
+      "//gin",
+      "//third_party/blink/public:blink",
+      "//url",
+      "//v8",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
+  }
+
+  source_set("nostr_unittests") {
+    testonly = true
+    sources = [ "nostr_bindings_unittest.cc" ]
+
+    deps = [
+      ":nostr",
+      "//base/test:test_support",
+      "//content/public/test:test_support",
+      "//gin:gin_test",
+      "//testing/gtest",
+      "//v8",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
+  }
+
+  source_set("nostr_browsertests") {
+    testonly = true
+    sources = [ "nostr_injection_browsertest.cc" ]
+
+    deps = [
+      ":nostr",
+      "//base/test:test_support",
+      "//content/public/test:test_support",
+      "//content/shell:content_shell_lib",
+      "//net/test:test_support",
+      "//testing/gtest",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
+  }
+}
