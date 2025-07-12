@@ -178,6 +178,38 @@ TEST_F(KeyStorageWindowsTest, DefaultKeyManagement) {
   EXPECT_EQ(default_key->id, key2.id);
 }
 
+TEST_F(KeyStorageWindowsTest, DeleteDefaultKey) {
+  // Create three keys
+  auto key1 = CreateTestKeyIdentifier("del_default_key1", "Delete Default Key 1");
+  auto key2 = CreateTestKeyIdentifier("del_default_key2", "Delete Default Key 2");
+  auto key3 = CreateTestKeyIdentifier("del_default_key3", "Delete Default Key 3");
+  
+  auto encrypted = key_encryption_.EncryptKey(test_private_key_, passphrase_);
+  ASSERT_TRUE(encrypted.has_value());
+  
+  EXPECT_TRUE(storage_->StoreKey(key1, *encrypted));
+  EXPECT_TRUE(storage_->StoreKey(key2, *encrypted));
+  EXPECT_TRUE(storage_->StoreKey(key3, *encrypted));
+  
+  // Set key2 as default
+  EXPECT_TRUE(storage_->SetDefaultKey(key2.id));
+  auto default_key = storage_->GetDefaultKey();
+  ASSERT_TRUE(default_key.has_value());
+  EXPECT_EQ(default_key->id, key2.id);
+  
+  // Delete the default key
+  EXPECT_TRUE(storage_->DeleteKey(key2));
+  
+  // Another key should become default
+  default_key = storage_->GetDefaultKey();
+  ASSERT_TRUE(default_key.has_value());
+  // Should be either key1 or key3
+  EXPECT_TRUE(default_key->id == key1.id || default_key->id == key3.id);
+  
+  // Verify key2 is gone
+  EXPECT_FALSE(storage_->HasKey(key2.id));
+}
+
 TEST_F(KeyStorageWindowsTest, UpdateKeyMetadata) {
   auto key_id = CreateTestKeyIdentifier("update_test", "Original Name");
   

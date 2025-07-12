@@ -51,7 +51,7 @@ All data is serialized to JSON for storage:
 ### Storing a Key
 
 ```cpp
-WindowsKeyStorage storage(profile);
+KeyStorageWindows storage(profile);
 KeyIdentifier id = {...};
 EncryptedKey encrypted = {...};
 
