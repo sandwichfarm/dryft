@@ -19,6 +19,7 @@
 
 #if BUILDFLAG(IS_LINUX)
 #include "chrome/browser/nostr/key_storage_linux.h"
+#include "chrome/browser/nostr/secret_service_client.h"
 #endif
 
 namespace nostr {
@@ -104,7 +105,7 @@ bool KeyStorageFactory::IsBackendAvailable(StorageBackend backend) {
       
     case StorageBackend::LINUX_SECRET_SERVICE:
 #if BUILDFLAG(IS_LINUX)
-      return true;
+      return CheckLinuxSecretServiceAvailable();
 #else
       return false;
 #endif
@@ -183,5 +184,20 @@ std::unique_ptr<KeyStorage> KeyStorageFactory::CreateEncryptedPrefsKeyStorage(
 std::unique_ptr<KeyStorage> KeyStorageFactory::CreateInMemoryKeyStorage() {
   return std::make_unique<KeyStorageInMemory>();
 }
+
+#if BUILDFLAG(IS_LINUX)
+// static
+bool KeyStorageFactory::CheckLinuxSecretServiceAvailable() {
+  // Try to create a SecretServiceClient and see if it can initialize
+  // This checks for libsecret availability at runtime
+  try {
+    auto client = std::make_unique<SecretServiceClient>();
+    return client->Initialize();
+  } catch (...) {
+    // If there's any exception (missing libsecret, etc.), return false
+    return false;
+  }
+}
+#endif
 
 }  // namespace nostr

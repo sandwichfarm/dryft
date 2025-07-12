@@ -39,6 +39,13 @@ class SecretServiceClient : public KeyStorage {
   std::optional<KeyIdentifier> GetDefaultKey() override;
   bool SetDefaultKey(const std::string& key_id) override;
   
+  // Public for testing
+  std::string GetSecretLabel(const std::string& key_id, const std::string& type) const;
+  std::string SerializeEncryptedKey(const EncryptedKey& key) const;
+  std::optional<EncryptedKey> DeserializeEncryptedKey(const std::string& data) const;
+  std::string SerializeKeyMetadata(const KeyIdentifier& id) const;
+  std::optional<KeyIdentifier> DeserializeKeyMetadata(const std::string& data) const;
+  
  private:
   // Schema name for our secrets
   static constexpr char kSchemaName[] = "org.tungsten.NostrKey";
@@ -49,15 +56,6 @@ class SecretServiceClient : public KeyStorage {
   
   // Collection name
   static constexpr char kCollectionName[] = "Tungsten Nostr Keys";
-  
-  // Get label for secret
-  std::string GetSecretLabel(const std::string& key_id, const std::string& type) const;
-  
-  // Serialize/deserialize data
-  std::string SerializeEncryptedKey(const EncryptedKey& key) const;
-  std::optional<EncryptedKey> DeserializeEncryptedKey(const std::string& data) const;
-  std::string SerializeKeyMetadata(const KeyIdentifier& id) const;
-  std::optional<KeyIdentifier> DeserializeKeyMetadata(const std::string& data) const;
   
   // Whether Secret Service is available
   bool is_available_;

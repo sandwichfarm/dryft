@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "build/build_config.h"
 #include "chrome/browser/nostr/key_storage_interface.h"
 
 class Profile;
@@ -63,6 +64,11 @@ class KeyStorageFactory {
   static std::unique_ptr<KeyStorage> CreateLinuxKeyStorage(Profile* profile);
   static std::unique_ptr<KeyStorage> CreateEncryptedPrefsKeyStorage(Profile* profile);
   static std::unique_ptr<KeyStorage> CreateInMemoryKeyStorage();
+  
+  // Runtime availability checks
+#if BUILDFLAG(IS_LINUX)
+  static bool CheckLinuxSecretServiceAvailable();
+#endif
 };
 
 }  // namespace nostr

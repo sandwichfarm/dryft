@@ -117,7 +117,10 @@ if (enable_nostr) {
     }
     
     if (is_linux) {
-      sources += [ "key_storage_linux_unittest.cc" ]
+      sources += [ 
+        "key_storage_linux_unittest.cc",
+        "secret_service_client_unittest.cc"
+      ]
     }
 
     deps = [
