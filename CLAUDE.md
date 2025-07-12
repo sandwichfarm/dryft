@@ -260,6 +260,7 @@ gh pr merge --merge --delete-branch
 
 ### 12. PR Memory
 - After submitting a PR, always sleep and check the PR for reviews, respond/iterate in response to review, and then merge when complete.
+- When resolving an issue on a PR, you immediately move on to the next issue.
 
 ### 13. Debug Helpers
 

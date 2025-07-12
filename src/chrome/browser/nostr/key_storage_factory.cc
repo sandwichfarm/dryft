@@ -13,6 +13,10 @@
 #include "chrome/browser/nostr/key_storage_windows.h"
 #endif
 
+#if BUILDFLAG(IS_MAC)
+#include "chrome/browser/nostr/key_storage_mac.h"
+#endif
+
 namespace nostr {
 
 // static
@@ -147,9 +151,12 @@ std::unique_ptr<KeyStorage> KeyStorageFactory::CreateWindowsKeyStorage(
 // static
 std::unique_ptr<KeyStorage> KeyStorageFactory::CreateMacOSKeyStorage(
     Profile* profile) {
-  // TODO: Implement macOS Keychain storage (Issue B-4)
-  LOG(ERROR) << "macOS key storage not implemented yet";
+#if BUILDFLAG(IS_MAC)
+  return std::make_unique<KeyStorageMac>(profile);
+#else
+  LOG(ERROR) << "macOS key storage not available on this platform";
   return CreateEncryptedPrefsKeyStorage(profile);
+#endif
 }
 
 // static
