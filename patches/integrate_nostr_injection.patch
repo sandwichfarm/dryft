@@ -1,0 +1,25 @@
+--- a/src/content/renderer/render_frame_impl.cc
++++ b/src/content/renderer/render_frame_impl.cc
+@@ -100,6 +100,10 @@
+ #include "content/renderer/renderer_blink_platform_impl.h"
+ #include "content/renderer/service_worker/service_worker_context_client.h"
+ 
++#if defined(ENABLE_NOSTR)
++#include "content/renderer/nostr/nostr_injection.h"
++#endif
++
+ namespace content {
+ 
+ void RenderFrameImpl::DidCreateScriptContext(v8::Local<v8::Context> context,
+@@ -110,6 +114,11 @@ void RenderFrameImpl::DidCreateScriptContext(v8::Local<v8::Context> context,
+       new ContextData(context));
+   GetContentClient()->renderer()->DidCreateScriptContext(
+       this, context, world_id);
++      
++#if defined(ENABLE_NOSTR)
++  // Inject window.nostr object
++  tungsten::NostrInjection::DidCreateScriptContext(this, context, world_id);
++#endif
+ }
+ 
+ }  // namespace content
