@@ -1,0 +1,29 @@
+# Tungsten Browser Build Arguments
+# Copy this file to src/out/Release/args.gn
+
+# Base Thorium arguments
+import("//thorium_args.gn")
+
+# Enable Tungsten Nostr features
+enable_nostr = true
+enable_local_relay = true
+enable_blossom_server = true
+
+# Additional recommended settings for development
+is_debug = false
+is_official_build = true
+dcheck_always_on = false
+
+# Enable proprietary codecs
+proprietary_codecs = true
+ffmpeg_branding = "Chrome"
+
+# Optimize for performance
+enable_nacl = false
+enable_widevine = true
+
+# Chrome branding (optional)
+is_chrome_branded = false
+
+# Build with symbol level 1 for smaller binaries
+symbol_level = 1

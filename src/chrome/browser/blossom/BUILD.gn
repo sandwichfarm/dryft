@@ -1,0 +1,31 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+import("//components/nostr/BUILD.gn")
+
+if (enable_blossom_server) {
+  source_set("blossom") {
+    sources = [
+      "blossom_server_manager.cc",
+      "blossom_server_manager.h",
+      "blossom_content_handler.cc",
+      "blossom_content_handler.h",
+      "blossom_ui_handler.cc",
+      "blossom_ui_handler.h",
+    ]
+
+    deps = [
+      "//base",
+      "//chrome/browser/profiles",
+      "//chrome/browser/ui",
+      "//chrome/common",
+      "//components/blossom",
+      "//components/prefs",
+      "//content/public/browser",
+      "//net",
+      "//ui/views",
+    ]
+  }
+}
