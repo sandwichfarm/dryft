@@ -17,6 +17,11 @@
 #include "chrome/browser/nostr/key_storage_mac.h"
 #endif
 
+#if BUILDFLAG(IS_LINUX)
+#include "chrome/browser/nostr/key_storage_linux.h"
+#include "chrome/browser/nostr/secret_service_client.h"
+#endif
+
 namespace nostr {
 
 // static
@@ -72,9 +77,7 @@ KeyStorageFactory::StorageBackend KeyStorageFactory::GetDefaultBackend() {
 #elif BUILDFLAG(IS_MAC)
   return StorageBackend::MACOS_KEYCHAIN;
 #elif BUILDFLAG(IS_LINUX)
-  // Check if secret service is available
-  // For now, default to encrypted preferences on Linux
-  return StorageBackend::ENCRYPTED_PREFERENCES;
+  return StorageBackend::LINUX_SECRET_SERVICE;
 #else
   return StorageBackend::ENCRYPTED_PREFERENCES;
 #endif
@@ -102,8 +105,7 @@ bool KeyStorageFactory::IsBackendAvailable(StorageBackend backend) {
       
     case StorageBackend::LINUX_SECRET_SERVICE:
 #if BUILDFLAG(IS_LINUX)
-      // TODO: Check if libsecret is available at runtime
-      return false;  // Not implemented yet
+      return CheckLinuxSecretServiceAvailable();
 #else
       return false;
 #endif
@@ -162,9 +164,12 @@ std::unique_ptr<KeyStorage> KeyStorageFactory::CreateMacOSKeyStorage(
 // static
 std::unique_ptr<KeyStorage> KeyStorageFactory::CreateLinuxKeyStorage(
     Profile* profile) {
-  // TODO: Implement Linux Secret Service storage (Issue B-5)
-  LOG(ERROR) << "Linux key storage not implemented yet";
+#if BUILDFLAG(IS_LINUX)
+  return std::make_unique<KeyStorageLinux>(profile);
+#else
+  LOG(ERROR) << "Linux key storage not available on this platform";
   return CreateEncryptedPrefsKeyStorage(profile);
+#endif
 }
 
 // static
@@ -179,5 +184,20 @@ std::unique_ptr<KeyStorage> KeyStorageFactory::CreateEncryptedPrefsKeyStorage(
 std::unique_ptr<KeyStorage> KeyStorageFactory::CreateInMemoryKeyStorage() {
   return std::make_unique<KeyStorageInMemory>();
 }
+
+#if BUILDFLAG(IS_LINUX)
+// static
+bool KeyStorageFactory::CheckLinuxSecretServiceAvailable() {
+  // Try to create a SecretServiceClient and see if it can initialize
+  // This checks for libsecret availability at runtime
+  try {
+    auto client = std::make_unique<SecretServiceClient>();
+    return client->Initialize();
+  } catch (...) {
+    // If there's any exception (missing libsecret, etc.), return false
+    return false;
+  }
+}
+#endif
 
 }  // namespace nostr

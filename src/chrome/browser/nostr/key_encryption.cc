@@ -278,4 +278,67 @@ std::optional<std::vector<uint8_t>> KeyEncryption::DecryptAESGCM(
   return plaintext;
 }
 
+// static
+std::optional<std::vector<uint8_t>> KeyEncryption::EncryptData(
+    base::span<const uint8_t> data,
+    const std::string& key) {
+  KeyEncryption encryptor;
+  
+  // Use a simplified encryption approach for file storage
+  // Generate salt and derive encryption key
+  auto salt = encryptor.GenerateSalt();
+  auto derived_key = encryptor.DeriveKey(key, salt);
+  if (!derived_key) {
+    return std::nullopt;
+  }
+  
+  // Generate IV
+  auto iv = encryptor.GenerateIV();
+  
+  // Perform encryption
+  std::vector<uint8_t> auth_tag(kDefaultTagLength);
+  auto ciphertext = encryptor.EncryptAESGCM(data, *derived_key, iv, auth_tag);
+  if (!ciphertext) {
+    return std::nullopt;
+  }
+  
+  // Combine salt + iv + auth_tag + ciphertext
+  std::vector<uint8_t> result;
+  result.reserve(salt.size() + iv.size() + auth_tag.size() + ciphertext->size());
+  
+  result.insert(result.end(), salt.begin(), salt.end());
+  result.insert(result.end(), iv.begin(), iv.end());
+  result.insert(result.end(), auth_tag.begin(), auth_tag.end());
+  result.insert(result.end(), ciphertext->begin(), ciphertext->end());
+  
+  return result;
+}
+
+// static
+std::optional<std::vector<uint8_t>> KeyEncryption::DecryptData(
+    base::span<const uint8_t> encrypted_data,
+    const std::string& key) {
+  if (encrypted_data.size() < kDefaultSaltLength + kDefaultIVLength + kDefaultTagLength) {
+    LOG(ERROR) << "Encrypted data too small";
+    return std::nullopt;
+  }
+  
+  KeyEncryption encryptor;
+  
+  // Extract components
+  auto salt = encrypted_data.subspan(0, kDefaultSaltLength);
+  auto iv = encrypted_data.subspan(kDefaultSaltLength, kDefaultIVLength);
+  auto auth_tag = encrypted_data.subspan(kDefaultSaltLength + kDefaultIVLength, kDefaultTagLength);
+  auto ciphertext = encrypted_data.subspan(kDefaultSaltLength + kDefaultIVLength + kDefaultTagLength);
+  
+  // Derive decryption key
+  auto derived_key = encryptor.DeriveKey(key, salt);
+  if (!derived_key) {
+    return std::nullopt;
+  }
+  
+  // Perform decryption
+  return encryptor.DecryptAESGCM(ciphertext, *derived_key, iv, auth_tag);
+}
+
 }  // namespace nostr

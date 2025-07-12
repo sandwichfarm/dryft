@@ -66,6 +66,23 @@ if (enable_nostr) {
         "Security.framework",
       ]
     }
+    
+    if (is_linux) {
+      sources += [
+        "key_storage_linux.cc",
+        "key_storage_linux.h",
+        "secret_service_client.cc",
+        "secret_service_client.h",
+        "file_fallback_storage.cc",
+        "file_fallback_storage.h",
+      ]
+      
+      pkg_config("libsecret") {
+        packages = [ "libsecret-1" ]
+      }
+      
+      configs += [ ":libsecret" ]
+    }
   }
 
   source_set("nostr_browser_tests") {
@@ -97,6 +114,13 @@ if (enable_nostr) {
     
     if (is_mac) {
       sources += [ "key_storage_mac_unittest.cc" ]
+    }
+    
+    if (is_linux) {
+      sources += [ 
+        "key_storage_linux_unittest.cc",
+        "secret_service_client_unittest.cc"
+      ]
     }
 
     deps = [
