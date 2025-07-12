@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2024 The Tungsten Authors
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<grit current_release="1" latest_public_release="0" output_all_resource_defines="false">
+  <outputs>
+    <output filename="grit/nostr_resources.h" type="rc_header">
+      <emit emit_type='prepend'></emit>
+    </output>
+    <output filename="nostr_resources.pak" type="data_package" />
+  </outputs>
+  
+  <translations />
+  
+  <release seq="1">
+    <includes>
+      <!-- Nostr JavaScript libraries -->
+      <include name="IDR_NOSTR_NDK_JS" 
+               file="../../../third_party/nostr/ndk-2.0.0.min.js" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_TOOLS_JS" 
+               file="../../../third_party/nostr/nostr-tools-1.17.0.min.js" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_APPLESAUCE_JS" 
+               file="../../../third_party/nostr/applesauce-0.5.0.min.js" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_NOSTRIFY_JS" 
+               file="../../../third_party/nostr/nostrify-1.2.0.min.js" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_ALBY_SDK_JS" 
+               file="../../../third_party/nostr/alby-sdk-3.0.0.min.js" 
+               type="BINDATA" />
+               
+      <!-- Nostr HTML resources -->
+      <include name="IDR_NOSTR_PERMISSION_HTML" 
+               file="nostr/permission_dialog.html" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_PERMISSION_CSS" 
+               file="nostr/permission_dialog.css" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_PERMISSION_JS" 
+               file="nostr/permission_dialog.js" 
+               type="BINDATA" />
+               
+      <!-- Nostr icons -->
+      <include name="IDR_NOSTR_ICON_16" 
+               file="nostr/icons/nostr_16.png" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_ICON_32" 
+               file="nostr/icons/nostr_32.png" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_ICON_48" 
+               file="nostr/icons/nostr_48.png" 
+               type="BINDATA" />
+      <include name="IDR_NOSTR_ICON_128" 
+               file="nostr/icons/nostr_128.png" 
+               type="BINDATA" />
+    </includes>
+  </release>
+</grit>

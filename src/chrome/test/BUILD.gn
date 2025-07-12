@@ -1,0 +1,44 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/tungsten/tungsten.gni")
+
+if (enable_nostr) {
+  source_set("nostr_test_support") {
+    testonly = true
+    sources = [
+      "data/nostr/test_keys.cc",
+      "data/nostr/test_keys.h",
+      "data/nostr/test_events.cc",
+      "data/nostr/test_events.h",
+      "data/nostr/mock_relay.cc",
+      "data/nostr/mock_relay.h",
+      "data/nostr/mock_blossom_server.cc",
+      "data/nostr/mock_blossom_server.h",
+    ]
+
+    deps = [
+      "//base",
+      "//chrome/browser/nostr",
+      "//components/nostr",
+      "//net",
+      "//net/test:test_support",
+      "//testing/gmock",
+      "//testing/gtest",
+    ]
+  }
+
+  # Test data files
+  copy("nostr_test_data") {
+    testonly = true
+    sources = [
+      "data/nostr/test_event.json",
+      "data/nostr/test_filter.json",
+      "data/nostr/test_relay_response.json",
+      "data/nostr/test_blossom_manifest.json",
+      "data/nostr/test_nsite.html",
+    ]
+    outputs = [ "$root_out_dir/test_data/nostr/{{source_file_part}}" ]
+  }
+}

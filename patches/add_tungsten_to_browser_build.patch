@@ -1,0 +1,28 @@
+--- a/src/chrome/browser/BUILD.gn
++++ b/src/chrome/browser/BUILD.gn
+@@ -45,6 +45,7 @@ import("//third_party/protobuf/proto_library.gni")
+ import("//third_party/webrtc/webrtc.gni")
+ import("//third_party/widevine/cdm/widevine.gni")
+ import("//tools/grit/grit_rule.gni")
++import("//build/config/tungsten/tungsten.gni")
+ import("//ui/base/ui_features.gni")
+ 
+ assert(enable_supervised_users)
+@@ -2600,6 +2601,17 @@ static_library("browser") {
+     "//ui/wm/public",
+   ]
+ 
++  # Tungsten/Nostr components
++  if (enable_nostr) {
++    deps += [
++      "//chrome/browser/nostr",
++      "//chrome/browser/blossom",
++      "//chrome/browser/nsite",
++      "//chrome/common:nostr_messages",
++      "//components/nostr",
++    ]
++  }
++
+   ldflags = []
+ 
+   allow_circular_includes_from = []
