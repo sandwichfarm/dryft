@@ -157,8 +157,8 @@ std::unique_ptr<KeyStorage> KeyStorageFactory::CreateLinuxKeyStorage(
 std::unique_ptr<KeyStorage> KeyStorageFactory::CreateEncryptedPrefsKeyStorage(
     Profile* profile) {
   // TODO: Implement encrypted preferences storage as fallback
-  LOG(ERROR) << "Encrypted preferences storage not implemented yet";
-  return nullptr;
+  LOG(WARNING) << "Encrypted preferences storage not implemented yet, using in-memory storage";
+  return CreateInMemoryKeyStorage();
 }
 
 // static

@@ -25,6 +25,7 @@ bool KeyStorageInMemory::StoreKey(const KeyIdentifier& id,
   // If this is the first key, make it default
   if (keys_.size() == 1) {
     default_key_id_ = id.id;
+    metadata_[id.id].is_default = true;
   }
   
   return true;

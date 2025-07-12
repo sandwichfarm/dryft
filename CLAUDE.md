@@ -258,7 +258,10 @@ gh pr merge --merge --delete-branch
 5. **Check CI status**: Ensure all checks pass
 6. **Respond promptly**: Address review feedback quickly
 
-### 12. Debug Helpers
+### 12. PR Memory
+- After submitting a PR, always sleep and check the PR for reviews, respond/iterate in response to review, and then merge when complete.
+
+### 13. Debug Helpers
 
 Enable debug logging:
 ```javascript

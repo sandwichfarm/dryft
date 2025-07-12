@@ -7,6 +7,7 @@
 #include "chrome/browser/nostr/key_storage_interface.h"
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
