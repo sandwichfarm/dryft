@@ -291,7 +291,7 @@ NostrRateLimitInfo NostrService::GetRateLimitInfo(const url::Origin& origin,
   return info;
 }
 
-std::string NostrService::GenerateNewKey() {
+std::string NostrService::GenerateNewKey(const std::string& name) {
   // TODO: Implement secp256k1 key generation
   // For now, generate a dummy key
   auto random_bytes = GenerateRandomBytes(32);
@@ -306,20 +306,87 @@ std::string NostrService::GenerateNewKey() {
   auto public_key_bytes = GenerateRandomBytes(32);
   std::string public_key_hex = BytesToHex(public_key_bytes);
   
-  // TODO: Store the key securely
+  // Store the key with metadata
   if (key_storage_) {
-    // Create encrypted key structure
-    // This would encrypt the private key with user's passphrase
-    // For now, just log that we generated a key
-    LOG(INFO) << "Generated new Nostr keypair (mock implementation)";
+    KeyIdentifier key_id;
+    key_id.id = public_key_hex;
+    key_id.name = name.empty() ? "Account " + public_key_hex.substr(0, 8) : name;
+    key_id.public_key = public_key_hex;
+    key_id.created_at = base::Time::Now();
+    key_id.last_used_at = base::Time::Now();
+    key_id.is_default = false;
+    
+    // TODO: Encrypt the private key with user's passphrase
+    // For now, create a mock encrypted key
+    EncryptedKey encrypted_key;
+    encrypted_key.encrypted_data = random_bytes;  // Mock encrypted data
+    encrypted_key.salt = GenerateRandomBytes(16);
+    encrypted_key.iv = GenerateRandomBytes(12);
+    encrypted_key.auth_tag = GenerateRandomBytes(16);
+    encrypted_key.kdf_algorithm = "PBKDF2-SHA256";
+    encrypted_key.kdf_iterations = 100000;
+    encrypted_key.encryption_algorithm = "AES-256-GCM";
+    
+    if (key_storage_->StoreKey(key_id, encrypted_key)) {
+      // If this is the first key, make it default
+      auto existing_keys = key_storage_->ListKeys();
+      if (existing_keys.size() == 1) {
+        key_storage_->SetDefaultKey(public_key_hex);
+        default_public_key_ = public_key_hex;
+      }
+      LOG(INFO) << "Generated new Nostr account: " << key_id.name;
+    } else {
+      LOG(ERROR) << "Failed to store new Nostr account";
+      return "";
+    }
   }
   
   return public_key_hex;
 }
 
-std::string NostrService::ImportKey(const std::string& private_key_hex) {
-  // TODO: Implement key import
-  LOG(INFO) << "Key import not yet implemented";
+std::string NostrService::ImportKey(const std::string& private_key_hex,
+                                   const std::string& name) {
+  // Validate private key format
+  if (private_key_hex.length() != 64) {
+    LOG(ERROR) << "Invalid private key length";
+    return "";
+  }
+  
+  // TODO: Derive actual public key from private key using secp256k1
+  // For now, generate a mock public key
+  auto public_key_bytes = GenerateRandomBytes(32);
+  std::string public_key_hex = BytesToHex(public_key_bytes);
+  
+  // Store the imported key
+  if (key_storage_) {
+    KeyIdentifier key_id;
+    key_id.id = public_key_hex;
+    key_id.name = name.empty() ? "Imported " + public_key_hex.substr(0, 8) : name;
+    key_id.public_key = public_key_hex;
+    key_id.created_at = base::Time::Now();
+    key_id.last_used_at = base::Time::Now();
+    key_id.is_default = false;
+    
+    // TODO: Encrypt the private key with user's passphrase
+    // For now, create a mock encrypted key
+    auto private_key_bytes = HexToBytes(private_key_hex);
+    EncryptedKey encrypted_key;
+    encrypted_key.encrypted_data = private_key_bytes;  // Mock encrypted data
+    encrypted_key.salt = GenerateRandomBytes(16);
+    encrypted_key.iv = GenerateRandomBytes(12);
+    encrypted_key.auth_tag = GenerateRandomBytes(16);
+    encrypted_key.kdf_algorithm = "PBKDF2-SHA256";
+    encrypted_key.kdf_iterations = 100000;
+    encrypted_key.encryption_algorithm = "AES-256-GCM";
+    
+    if (key_storage_->StoreKey(key_id, encrypted_key)) {
+      LOG(INFO) << "Imported Nostr account: " << key_id.name;
+      return public_key_hex;
+    } else {
+      LOG(ERROR) << "Failed to store imported Nostr account";
+    }
+  }
+  
   return "";
 }
 
@@ -333,9 +400,207 @@ std::vector<std::string> NostrService::ListKeys() {
 }
 
 bool NostrService::SetDefaultKey(const std::string& public_key_hex) {
-  // TODO: Implement default key setting
-  default_public_key_ = public_key_hex;
-  return true;
+  if (!key_storage_) {
+    return false;
+  }
+  
+  // Verify the key exists
+  if (!key_storage_->HasKey(public_key_hex)) {
+    LOG(ERROR) << "Cannot set default key: key not found";
+    return false;
+  }
+  
+  // Set as default in storage
+  if (key_storage_->SetDefaultKey(public_key_hex)) {
+    default_public_key_ = public_key_hex;
+    LOG(INFO) << "Set default Nostr key: " << public_key_hex.substr(0, 8) << "...";
+    return true;
+  }
+  
+  return false;
+}
+
+base::Value::Dict NostrService::GetCurrentAccount() {
+  base::Value::Dict account;
+  
+  if (!key_storage_ || default_public_key_.empty()) {
+    return account;  // Empty dict indicates no current account
+  }
+  
+  // Find the current default key
+  auto keys = key_storage_->ListKeys();
+  for (const auto& key : keys) {
+    if (key.public_key == default_public_key_ && key.is_default) {
+      account.Set("pubkey", key.public_key);
+      account.Set("name", key.name);
+      account.Set("created_at", key.created_at.ToJsTime());
+      account.Set("last_used_at", key.last_used_at.ToJsTime());
+      
+      // Add relay list
+      base::Value::List relays;
+      for (const auto& relay : key.relay_urls) {
+        relays.Append(relay);
+      }
+      account.Set("relays", std::move(relays));
+      break;
+    }
+  }
+  
+  return account;
+}
+
+base::Value::List NostrService::ListAccounts() {
+  base::Value::List accounts;
+  
+  if (!key_storage_) {
+    return accounts;
+  }
+  
+  auto keys = key_storage_->ListKeys();
+  for (const auto& key : keys) {
+    base::Value::Dict account;
+    account.Set("pubkey", key.public_key);
+    account.Set("name", key.name);
+    account.Set("created_at", key.created_at.ToJsTime());
+    account.Set("last_used_at", key.last_used_at.ToJsTime());
+    account.Set("is_default", key.is_default);
+    
+    // Add relay list
+    base::Value::List relays;
+    for (const auto& relay : key.relay_urls) {
+      relays.Append(relay);
+    }
+    account.Set("relays", std::move(relays));
+    
+    accounts.Append(std::move(account));
+  }
+  
+  return accounts;
+}
+
+bool NostrService::SwitchAccount(const std::string& public_key_hex) {
+  if (!key_storage_) {
+    return false;
+  }
+  
+  // Verify the target account exists
+  if (!key_storage_->HasKey(public_key_hex)) {
+    LOG(ERROR) << "Cannot switch to account: key not found";
+    return false;
+  }
+  
+  // Update default key
+  if (key_storage_->SetDefaultKey(public_key_hex)) {
+    std::string old_key = default_public_key_;
+    default_public_key_ = public_key_hex;
+    
+    // Update last used timestamp
+    auto keys = key_storage_->ListKeys();
+    for (auto& key : keys) {
+      if (key.public_key == public_key_hex) {
+        key.last_used_at = base::Time::Now();
+        key_storage_->UpdateKeyMetadata(key);
+        break;
+      }
+    }
+    
+    LOG(INFO) << "Switched Nostr account from " << old_key.substr(0, 8) 
+              << "... to " << public_key_hex.substr(0, 8) << "...";
+    return true;
+  }
+  
+  return false;
+}
+
+bool NostrService::DeleteAccount(const std::string& public_key_hex) {
+  if (!key_storage_) {
+    return false;
+  }
+  
+  // Don't allow deleting the last account
+  auto keys = key_storage_->ListKeys();
+  if (keys.size() <= 1) {
+    LOG(ERROR) << "Cannot delete the last remaining account";
+    return false;
+  }
+  
+  // Find the key identifier for deletion
+  KeyIdentifier key_to_delete;
+  bool found = false;
+  for (const auto& key : keys) {
+    if (key.public_key == public_key_hex) {
+      key_to_delete = key;
+      found = true;
+      break;
+    }
+  }
+  
+  if (!found) {
+    LOG(ERROR) << "Account not found for deletion";
+    return false;
+  }
+  
+  // If deleting the default account, set a new default
+  bool was_default = key_to_delete.is_default;
+  
+  // Delete the account
+  if (key_storage_->DeleteKey(key_to_delete)) {
+    LOG(INFO) << "Deleted Nostr account: " << key_to_delete.name;
+    
+    // If we deleted the default account, set a new default
+    if (was_default) {
+      auto remaining_keys = key_storage_->ListKeys();
+      if (!remaining_keys.empty()) {
+        key_storage_->SetDefaultKey(remaining_keys[0].public_key);
+        default_public_key_ = remaining_keys[0].public_key;
+        LOG(INFO) << "Set new default account: " << remaining_keys[0].name;
+      } else {
+        default_public_key_.clear();
+      }
+    }
+    return true;
+  }
+  
+  return false;
+}
+
+bool NostrService::UpdateAccountMetadata(const std::string& public_key_hex,
+                                        const base::Value::Dict& metadata) {
+  if (!key_storage_) {
+    return false;
+  }
+  
+  // Find the key to update
+  auto keys = key_storage_->ListKeys();
+  for (auto& key : keys) {
+    if (key.public_key == public_key_hex) {
+      // Update name if provided
+      auto* name = metadata.FindString("name");
+      if (name) {
+        key.name = *name;
+      }
+      
+      // Update relays if provided
+      auto* relays = metadata.FindList("relays");
+      if (relays) {
+        key.relay_urls.clear();
+        for (const auto& relay : *relays) {
+          if (relay.is_string()) {
+            key.relay_urls.push_back(relay.GetString());
+          }
+        }
+      }
+      
+      // Save updated metadata
+      if (key_storage_->UpdateKeyMetadata(key)) {
+        LOG(INFO) << "Updated metadata for account: " << key.name;
+        return true;
+      }
+      break;
+    }
+  }
+  
+  return false;
 }
 
 void NostrService::Shutdown() {

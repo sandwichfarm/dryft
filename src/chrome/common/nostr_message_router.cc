@@ -443,7 +443,105 @@ void NostrMessageRouter::OnCheckPermission(int request_id,
       routing_id(), request_id, has_permission, rate_limit_info));
 }
 
-// Additional method implementations would follow the same pattern...
+// Account Management Handlers
+
+void NostrMessageRouter::OnListAccounts(int request_id, 
+                                       const url::Origin& origin) {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  
+  // Check permission - accounts are sensitive information
+  if (!CheckOriginPermission(origin, "getPublicKey")) {
+    base::Value::List empty_list;
+    Send(new NostrMsg_ListAccountsResponse(
+        routing_id(), request_id, false, empty_list));
+    return;
+  }
+  
+  // Get the Nostr service
+  auto* nostr_service = NostrServiceFactory::GetForBrowserContext(
+      browser_context_);
+  if (!nostr_service) {
+    base::Value::List empty_list;
+    Send(new NostrMsg_ListAccountsResponse(
+        routing_id(), request_id, false, empty_list));
+    return;
+  }
+  
+  // Get accounts list
+  base::Value::List accounts = nostr_service->ListAccounts();
+  Send(new NostrMsg_ListAccountsResponse(
+      routing_id(), request_id, true, accounts));
+}
+
+void NostrMessageRouter::OnGetCurrentAccount(int request_id,
+                                            const url::Origin& origin) {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  
+  // Check permission
+  if (!CheckOriginPermission(origin, "getPublicKey")) {
+    base::Value::Dict empty_dict;
+    Send(new NostrMsg_GetCurrentAccountResponse(
+        routing_id(), request_id, false, empty_dict));
+    return;
+  }
+  
+  // Get the Nostr service
+  auto* nostr_service = NostrServiceFactory::GetForBrowserContext(
+      browser_context_);
+  if (!nostr_service) {
+    base::Value::Dict empty_dict;
+    Send(new NostrMsg_GetCurrentAccountResponse(
+        routing_id(), request_id, false, empty_dict));
+    return;
+  }
+  
+  // Get current account
+  base::Value::Dict account = nostr_service->GetCurrentAccount();
+  Send(new NostrMsg_GetCurrentAccountResponse(
+      routing_id(), request_id, true, account));
+}
+
+void NostrMessageRouter::OnSwitchAccount(int request_id,
+                                        const std::string& pubkey,
+                                        const url::Origin& origin) {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  
+  // Check permission - account switching is a privileged operation
+  if (!CheckOriginPermission(origin, "getPublicKey")) {
+    Send(new NostrMsg_SwitchAccountResponse(
+        routing_id(), request_id, false));
+    return;
+  }
+  
+  // Validate pubkey format
+  if (pubkey.length() != 64) {
+    LOG(ERROR) << "Invalid pubkey format for account switch";
+    Send(new NostrMsg_SwitchAccountResponse(
+        routing_id(), request_id, false));
+    return;
+  }
+  
+  // Get the Nostr service
+  auto* nostr_service = NostrServiceFactory::GetForBrowserContext(
+      browser_context_);
+  if (!nostr_service) {
+    Send(new NostrMsg_SwitchAccountResponse(
+        routing_id(), request_id, false));
+    return;
+  }
+  
+  // Attempt to switch account
+  bool success = nostr_service->SwitchAccount(pubkey);
+  Send(new NostrMsg_SwitchAccountResponse(
+      routing_id(), request_id, success));
+  
+  // If successful, notify all frames about the account switch
+  if (success) {
+    // TODO: Broadcast to all frames in this profile
+    // For now, we'll rely on the renderer to handle the response
+    LOG(INFO) << "Account switched successfully";
+  }
+}
 
 bool NostrMessageRouter::CheckOriginPermission(const url::Origin& origin,
                                                const std::string& method) {

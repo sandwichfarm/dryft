@@ -105,6 +105,7 @@ if (enable_nostr) {
       "key_encryption_unittest.cc",
       "key_storage_integration_unittest.cc",
       "nostr_permission_manager_unittest.cc",
+      "multi_account_service_test.cc",
     ]
     
     if (is_win) {

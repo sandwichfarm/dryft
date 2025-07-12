@@ -32,7 +32,8 @@ if (enable_nostr) {
     testonly = true
     sources = [ 
       "nostr_bindings_unittest.cc",
-      "nip07_integration_test.cc"
+      "nip07_integration_test.cc",
+      "multi_account_test.cc"
     ]
 
     deps = [

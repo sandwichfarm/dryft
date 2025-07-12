@@ -133,16 +133,19 @@ class NostrService : public KeyedService {
 
   /**
    * Generate a new Nostr keypair and store securely.
+   * @param name User-friendly name for the account
    * @return public key of generated pair (hex)
    */
-  std::string GenerateNewKey();
+  std::string GenerateNewKey(const std::string& name = "");
 
   /**
    * Import an existing private key.
    * @param private_key_hex Private key in hex format
+   * @param name User-friendly name for the account
    * @return public key of imported pair (hex)
    */
-  std::string ImportKey(const std::string& private_key_hex);
+  std::string ImportKey(const std::string& private_key_hex,
+                       const std::string& name = "");
 
   /**
    * List all available public keys.
@@ -156,6 +159,43 @@ class NostrService : public KeyedService {
    * @return true if key was set successfully
    */
   bool SetDefaultKey(const std::string& public_key_hex);
+
+  // Account Management
+
+  /**
+   * Get current active account information.
+   * @return account data as base::Value::Dict
+   */
+  base::Value::Dict GetCurrentAccount();
+
+  /**
+   * List all accounts with their metadata.
+   * @return list of account data
+   */
+  base::Value::List ListAccounts();
+
+  /**
+   * Switch to a different account by public key.
+   * @param public_key_hex Target account's public key
+   * @return true if switch was successful
+   */
+  bool SwitchAccount(const std::string& public_key_hex);
+
+  /**
+   * Delete an account by public key.
+   * @param public_key_hex Account to delete
+   * @return true if deletion was successful
+   */
+  bool DeleteAccount(const std::string& public_key_hex);
+
+  /**
+   * Update account metadata (name, relays, etc.).
+   * @param public_key_hex Account to update
+   * @param metadata New metadata
+   * @return true if update was successful
+   */
+  bool UpdateAccountMetadata(const std::string& public_key_hex,
+                            const base::Value::Dict& metadata);
 
   // KeyedService implementation
   void Shutdown() override;

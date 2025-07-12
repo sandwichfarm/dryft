@@ -48,6 +48,12 @@ class NostrBindings : public gin::Wrappable<NostrBindings>,
                                       const std::string& pubkey,
                                       const std::string& ciphertext);
 
+  // Account management methods
+  v8::Local<v8::Promise> ListAccounts(v8::Isolate* isolate);
+  v8::Local<v8::Promise> GetCurrentAccount(v8::Isolate* isolate);
+  v8::Local<v8::Promise> SwitchAccount(v8::Isolate* isolate,
+                                       const std::string& pubkey);
+
  private:
   explicit NostrBindings(content::RenderFrame* render_frame);
   ~NostrBindings() override;
@@ -69,6 +75,9 @@ class NostrBindings : public gin::Wrappable<NostrBindings>,
   void OnGetRelaysResponse(int request_id, bool success, const struct NostrRelayPolicy& result);
   void OnNip04EncryptResponse(int request_id, bool success, const std::string& result);
   void OnNip04DecryptResponse(int request_id, bool success, const std::string& result);
+  void OnListAccountsResponse(int request_id, bool success, const base::Value::List& result);
+  void OnGetCurrentAccountResponse(int request_id, bool success, const base::Value::Dict& result);
+  void OnSwitchAccountResponse(int request_id, bool success);
 
   // content::RenderFrameObserver
   bool OnMessageReceived(const IPC::Message& message) override;
@@ -80,6 +89,9 @@ class NostrBindings : public gin::Wrappable<NostrBindings>,
   void SendGetRelays(int request_id);
   void SendNip04Encrypt(int request_id, const std::string& pubkey, const std::string& plaintext);
   void SendNip04Decrypt(int request_id, const std::string& pubkey, const std::string& ciphertext);
+  void SendListAccounts(int request_id);
+  void SendGetCurrentAccount(int request_id);
+  void SendSwitchAccount(int request_id, const std::string& pubkey);
 
   // Get current origin
   url::Origin GetCurrentOrigin() const;

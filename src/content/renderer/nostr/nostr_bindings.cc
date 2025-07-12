@@ -99,7 +99,11 @@ gin::ObjectTemplateBuilder NostrBindings::GetObjectTemplateBuilder(
       .SetMethod("getPublicKey", &NostrBindings::GetPublicKey)
       .SetMethod("signEvent", &NostrBindings::SignEvent)
       .SetMethod("getRelays", &NostrBindings::GetRelays)
-      .SetLazyDataProperty("nip04", &NostrBindings::GetNip04Object);
+      .SetLazyDataProperty("nip04", &NostrBindings::GetNip04Object)
+      // Account management methods (non-standard but useful)
+      .SetMethod("listAccounts", &NostrBindings::ListAccounts)
+      .SetMethod("getCurrentAccount", &NostrBindings::GetCurrentAccount)
+      .SetMethod("switchAccount", &NostrBindings::SwitchAccount);
 }
 
 v8::Local<v8::Promise> NostrBindings::GetPublicKey(v8::Isolate* isolate) {
@@ -327,6 +331,80 @@ v8::Local<v8::Promise> NostrBindings::CreateErrorPromise(
   return resolver->GetPromise();
 }
 
+// Account Management Methods
+
+v8::Local<v8::Promise> NostrBindings::ListAccounts(v8::Isolate* isolate) {
+  VLOG(2) << "window.nostr.listAccounts() called";
+  
+  if (!IsOriginAllowed()) {
+    return CreateErrorPromise(isolate, "Origin not allowed");
+  }
+  
+  // Create promise for async operation
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Promise::Resolver> resolver = 
+      v8::Promise::Resolver::New(context).ToLocalChecked();
+  
+  // Generate request ID and store resolver
+  int request_id = GetNextRequestId();
+  pending_resolvers_[request_id] = v8::Global<v8::Promise::Resolver>(isolate, resolver);
+  
+  // Send IPC message
+  SendListAccounts(request_id);
+  
+  return resolver->GetPromise();
+}
+
+v8::Local<v8::Promise> NostrBindings::GetCurrentAccount(v8::Isolate* isolate) {
+  VLOG(2) << "window.nostr.getCurrentAccount() called";
+  
+  if (!IsOriginAllowed()) {
+    return CreateErrorPromise(isolate, "Origin not allowed");
+  }
+  
+  // Create promise for async operation
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Promise::Resolver> resolver = 
+      v8::Promise::Resolver::New(context).ToLocalChecked();
+  
+  // Generate request ID and store resolver
+  int request_id = GetNextRequestId();
+  pending_resolvers_[request_id] = v8::Global<v8::Promise::Resolver>(isolate, resolver);
+  
+  // Send IPC message
+  SendGetCurrentAccount(request_id);
+  
+  return resolver->GetPromise();
+}
+
+v8::Local<v8::Promise> NostrBindings::SwitchAccount(v8::Isolate* isolate,
+                                                   const std::string& pubkey) {
+  VLOG(2) << "window.nostr.switchAccount() called";
+  
+  if (!IsOriginAllowed()) {
+    return CreateErrorPromise(isolate, "Origin not allowed");
+  }
+  
+  // Validate pubkey format
+  if (pubkey.length() != 64) {
+    return CreateErrorPromise(isolate, "Invalid pubkey format");
+  }
+  
+  // Create promise for async operation
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Promise::Resolver> resolver = 
+      v8::Promise::Resolver::New(context).ToLocalChecked();
+  
+  // Generate request ID and store resolver
+  int request_id = GetNextRequestId();
+  pending_resolvers_[request_id] = v8::Global<v8::Promise::Resolver>(isolate, resolver);
+  
+  // Send IPC message
+  SendSwitchAccount(request_id, pubkey);
+  
+  return resolver->GetPromise();
+}
+
 // IPC Message Sending Methods
 
 void NostrBindings::SendGetPublicKey(int request_id) {
@@ -371,6 +449,30 @@ void NostrBindings::SendNip04Decrypt(int request_id, const std::string& pubkey,
   url::Origin origin = GetCurrentOrigin();
   render_frame_->Send(new NostrHostMsg_Nip04Decrypt(
       render_frame_->GetRoutingID(), request_id, origin, pubkey, ciphertext));
+}
+
+void NostrBindings::SendListAccounts(int request_id) {
+  if (!render_frame_) return;
+  
+  url::Origin origin = GetCurrentOrigin();
+  render_frame_->Send(new NostrHostMsg_ListAccounts(
+      render_frame_->GetRoutingID(), request_id, origin));
+}
+
+void NostrBindings::SendGetCurrentAccount(int request_id) {
+  if (!render_frame_) return;
+  
+  url::Origin origin = GetCurrentOrigin();
+  render_frame_->Send(new NostrHostMsg_GetCurrentAccount(
+      render_frame_->GetRoutingID(), request_id, origin));
+}
+
+void NostrBindings::SendSwitchAccount(int request_id, const std::string& pubkey) {
+  if (!render_frame_) return;
+  
+  url::Origin origin = GetCurrentOrigin();
+  render_frame_->Send(new NostrHostMsg_SwitchAccount(
+      render_frame_->GetRoutingID(), request_id, pubkey, origin));
 }
 
 // IPC Response Handlers
@@ -550,6 +652,150 @@ void NostrBindings::OnNip04DecryptResponse(int request_id, bool success,
   pending_resolvers_.erase(it);
 }
 
+void NostrBindings::OnListAccountsResponse(int request_id, bool success,
+                                         const base::Value::List& result) {
+  auto it = pending_resolvers_.find(request_id);
+  if (it == pending_resolvers_.end()) {
+    return;
+  }
+  
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  
+  v8::Local<v8::Promise::Resolver> resolver = it->second.Get(isolate);
+  
+  if (success) {
+    // Convert base::Value::List to V8 array
+    v8::Local<v8::Array> result_array = v8::Array::New(isolate, result.size());
+    
+    for (size_t i = 0; i < result.size(); ++i) {
+      const auto& account = result[i];
+      v8::Local<v8::Object> account_obj = v8::Object::New(isolate);
+      
+      if (account.is_dict()) {
+        const auto& account_dict = account.GetDict();
+        
+        for (const auto& [key, value] : account_dict) {
+          v8::Local<v8::String> v8_key = gin::StringToV8(isolate, key);
+          v8::Local<v8::Value> v8_value;
+          
+          if (value.is_string()) {
+            v8_value = gin::StringToV8(isolate, value.GetString());
+          } else if (value.is_bool()) {
+            v8_value = v8::Boolean::New(isolate, value.GetBool());
+          } else if (value.is_double()) {
+            v8_value = v8::Number::New(isolate, value.GetDouble());
+          } else if (value.is_list()) {
+            // Convert relay list
+            const auto& relays = value.GetList();
+            v8::Local<v8::Array> relays_array = v8::Array::New(isolate, relays.size());
+            for (size_t j = 0; j < relays.size(); ++j) {
+              if (relays[j].is_string()) {
+                relays_array->Set(context, j, 
+                                gin::StringToV8(isolate, relays[j].GetString())).Check();
+              }
+            }
+            v8_value = relays_array;
+          } else {
+            v8_value = v8::Null(isolate);
+          }
+          
+          account_obj->Set(context, v8_key, v8_value).Check();
+        }
+      }
+      
+      result_array->Set(context, i, account_obj).Check();
+    }
+    
+    resolver->Resolve(context, result_array).Check();
+  } else {
+    v8::Local<v8::Value> error_value = 
+        v8::Exception::Error(gin::StringToV8(isolate, "Failed to list accounts"));
+    resolver->Reject(context, error_value).Check();
+  }
+  
+  pending_resolvers_.erase(it);
+}
+
+void NostrBindings::OnGetCurrentAccountResponse(int request_id, bool success,
+                                               const base::Value::Dict& result) {
+  auto it = pending_resolvers_.find(request_id);
+  if (it == pending_resolvers_.end()) {
+    return;
+  }
+  
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  
+  v8::Local<v8::Promise::Resolver> resolver = it->second.Get(isolate);
+  
+  if (success) {
+    // Convert base::Value::Dict to V8 object
+    v8::Local<v8::Object> result_obj = v8::Object::New(isolate);
+    
+    for (const auto& [key, value] : result) {
+      v8::Local<v8::String> v8_key = gin::StringToV8(isolate, key);
+      v8::Local<v8::Value> v8_value;
+      
+      if (value.is_string()) {
+        v8_value = gin::StringToV8(isolate, value.GetString());
+      } else if (value.is_bool()) {
+        v8_value = v8::Boolean::New(isolate, value.GetBool());
+      } else if (value.is_double()) {
+        v8_value = v8::Number::New(isolate, value.GetDouble());
+      } else if (value.is_list()) {
+        // Convert relay list
+        const auto& relays = value.GetList();
+        v8::Local<v8::Array> relays_array = v8::Array::New(isolate, relays.size());
+        for (size_t i = 0; i < relays.size(); ++i) {
+          if (relays[i].is_string()) {
+            relays_array->Set(context, i, 
+                            gin::StringToV8(isolate, relays[i].GetString())).Check();
+          }
+        }
+        v8_value = relays_array;
+      } else {
+        v8_value = v8::Null(isolate);
+      }
+      
+      result_obj->Set(context, v8_key, v8_value).Check();
+    }
+    
+    resolver->Resolve(context, result_obj).Check();
+  } else {
+    v8::Local<v8::Value> error_value = 
+        v8::Exception::Error(gin::StringToV8(isolate, "Failed to get current account"));
+    resolver->Reject(context, error_value).Check();
+  }
+  
+  pending_resolvers_.erase(it);
+}
+
+void NostrBindings::OnSwitchAccountResponse(int request_id, bool success) {
+  auto it = pending_resolvers_.find(request_id);
+  if (it == pending_resolvers_.end()) {
+    return;
+  }
+  
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  
+  v8::Local<v8::Promise::Resolver> resolver = it->second.Get(isolate);
+  
+  if (success) {
+    resolver->Resolve(context, v8::Boolean::New(isolate, true)).Check();
+  } else {
+    v8::Local<v8::Value> error_value = 
+        v8::Exception::Error(gin::StringToV8(isolate, "Failed to switch account"));
+    resolver->Reject(context, error_value).Check();
+  }
+  
+  pending_resolvers_.erase(it);
+}
+
 // RenderFrameObserver Implementation
 
 bool NostrBindings::OnMessageReceived(const IPC::Message& message) {
@@ -560,6 +806,9 @@ bool NostrBindings::OnMessageReceived(const IPC::Message& message) {
     IPC_MESSAGE_HANDLER(NostrMsg_GetRelaysResponse, OnGetRelaysResponse)
     IPC_MESSAGE_HANDLER(NostrMsg_Nip04EncryptResponse, OnNip04EncryptResponse)
     IPC_MESSAGE_HANDLER(NostrMsg_Nip04DecryptResponse, OnNip04DecryptResponse)
+    IPC_MESSAGE_HANDLER(NostrMsg_ListAccountsResponse, OnListAccountsResponse)
+    IPC_MESSAGE_HANDLER(NostrMsg_GetCurrentAccountResponse, OnGetCurrentAccountResponse)
+    IPC_MESSAGE_HANDLER(NostrMsg_SwitchAccountResponse, OnSwitchAccountResponse)
     IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
   
