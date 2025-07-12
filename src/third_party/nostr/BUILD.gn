@@ -1,0 +1,56 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Bundled Nostr JavaScript libraries for offline use
+
+import("//build/config/features.gni")
+import("//chrome/common/features.gni")
+import("//tools/grit/grit_rule.gni")
+
+if (bundle_nostr_libs) {
+  # Copy libraries from external sources to gen directory
+  action("copy_nostr_libs") {
+    script = "//chrome/browser/resources/nostr/copy_libraries.py"
+    
+    inputs = [
+      "//chrome/browser/resources/nostr/third_party/ndk-1.6.0.js",
+      "//chrome/browser/resources/nostr/third_party/nostr-tools-1.17.0.js", 
+      "//chrome/browser/resources/nostr/third_party/applesauce-1.0.0.js",
+      "//chrome/browser/resources/nostr/third_party/nostrify-1.2.0.js",
+      "//chrome/browser/resources/nostr/third_party/alby-sdk-2.0.0.js",
+    ]
+    
+    outputs = [
+      "$root_gen_dir/nostr/ndk.js",
+      "$root_gen_dir/nostr/nostr-tools.js",
+      "$root_gen_dir/nostr/applesauce.js", 
+      "$root_gen_dir/nostr/nostrify.js",
+      "$root_gen_dir/nostr/alby-sdk.js",
+    ]
+    
+    args = [
+      "--input-dir",
+      rebase_path("//chrome/browser/resources/nostr/third_party", root_build_dir),
+      "--output-dir", 
+      rebase_path("$root_gen_dir/nostr", root_build_dir),
+    ]
+    
+    visibility = [ ":*" ]
+  }
+
+  # Generate resource bundle for the libraries
+  grit("nostr_resources") {
+    source = "//chrome/browser/resources/nostr/nostr_resources.grd"
+    
+    deps = [ ":copy_nostr_libs" ]
+    
+    outputs = [
+      "grit/nostr_resources.h",
+      "nostr_resources.pak",
+    ]
+    
+    output_dir = "$root_gen_dir/chrome"
+    resource_ids = "//chrome/browser/resources/resource_ids"
+  }
+}

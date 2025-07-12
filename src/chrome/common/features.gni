@@ -1,0 +1,19 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Global feature flags for Tungsten browser
+
+declare_args() {
+  # Enable Nostr protocol support with NIP-07 interface
+  enable_nostr = false
+
+  # Enable local Nostr relay server
+  enable_local_relay = false
+
+  # Enable Blossom server for file storage
+  enable_blossom_server = false
+
+  # Bundle JavaScript libraries for offline use
+  bundle_nostr_libs = true
+}

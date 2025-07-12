@@ -1,0 +1,13 @@
+# Tungsten Browser Build Arguments
+
+# Enable Tungsten Nostr features
+enable_nostr = true
+enable_local_relay = true  
+enable_blossom_server = true
+bundle_nostr_libs = true
+
+# Minimal build settings for testing
+is_debug = false
+is_official_build = false
+symbol_level = 1
+enable_nacl = false

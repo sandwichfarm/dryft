@@ -17,6 +17,7 @@ import("//chrome/browser/downgrade/buildflags.gni")
 import("//chrome/browser/request_header_integrity/buildflags.gni")
 import("//chrome/common/features.gni")
 import("//chrome/services/speech/buildflags/buildflags.gni")
+import("//components/nostr/BUILD.gn")
 import("//chromeos/ash/components/assistant/assistant.gni")
 import("//components/captive_portal/core/features.gni")
 import("//components/compose/features.gni")
@@ -2498,6 +2499,16 @@ static_library("browser") {
     "//ui/surface",
     "//ui/webui",
   ]
+
+  if (enable_nostr) {
+    deps += [
+      "//chrome/browser/nostr",
+      "//chrome/browser/blossom", 
+      "//chrome/browser/nsite",
+      "//components/nostr",
+      "//third_party/nostr:nostr_resources",
+    ]
+  }
 
   # Platforms that have a network diagnostics dialog. All others fall through
   # to the stub which is not implemented.
