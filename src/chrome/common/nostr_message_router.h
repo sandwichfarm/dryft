@@ -9,12 +9,9 @@
 
 #include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
+#include "chrome/browser/nostr/nostr_permission_manager.h"
 #include "content/public/browser/browser_message_filter.h"
 #include "url/origin.h"
-
-namespace nostr {
-class NIP07Permission;
-}  // namespace nostr
 
 namespace content {
 class BrowserContext;

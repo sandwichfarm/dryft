@@ -84,36 +84,74 @@ class NostrPermissionManager : public KeyedService {
   explicit NostrPermissionManager(Profile* profile);
   ~NostrPermissionManager() override;
 
-  // Check if an operation is permitted for the given origin
+  /**
+   * Check if an operation is permitted for the given origin.
+   * @param origin The origin requesting permission
+   * @param method The NIP-07 method being requested
+   * @param event_kind Optional event kind for signEvent operations (-1 if not applicable)
+   * @return PermissionResult indicating whether operation should proceed
+   */
   PermissionResult CheckPermission(const url::Origin& origin,
                                   NIP07Permission::Method method,
                                   int event_kind = -1);
 
-  // Grant permission for an origin with specified settings
+  /**
+   * Grant permission for an origin with specified settings.
+   * @param origin The origin to grant permission for
+   * @param permission The permission configuration to store
+   * @return GrantResult indicating success or failure reason
+   */
   GrantResult GrantPermission(const url::Origin& origin,
                              const NIP07Permission& permission);
 
-  // Revoke permission for an origin (all methods)
+  /**
+   * Revoke all permissions for an origin.
+   * @param origin The origin to revoke permissions for
+   * @return true if permissions were revoked, false if none existed
+   */
   bool RevokePermission(const url::Origin& origin);
 
-  // Revoke specific method permission for an origin
+  /**
+   * Revoke permission for a specific method on an origin.
+   * @param origin The origin to modify
+   * @param method The specific method to revoke permission for
+   * @return true if permission was revoked, false if it didn't exist
+   */
   bool RevokeMethodPermission(const url::Origin& origin,
                              NIP07Permission::Method method);
 
-  // Get all permissions for management UI
+  /**
+   * Get all stored permissions for management UI.
+   * @return Vector of all current permissions across all origins
+   */
   std::vector<NIP07Permission> GetAllPermissions();
 
-  // Get permission for specific origin
+  /**
+   * Get permission configuration for a specific origin.
+   * @param origin The origin to look up
+   * @return Optional permission if it exists, nullopt otherwise
+   */
   std::optional<NIP07Permission> GetPermission(const url::Origin& origin);
 
-  // Update rate limiting counters for an operation
+  /**
+   * Update rate limiting counters after an operation.
+   * @param origin The origin that performed the operation
+   * @param method The method that was executed
+   * @return true if counters were updated successfully
+   */
   bool UpdateRateLimit(const url::Origin& origin,
                       NIP07Permission::Method method);
 
-  // Clear expired permissions
+  /**
+   * Remove all expired permissions from storage.
+   * Should be called periodically to maintain clean state.
+   */
   void CleanupExpiredPermissions();
 
-  // Reset rate limiting counters (for testing)
+  /**
+   * Reset rate limiting counters for an origin (testing only).
+   * @param origin The origin to reset counters for
+   */
   void ResetRateLimits(const url::Origin& origin);
 
   // Register preferences for permission storage
