@@ -9,7 +9,7 @@ The macOS implementation (`KeyStorageMac`) uses the macOS Keychain Services API 
 - OS-level security with user authentication
 - Persistence across browser restarts
 - Protection via macOS security architecture
-- Integration with Touch ID when available
+- Touch ID support via OS when keychain requires authentication
 - Automatic keychain unlocking with user login
 
 ## Architecture
@@ -114,7 +114,7 @@ macOS-specific tests verify:
 
 1. **Keychain Locking**: Keys inaccessible when keychain is locked
 2. **User Prompts**: First access requires user approval
-3. **No Biometric Auth**: Touch ID not directly integrated (OS handles it)
+3. **Touch ID**: Not directly integrated - macOS handles Touch ID authentication for keychain access when configured by the user
 4. **Migration**: No automatic migration from other storage methods
 
 ## Migration from Extensions
