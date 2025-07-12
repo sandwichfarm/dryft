@@ -52,6 +52,20 @@ if (enable_nostr) {
         "key_storage_windows.h",
       ]
     }
+    
+    if (is_mac) {
+      sources += [
+        "key_storage_mac.h",
+        "key_storage_mac.mm",
+        "mac_keychain_manager.h",
+        "mac_keychain_manager.mm",
+      ]
+      
+      frameworks = [
+        "Foundation.framework",
+        "Security.framework",
+      ]
+    }
   }
 
   source_set("nostr_browser_tests") {
@@ -79,6 +93,10 @@ if (enable_nostr) {
     
     if (is_win) {
       sources += [ "key_storage_windows_unittest.cc" ]
+    }
+    
+    if (is_mac) {
+      sources += [ "key_storage_mac_unittest.cc" ]
     }
 
     deps = [

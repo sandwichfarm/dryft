@@ -29,7 +29,11 @@ This directory contains the implementation of secure key storage for Nostr priva
   - Stores credentials as CRED_TYPE_GENERIC
   - Persists with CRED_PERSIST_LOCAL_MACHINE
   - Separate credentials for key data and metadata
-- **macOS**: macOS Keychain (Issue B-4)
+- **macOS**: macOS Keychain (`key_storage_mac.h/mm`)
+  - Uses Security framework Keychain Services API
+  - Stores as generic passwords with kSecAttrAccessibleWhenUnlocked
+  - Objective-C++ bridge for keychain operations
+  - Separate items for key data and metadata
 - **Linux**: libsecret/GNOME Keyring (Issue B-5)
 - **Fallback**: Encrypted preferences storage
 - **Testing**: In-memory storage (`key_storage_in_memory.h/cc`)
@@ -93,6 +97,9 @@ Run unit tests:
 
 # Windows-specific tests
 ./out/Default/chrome_test --gtest_filter="KeyStorageWindowsTest.*"
+
+# macOS-specific tests
+./out/Default/chrome_test --gtest_filter="KeyStorageMacTest.*"
 ```
 
 ## Future Improvements
