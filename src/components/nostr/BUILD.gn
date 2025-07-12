@@ -1,0 +1,159 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+
+# Feature flag for Nostr support
+declare_args() {
+  enable_nostr = false
+  enable_local_relay = false
+  enable_blossom_server = false
+}
+
+if (enable_nostr) {
+  source_set("nostr") {
+    sources = [
+      "nostr_protocol.cc",
+      "nostr_protocol.h",
+      "nostr_event.cc",
+      "nostr_event.h",
+      "nostr_crypto.cc",
+      "nostr_crypto.h",
+      "nostr_filter.cc",
+      "nostr_filter.h",
+      "nip07_provider.cc",
+      "nip07_provider.h",
+      "key_storage_interface.cc",
+      "key_storage_interface.h",
+      "permission_manager.cc",
+      "permission_manager.h",
+    ]
+
+    deps = [
+      "//base",
+      "//components/keyed_service/core",
+      "//components/prefs",
+      "//content/public/browser",
+      "//crypto",
+      "//net",
+      "//third_party/boringssl",
+    ]
+
+    if (is_win) {
+      sources += [
+        "key_storage_win.cc",
+        "key_storage_win.h",
+      ]
+      libs = [ "crypt32.lib" ]
+    }
+
+    if (is_mac) {
+      sources += [
+        "key_storage_mac.cc",
+        "key_storage_mac.h",
+      ]
+      frameworks = [ "Security.framework" ]
+    }
+
+    if (is_linux || is_chromeos) {
+      sources += [
+        "key_storage_linux.cc",
+        "key_storage_linux.h",
+      ]
+      deps += [ "//components/os_crypt" ]
+    }
+  }
+
+  source_set("nostr_renderer") {
+    sources = [
+      "renderer/nostr_bindings.cc",
+      "renderer/nostr_bindings.h",
+      "renderer/window_nostr_injection.cc",
+      "renderer/window_nostr_injection.h",
+    ]
+
+    deps = [
+      "//base",
+      "//content/public/renderer",
+      "//gin",
+      "//mojo/public/cpp/bindings",
+      "//third_party/blink/public/web",
+      "//v8",
+    ]
+  }
+
+  if (enable_local_relay) {
+    source_set("local_relay") {
+      sources = [
+        "local_relay/local_relay_service.cc",
+        "local_relay/local_relay_service.h",
+        "local_relay/relay_database.cc",
+        "local_relay/relay_database.h",
+        "local_relay/websocket_server.cc",
+        "local_relay/websocket_server.h",
+        "local_relay/subscription_manager.cc",
+        "local_relay/subscription_manager.h",
+      ]
+
+      deps = [
+        ":nostr",
+        "//base",
+        "//net",
+        "//net/server:http_server",
+        "//sql",
+      ]
+    }
+  }
+
+  if (enable_blossom_server) {
+    source_set("blossom") {
+      sources = [
+        "blossom/blossom_service.cc",
+        "blossom/blossom_service.h",
+        "blossom/blossom_storage.cc",
+        "blossom/blossom_storage.h",
+        "blossom/blossom_authorization.cc",
+        "blossom/blossom_authorization.h",
+        "blossom/bud03_server_list.cc",
+        "blossom/bud03_server_list.h",
+      ]
+
+      deps = [
+        ":nostr",
+        "//base",
+        "//crypto",
+        "//net",
+        "//net/server:http_server",
+      ]
+    }
+  }
+
+  source_set("nostr_unit_tests") {
+    testonly = true
+    sources = [
+      "nostr_test.cc",
+      # TODO: Add these as we implement them
+      # "nostr_crypto_unittest.cc",
+      # "nostr_event_unittest.cc",
+      # "nostr_filter_unittest.cc",
+      # "permission_manager_unittest.cc",
+    ]
+
+    deps = [
+      ":nostr",
+      "//base/test:test_support",
+      "//testing/gtest",
+    ]
+
+    if (enable_local_relay) {
+      sources += [ "local_relay/relay_database_unittest.cc" ]
+      deps += [ ":local_relay" ]
+    }
+
+    if (enable_blossom_server) {
+      sources += [ "blossom/blossom_storage_unittest.cc" ]
+      deps += [ ":blossom" ]
+    }
+  }
+}

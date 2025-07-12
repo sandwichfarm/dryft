@@ -1,0 +1,53 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+import("//components/nostr/BUILD.gn")
+
+if (enable_nostr) {
+  source_set("nostr") {
+    sources = [
+      "nostr_service_factory.cc",
+      "nostr_service_factory.h",
+      "nostr_profile_service.cc",
+      "nostr_profile_service.h",
+      "nostr_protocol_handler.cc",
+      "nostr_protocol_handler.h",
+      "nostr_permission_dialog.cc",
+      "nostr_permission_dialog.h",
+      "nostr_preferences.cc",
+      "nostr_preferences.h",
+    ]
+
+    deps = [
+      "//base",
+      "//chrome/browser/profiles",
+      "//chrome/browser/ui",
+      "//chrome/common",
+      "//components/keyed_service/content",
+      "//components/nostr",
+      "//components/prefs",
+      "//content/public/browser",
+      "//net",
+      "//ui/views",
+      "//url",
+    ]
+  }
+
+  source_set("nostr_browser_tests") {
+    testonly = true
+    sources = [
+      "nostr_protocol_handler_browsertest.cc",
+      "nostr_permission_dialog_browsertest.cc",
+    ]
+
+    deps = [
+      ":nostr",
+      "//chrome/test:test_support",
+      "//chrome/test:test_support_ui",
+      "//components/nostr:nostr",
+      "//testing/gtest",
+    ]
+  }
+}

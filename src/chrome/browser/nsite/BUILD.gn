@@ -1,0 +1,37 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+import("//components/nostr/BUILD.gn")
+
+if (enable_nostr) {
+  source_set("nsite") {
+    sources = [
+      "nsite_handler.cc",
+      "nsite_handler.h",
+      "nsite_resolver.cc",
+      "nsite_resolver.h",
+      "nsite_renderer.cc",
+      "nsite_renderer.h",
+      "nsite_cache.cc",
+      "nsite_cache.h",
+      "nsite_security_policy.cc",
+      "nsite_security_policy.h",
+    ]
+
+    deps = [
+      "//base",
+      "//chrome/browser/profiles",
+      "//chrome/browser/ui",
+      "//chrome/common",
+      "//components/nostr",
+      "//components/prefs",
+      "//content/public/browser",
+      "//crypto",
+      "//net",
+      "//ui/views",
+      "//url",
+    ]
+  }
+}
