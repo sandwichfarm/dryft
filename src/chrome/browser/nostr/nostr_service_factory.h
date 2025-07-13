@@ -28,6 +28,9 @@ class NostrServiceFactory : public BrowserContextKeyedServiceFactory {
   NostrServiceFactory(const NostrServiceFactory&) = delete;
   NostrServiceFactory& operator=(const NostrServiceFactory&) = delete;
 
+  // Register preferences
+  static void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
+
  private:
   friend class base::NoDestructor<NostrServiceFactory>;
 

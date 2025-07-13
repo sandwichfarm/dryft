@@ -4,10 +4,13 @@
 
 #include "chrome/browser/nostr/nostr_service_factory.h"
 
+#include "chrome/browser/nostr/local_relay/local_relay_config.h"
+#include "chrome/browser/nostr/local_relay/local_relay_service_factory.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
 #include "chrome/browser/nostr/nostr_service.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/keyed_service/content/browser_context_dependency_manager.h"
+#include "components/user_prefs/user_prefs.h"
 
 namespace nostr {
 
@@ -35,6 +38,8 @@ NostrServiceFactory::NostrServiceFactory()
           BrowserContextDependencyManager::GetInstance()) {
   // NostrService depends on NostrPermissionManager
   DependsOn(NostrPermissionManagerFactory::GetInstance());
+  // NostrService depends on LocalRelayService
+  DependsOn(local_relay::LocalRelayServiceFactory::GetInstance());
 }
 
 NostrServiceFactory::~NostrServiceFactory() = default;
@@ -55,6 +60,13 @@ content::BrowserContext* NostrServiceFactory::GetBrowserContextToUse(
 bool NostrServiceFactory::ServiceIsCreatedWithBrowserContext() const {
   // Don't create the service until it's first requested
   return false;
+}
+
+// static
+void NostrServiceFactory::RegisterProfilePrefs(
+    user_prefs::PrefRegistrySyncable* registry) {
+  // Register local relay preferences
+  local_relay::LocalRelayConfigManager::RegisterProfilePrefs(registry);
 }
 
 }  // namespace nostr
