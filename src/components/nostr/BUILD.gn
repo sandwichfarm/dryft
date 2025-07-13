@@ -59,6 +59,18 @@ if (enable_nostr) {
     }
   }
 
+  source_set("bech32") {
+    sources = [
+      "bech32/bech32_decoder.cc",
+      "bech32/bech32_decoder.h",
+    ]
+
+    deps = [
+      "//base",
+      "//crypto",
+    ]
+  }
+
   source_set("nostr_renderer") {
     sources = [
       "renderer/nostr_bindings.cc",
@@ -127,6 +139,7 @@ if (enable_nostr) {
     testonly = true
     sources = [
       "nostr_test.cc",
+      "bech32/bech32_decoder_unittest.cc",
       # TODO: Add these as we implement them
       # "nostr_crypto_unittest.cc",
       # "nostr_event_unittest.cc",
@@ -136,6 +149,7 @@ if (enable_nostr) {
 
     deps = [
       ":nostr",
+      ":bech32",
       "//base/test:test_support",
       "//testing/gtest",
     ]
