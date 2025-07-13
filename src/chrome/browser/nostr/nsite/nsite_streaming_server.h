@@ -23,6 +23,7 @@ namespace nostr {
 class NsiteCacheManager;
 class NsiteSecurityUtils;
 class NsiteUpdateMonitor;
+class NsiteNotificationManager;
 
 // HTTP server for streaming nsite content with dynamic port allocation
 class NsiteStreamingServer : public net::HttpServer::Delegate {
@@ -54,6 +55,9 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
 
   // Set update monitor (called by NsiteService)
   void SetUpdateMonitor(NsiteUpdateMonitor* update_monitor);
+
+  // Set notification manager (called by NsiteService)
+  void SetNotificationManager(NsiteNotificationManager* notification_manager);
 
   // net::HttpServer::Delegate implementation
   void OnConnect(int connection_id) override;
@@ -99,6 +103,9 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
 
   // Update monitoring (not owned)
   NsiteUpdateMonitor* update_monitor_ = nullptr;
+
+  // Notification management (not owned)
+  NsiteNotificationManager* notification_manager_ = nullptr;
 
   // Session tracking: session_id -> npub
   std::map<std::string, std::string> sessions_;

@@ -25,6 +25,7 @@ namespace nostr {
 class NsiteStreamingServer;
 class NsiteHeaderInjector;
 class NsiteUpdateMonitor;
+class NsiteNotificationManager;
 
 // Singleton service managing the nsite streaming server
 class NsiteService {
@@ -55,6 +56,11 @@ class NsiteService {
   void ClearNsiteForTab(content::WebContents* web_contents);
   std::string GetNsiteForTab(content::WebContents* web_contents);
 
+  // Notification management
+  void ShowUpdateNotification(content::WebContents* web_contents,
+                              const std::string& npub,
+                              const std::string& path);
+
  private:
   friend class base::NoDestructor<NsiteService>;
   
@@ -66,6 +72,7 @@ class NsiteService {
     std::unique_ptr<NsiteStreamingServer> server;
     std::unique_ptr<NsiteHeaderInjector> header_injector;
     std::unique_ptr<NsiteUpdateMonitor> update_monitor;
+    std::unique_ptr<NsiteNotificationManager> notification_manager;
     uint16_t port = 0;
   };
 
