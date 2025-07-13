@@ -9,12 +9,16 @@ component("blossom") {
     "authorization_manager.h",
     "blossom_authorization_manager.cc",
     "blossom_authorization_manager.h",
+    "blossom_content_resolver.cc",
+    "blossom_content_resolver.h",
     "blossom_request_handler.cc",
     "blossom_request_handler.h",
     "blossom_server.cc",
     "blossom_server.h",
     "blossom_storage.cc",
     "blossom_storage.h",
+    "blossom_user_server_manager.cc",
+    "blossom_user_server_manager.h",
   ]
 
   deps = [
@@ -24,6 +28,7 @@ component("blossom") {
     "//net",
     "//net/server:http_server",
     "//third_party/boringssl",
+    "//url",
   ]
 
   defines = [ "IS_BLOSSOM_IMPL" ]
@@ -34,8 +39,10 @@ source_set("unit_tests") {
   
   sources = [
     "blossom_authorization_manager_unittest.cc",
+    "blossom_content_resolver_unittest.cc",
     "blossom_server_unittest.cc",
     "blossom_storage_unittest.cc",
+    "blossom_user_server_manager_unittest.cc",
   ]
   
   deps = [
@@ -48,5 +55,6 @@ source_set("unit_tests") {
     "//net:test_support",
     "//testing/gtest",
     "//third_party/boringssl",
+    "//url",
   ]
 }
