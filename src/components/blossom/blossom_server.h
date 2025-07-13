@@ -34,6 +34,7 @@ struct ServerConfig {
   bool require_auth_for_upload = true;
   bool require_auth_for_list = true;
   bool require_auth_for_delete = true;
+  std::string server_name;  // Server name for authorization events
   
   // Server limits
   size_t max_upload_size = 100 * 1024 * 1024;  // 100MB

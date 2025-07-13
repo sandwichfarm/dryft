@@ -513,9 +513,33 @@ void BlossomRequestHandler::CheckAuthorization(
     return;
   }
   
-  // TODO: Implement authorization check
-  // For now, allow all requests
-  std::move(callback).Run(true, "");
+  // Extract Authorization header (case-insensitive lookup)
+  auto it = request.headers.end();
+  for (auto header_it = request.headers.begin(); 
+       header_it != request.headers.end(); ++header_it) {
+    if (base::EqualsCaseInsensitiveASCII(header_it->first, "authorization")) {
+      it = header_it;
+      break;
+    }
+  }
+  
+  if (it == request.headers.end()) {
+    std::move(callback).Run(false, "Missing Authorization header");
+    return;
+  }
+  
+  // Check authorization manager availability
+  if (!auth_manager_) {
+    std::move(callback).Run(false, "Authorization manager not available");
+    return;
+  }
+  
+  // Extract hash from path (if applicable)
+  std::string hash = ExtractHashFromPath(request.path);
+  
+  // Check authorization
+  auth_manager_->CheckAuthorization(
+      it->second, verb, hash, std::move(callback));
 }
 
 }  // namespace blossom
