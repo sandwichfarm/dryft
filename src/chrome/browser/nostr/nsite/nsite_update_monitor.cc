@@ -9,6 +9,7 @@
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
 #include "chrome/browser/nostr/nsite/nsite_cache_manager.h"
+#include "content/public/browser/browser_task_traits.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 
 namespace nostr {
@@ -76,6 +77,7 @@ void NsiteUpdateMonitor::CheckForUpdates(const std::string& npub,
 }
 
 void NsiteUpdateMonitor::SetMinCheckInterval(base::TimeDelta interval) {
+  base::AutoLock lock(lock_);
   min_check_interval_ = interval;
 }
 
@@ -94,6 +96,13 @@ bool NsiteUpdateMonitor::ShouldCheckForUpdates(const std::string& npub) {
   }
 
   const auto& info = it->second;
+  
+  // Check if an update is already in progress
+  if (info.check_in_progress) {
+    VLOG(2) << "Update check already in progress for " << npub;
+    return false;
+  }
+  
   base::Time now = base::Time::Now();
   
   // Check if minimum interval has passed
@@ -123,7 +132,7 @@ void NsiteUpdateMonitor::PerformUpdateCheck(const std::string& npub,
   bool has_updates = false;  // Will be replaced with actual logic
   
   // Post result back to main thread
-  base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+  content::GetUIThreadTaskRunner({})->PostTask(
       FROM_HERE,
       base::BindOnce(&NsiteUpdateMonitor::OnUpdateCheckComplete,
                      weak_factory_.GetWeakPtr(),

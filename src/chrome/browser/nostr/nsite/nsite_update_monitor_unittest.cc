@@ -70,13 +70,13 @@ TEST_F(NsiteUpdateMonitorTest, RateLimiting) {
   update_monitor_->CheckForUpdates(npub, path, callback);
   task_environment_.RunUntilIdle();
   
-  // Second immediate check should be rate limited
+  // Second immediate check should be rate limited (no callback should fire)
   update_monitor_->CheckForUpdates(npub, path, callback);
   task_environment_.RunUntilIdle();
   
-  // Should not have duplicate checks in progress
-  // (Actual behavior verification would require access to internal state)
-  SUCCEED();
+  // Since the implementation currently returns false for updates,
+  // we expect no callbacks to have fired
+  EXPECT_EQ(0, callback_count);
 }
 
 TEST_F(NsiteUpdateMonitorTest, MultipleNsites) {
@@ -141,8 +141,9 @@ TEST_F(NsiteUpdateMonitorTest, ShortInterval) {
   update_monitor_->CheckForUpdates(npub, path, callback);
   task_environment_.RunUntilIdle();
   
-  // Both checks should be allowed due to short interval
-  SUCCEED();
+  // Since the implementation currently returns false for updates,
+  // no callbacks should fire even though both checks are allowed
+  EXPECT_EQ(0, callback_count);
 }
 
 }  // namespace nostr
