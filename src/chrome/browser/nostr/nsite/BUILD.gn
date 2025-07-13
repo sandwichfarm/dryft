@@ -8,6 +8,8 @@ source_set("nsite") {
   sources = [
     "nsite_cache_manager.cc",
     "nsite_cache_manager.h",
+    "nsite_header_injector.cc",
+    "nsite_header_injector.h",
     "nsite_service.cc",
     "nsite_service.h",
     "nsite_streaming_server.cc",
@@ -19,6 +21,7 @@ source_set("nsite") {
     "//chrome/browser/profiles",
     "//content/public/browser",
     "//crypto",
+    "//extensions/browser/api/web_request",
     "//net",
     "//net:net_with_v8",
     "//services/network/public/cpp",
@@ -31,6 +34,7 @@ source_set("unit_tests") {
   
   sources = [
     "nsite_cache_manager_unittest.cc",
+    "nsite_header_injector_unittest.cc",
     "nsite_streaming_server_unittest.cc",
   ]
   
@@ -39,6 +43,7 @@ source_set("unit_tests") {
     "//base",
     "//base/test:test_support",
     "//chrome/browser/profiles:test_support",
+    "//chrome/test:test_support",
     "//content/test:test_support",
     "//net:test_support",
     "//testing/gtest",

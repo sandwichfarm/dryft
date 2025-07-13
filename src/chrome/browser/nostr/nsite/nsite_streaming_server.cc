@@ -201,7 +201,7 @@ void NsiteStreamingServer::OnHttpRequest(int connection_id,
   if (!context.valid) {
     LOG(WARNING) << "Invalid request - no valid npub found";
     SendErrorResponse(connection_id, net::HTTP_BAD_REQUEST, 
-                     "Missing or invalid X-Nsite-Pubkey header");
+                     "Missing or invalid X-Npub header");
     return;
   }
 
@@ -230,10 +230,10 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
   // Get or create session
   context.session_id = GetOrCreateSession(info);
   
-  // Extract X-Nsite-Pubkey header (case-insensitive)
+  // Extract X-Npub header (case-insensitive)
   std::string npub;
   for (const auto& header : info.headers) {
-    if (base::EqualsCaseInsensitiveASCII(header.first, "X-Nsite-Pubkey")) {
+    if (base::EqualsCaseInsensitiveASCII(header.first, "X-Npub")) {
       npub = header.second;
       break;
     }
@@ -249,7 +249,7 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
   }
 
   if (npub.empty()) {
-    LOG(WARNING) << "Request missing X-Nsite-Pubkey header and no session: " << info.path;
+    LOG(WARNING) << "Request missing X-Npub header and no session: " << info.path;
     return context;
   }
 
