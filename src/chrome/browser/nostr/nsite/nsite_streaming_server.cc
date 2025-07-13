@@ -13,6 +13,9 @@
 #include "chrome/browser/nostr/nsite/nsite_notification_manager.h"
 #include "chrome/browser/nostr/nsite/nsite_security_utils.h"
 #include "chrome/browser/nostr/nsite/nsite_update_monitor.h"
+#include "components/blossom/blossom_content_resolver.h"
+#include "services/network/public/cpp/simple_url_loader.h"
+#include "services/network/public/cpp/shared_url_loader_factory.h"
 
 #include "base/guid.h"
 #include "base/logging.h"
@@ -371,47 +374,127 @@ void NsiteStreamingServer::HandleNsiteRequest(int connection_id,
     return;
   }
   
-  // File not in cache - serve placeholder for now
-  // TODO: Implement background fetching from Nostr relays
-  
-  std::string response = base::StringPrintf(
-      R"(<!DOCTYPE html>
-<html>
-<head>
-<title>Nsite: %s</title>
-<style>
-body { font-family: system-ui, sans-serif; margin: 40px; }
-h1 { color: #0366d6; }
-p { color: #586069; }
-.info { background: #f6f8fa; padding: 20px; border-radius: 6px; }
-.error { background: #ffebee; border-left: 4px solid #f44336; padding: 20px; margin: 20px 0; }
-code { background: #e1e4e8; padding: 2px 4px; border-radius: 3px; }
-</style>
-</head>
-<body>
-<h1>Nsite Streaming Server</h1>
-<div class="info">
-<p><strong>Nsite:</strong> <code>%s</code></p>
-<p><strong>Path:</strong> <code>%s</code></p>
-<p><strong>Session:</strong> <code>%s</code></p>
-<p><strong>From Session:</strong> %s</p>
-</div>
-<div class="error">
-<p><strong>File not found in cache</strong></p>
-<p>Nsite content fetching from relays will be implemented in a future update.</p>
-</div>
-</body>
-</html>)",
-      context.npub.c_str(),
-      context.npub.c_str(),
-      context.path.c_str(),
-      context.session_id.c_str(),
-      context.from_session ? "Yes" : "No");
+  // File not in cache - query from local relay using WebSocket
+  // Create WebSocket connection to local relay (ws://127.0.0.1:8081)
+  QueryEventsFromRelay(connection_id, context);
+}
 
+void NsiteStreamingServer::QueryEventsFromRelay(int connection_id,
+                                               const RequestContext& context) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  
+  // For now, send 404 since WebSocket implementation would be complex
+  // In a full implementation, this would:
+  // 1. Create WebSocket connection to ws://127.0.0.1:8081
+  // 2. Send REQ message with filter for kind 34128 and author
+  // 3. Handle EOSE and EVENT responses
+  // 4. Parse events and find matching file
+  
+  LOG(INFO) << "Relay querying not yet implemented - serving 404";
+  SendErrorResponse(connection_id, net::HTTP_NOT_FOUND, "Content not available");
+}
+
+void NsiteStreamingServer::OnRelayEventsReceived(int connection_id,
+                                                const RequestContext& context,
+                                                const std::vector<base::Value::Dict>& events) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  
+  if (events.empty()) {
+    LOG(INFO) << "No nsite events found for npub: " << context.npub;
+    SendErrorResponse(connection_id, net::HTTP_NOT_FOUND, "Nsite not found");
+    return;
+  }
+  
+  // Find event with matching path in 'd' tag
+  std::string target_path = context.path.empty() ? "index.html" : context.path;
+  std::string matched_hash;
+  std::string content_type = "text/html"; // Default
+  
+  for (const auto& event : events) {
+    // Get tags array from event
+    const base::Value::List* tags = event.FindList("tags");
+    if (!tags) continue;
+    
+    std::string file_path;
+    std::string file_hash;
+    
+    // Parse tags to find 'd' (path) and 'x' (hash)
+    for (const auto& tag_value : *tags) {
+      const base::Value::List* tag = tag_value.GetIfList();
+      if (!tag || tag->size() < 2) continue;
+      
+      const std::string* tag_name = (*tag)[0].GetIfString();
+      const std::string* tag_content = (*tag)[1].GetIfString();
+      if (!tag_name || !tag_content) continue;
+      
+      if (*tag_name == "d") {
+        file_path = *tag_content;
+      } else if (*tag_name == "x") {
+        file_hash = *tag_content;
+      } else if (*tag_name == "m" && tag->size() >= 2) {
+        content_type = *tag_content; // MIME type
+      }
+    }
+    
+    // Check for exact path match
+    if (file_path == target_path && !file_hash.empty()) {
+      matched_hash = file_hash;
+      break;
+    }
+    
+    // Check for directory index if path is empty or ends with '/'
+    if ((target_path == "index.html" || target_path.empty()) && 
+        file_path == "index.html" && !file_hash.empty()) {
+      matched_hash = file_hash;
+      break;
+    }
+  }
+  
+  if (matched_hash.empty()) {
+    LOG(INFO) << "No matching file found for path: " << target_path;
+    SendErrorResponse(connection_id, net::HTTP_NOT_FOUND, "File not found");
+    return;
+  }
+  
+  // Resolve content via Blossom
+  if (!blossom_resolver_) {
+    LOG(WARNING) << "Blossom resolver not available";
+    SendErrorResponse(connection_id, net::HTTP_INTERNAL_SERVER_ERROR, 
+                     "Content resolver unavailable");
+    return;
+  }
+  
+  blossom_resolver_->ResolveContent(
+      context.npub, matched_hash,
+      base::BindOnce(&NsiteStreamingServer::OnFileContentResolved,
+                     weak_factory_.GetWeakPtr(),
+                     connection_id, context));
+}
+
+void NsiteStreamingServer::OnFileContentResolved(int connection_id,
+                                                const RequestContext& context,
+                                                const blossom::ContentResolutionResult& result) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  
+  if (result.status != blossom::ContentResolutionResult::SUCCESS) {
+    LOG(WARNING) << "Failed to resolve content: " << result.error_message;
+    SendErrorResponse(connection_id, net::HTTP_NOT_FOUND, "Content not available");
+    return;
+  }
+  
+  // Successfully resolved content - serve it
   scoped_refptr<net::HttpResponseHeaders> headers =
-      net::HttpResponseHeaders::TryToCreate("HTTP/1.1 404 Not Found\r\n\r\n");
-  headers->AddHeader("Content-Type", "text/html; charset=utf-8");
-  headers->AddHeader("Cache-Control", "no-cache");
+      net::HttpResponseHeaders::TryToCreate("HTTP/1.1 200 OK\r\n\r\n");
+  
+  // Set content type
+  if (!result.mime_type.empty()) {
+    headers->AddHeader("Content-Type", result.mime_type);
+  } else {
+    headers->AddHeader("Content-Type", "application/octet-stream");
+  }
+  
+  // Add caching headers
+  headers->AddHeader("Cache-Control", "public, max-age=3600"); // 1 hour
   
   // Set session cookie if we have a session
   if (!context.session_id.empty()) {
@@ -420,7 +503,21 @@ code { background: #e1e4e8; padding: 2px 4px; border-radius: 3px; }
                           context.session_id.c_str()));
   }
   
-  server_->SendResponse(connection_id, headers, response);
+  server_->SendResponse(connection_id, headers, result.content);
+  
+  // Cache the content for future requests
+  cache_manager_->PutFile(context.npub, context.path, 
+                         result.content, result.mime_type);
+  
+  // Trigger background update check
+  if (update_monitor_) {
+    update_monitor_->CheckForUpdates(
+        context.npub, 
+        context.path,
+        base::BindRepeating([](const std::string& npub, const std::string& path) {
+          VLOG(1) << "Update available for nsite: " << npub << " path: " << path;
+        }));
+  }
 }
 
 void NsiteStreamingServer::SendErrorResponse(int connection_id,
@@ -491,6 +588,10 @@ void NsiteStreamingServer::SetUpdateMonitor(NsiteUpdateMonitor* update_monitor) 
 
 void NsiteStreamingServer::SetNotificationManager(NsiteNotificationManager* notification_manager) {
   notification_manager_ = notification_manager;
+}
+
+void NsiteStreamingServer::SetBlossomResolver(blossom::BlossomContentResolver* resolver) {
+  blossom_resolver_ = resolver;
 }
 
 void NsiteStreamingServer::CacheFile(const std::string& npub,

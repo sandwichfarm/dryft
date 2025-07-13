@@ -191,11 +191,11 @@ Always refer to:
 
 #### Phase 3: PR Creation (CRITICAL)
 ```bash
-# ALWAYS set base branch to main
+# !IMPORTANT ALWAYS set base branch to main
 gh pr create \
   --title "[Group-Number]: Brief description" \
   --base main \
-  --body "Fixes #[issue]
+  --body "Resolves #[issue]
 
 ## Summary
 - Implementation details

@@ -18,6 +18,10 @@
 #include "net/server/http_server_request_info.h"
 #include "net/socket/server_socket.h"
 
+namespace blossom {
+class BlossomContentResolver;
+}
+
 namespace nostr {
 
 class NsiteCacheManager;
@@ -64,6 +68,9 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
   // The manager pointer is not owned and must remain valid for the lifetime of this server.
   void SetNotificationManager(NsiteNotificationManager* notification_manager);
 
+  // Set Blossom content resolver (called by NsiteService)
+  void SetBlossomResolver(blossom::BlossomContentResolver* resolver);
+
   // net::HttpServer::Delegate implementation
   void OnConnect(int connection_id) override;
   void OnHttpRequest(int connection_id,
@@ -93,6 +100,11 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
 
   RequestContext ParseNsiteRequest(const net::HttpServerRequestInfo& info);
   void HandleNsiteRequest(int connection_id, const RequestContext& context);
+  void QueryEventsFromRelay(int connection_id, const RequestContext& context);
+  void OnRelayEventsReceived(int connection_id, const RequestContext& context,
+                            const std::vector<base::Value::Dict>& events);
+  void OnFileContentResolved(int connection_id, const RequestContext& context,
+                            const blossom::ContentResolutionResult& result);
   void SendErrorResponse(int connection_id, int status_code,
                         const std::string& message);
 
@@ -112,6 +124,9 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
 
   // Notification management (not owned)
   NsiteNotificationManager* notification_manager_ = nullptr;
+
+  // Blossom content resolver (not owned)
+  blossom::BlossomContentResolver* blossom_resolver_ = nullptr;
 
   // Session tracking: session_id -> npub
   std::map<std::string, std::string> sessions_;
