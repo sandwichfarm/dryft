@@ -85,6 +85,38 @@ if (enable_nostr) {
     }
   }
 
+  source_set("relay_client") {
+    sources = [
+      "relay_client/relay_connection.cc",
+      "relay_client/relay_connection.h",
+    ]
+
+    deps = [
+      "//base",
+      "//components/nostr",
+      "//net",
+      "//services/network/public/cpp",
+      "//services/network/public/mojom",
+      "//url",
+    ]
+  }
+
+  source_set("resolver") {
+    sources = [
+      "resolver/profile_event_resolver.cc",
+      "resolver/profile_event_resolver.h",
+    ]
+
+    deps = [
+      ":relay_client",
+      ":local_relay",
+      "//base",
+      "//components/nostr",
+      "//net",
+      "//url",
+    ]
+  }
+
   source_set("local_relay") {
     sources = [
       "local_relay/connection_manager.cc",
@@ -170,6 +202,22 @@ if (enable_nostr) {
       
       # Include local relay tests
       "//chrome/browser/nostr/local_relay:local_relay_unittests",
+    ]
+  }
+
+  source_set("resolver_unittests") {
+    testonly = true
+    sources = [
+      "resolver/profile_event_resolver_unittest.cc",
+    ]
+
+    deps = [
+      ":resolver",
+      ":local_relay",
+      "//base",
+      "//base/test:test_support",
+      "//components/nostr",
+      "//testing/gtest",
     ]
   }
 
