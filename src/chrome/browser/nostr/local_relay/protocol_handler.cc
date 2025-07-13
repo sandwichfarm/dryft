@@ -13,7 +13,8 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "chrome/browser/nostr/local_relay/connection_manager.h"
-#include "chrome/browser/nostr/local_relay/nostr_database.h"
+#include "chrome/browser/nostr/local_relay/event_storage.h"
+#include "chrome/browser/nostr/local_relay/query_engine.h"
 #include "components/nostr/nostr_event.h"
 #include "components/nostr/nostr_filter.h"
 #include "crypto/sha2.h"
@@ -162,15 +163,15 @@ std::string ProtocolResponse::ToJson() const {
 
 // ProtocolHandler implementation
 
-ProtocolHandler::ProtocolHandler(NostrDatabase* database,
+ProtocolHandler::ProtocolHandler(EventStorage* event_storage,
                                ConnectionManager* connection_manager,
                                SendResponseCallback send_callback,
                                BroadcastCallback broadcast_callback)
-    : database_(database),
+    : event_storage_(event_storage),
       connection_manager_(connection_manager),
       send_callback_(send_callback),
       broadcast_callback_(broadcast_callback) {
-  DCHECK(database_);
+  DCHECK(event_storage_);
   DCHECK(connection_manager_);
 }
 
@@ -334,15 +335,19 @@ void ProtocolHandler::ProcessEventMessage(int connection_id,
     return;
   }
   
-  // Store event in database
-  database_->StoreEvent(
+  // Store event using EventStorage
+  std::string event_id = event->id;
+  NostrEvent event_copy = *event;
+  
+  event_storage_->StoreEvent(
       std::move(event),
       base::BindOnce(
           [](base::WeakPtr<ProtocolHandler> handler,
              int connection_id,
              std::string event_id,
              NostrEvent event_copy,
-             bool success) {
+             bool success,
+             const std::string& error) {
             if (!handler) return;
             
             if (success) {
@@ -350,13 +355,14 @@ void ProtocolHandler::ProcessEventMessage(int connection_id,
               // Broadcast to matching subscriptions
               handler->BroadcastEvent(event_copy);
             } else {
-              handler->SendOK(connection_id, event_id, false, kDuplicateEvent);
+              handler->SendOK(connection_id, event_id, false, 
+                            error.empty() ? kDuplicateEvent : error);
             }
           },
           weak_factory_.GetWeakPtr(),
           connection_id,
-          event->id,
-          *event));
+          event_id,
+          event_copy));
 }
 
 void ProtocolHandler::ProcessReqMessage(
@@ -563,22 +569,29 @@ void ProtocolHandler::QueryAndSendEvents(
     int connection_id,
     const std::string& subscription_id,
     const std::vector<NostrFilter>& filters) {
-  // Query database for matching events
-  database_->QueryEvents(
+  // Query events using EventStorage
+  QueryOptions options;
+  options.limit = 1000;
+  
+  event_storage_->QueryEventsStreaming(
       filters,
-      1000,  // Max results
-      base::BindOnce(
+      options,
+      base::BindRepeating(
           [](base::WeakPtr<ProtocolHandler> handler,
              int connection_id,
              std::string subscription_id,
-             std::vector<std::unique_ptr<NostrEvent>> events) {
+             std::unique_ptr<NostrEvent> event) {
+            if (!handler || !event) return;
+            handler->SendEvent(connection_id, subscription_id, *event);
+          },
+          weak_factory_.GetWeakPtr(),
+          connection_id,
+          subscription_id),
+      base::BindOnce(
+          [](base::WeakPtr<ProtocolHandler> handler,
+             int connection_id,
+             std::string subscription_id) {
             if (!handler) return;
-            
-            // Send each matching event
-            for (const auto& event : events) {
-              handler->SendEvent(connection_id, subscription_id, *event);
-            }
-            
             // Send EOSE to indicate end of stored events
             handler->SendEOSE(connection_id, subscription_id);
           },

@@ -23,6 +23,7 @@ namespace local_relay {
 // Forward declarations
 class NostrDatabase;
 class ConnectionManager;
+class EventStorage;
 
 // Response types for protocol messages
 struct ProtocolResponse {
@@ -62,7 +63,7 @@ class ProtocolHandler {
                                   const std::string& subscription_id,
                                   const std::string& message)>;
 
-  ProtocolHandler(NostrDatabase* database,
+  ProtocolHandler(EventStorage* event_storage,
                   ConnectionManager* connection_manager,
                   SendResponseCallback send_callback,
                   BroadcastCallback broadcast_callback);
@@ -122,7 +123,7 @@ class ProtocolHandler {
                          const std::vector<NostrFilter>& filters);
   
   // Dependencies
-  NostrDatabase* database_;  // Not owned
+  EventStorage* event_storage_;  // Not owned
   ConnectionManager* connection_manager_;  // Not owned
   
   // Callbacks

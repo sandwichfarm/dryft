@@ -87,6 +87,8 @@ if (enable_nostr) {
     sources = [
       "local_relay/connection_manager.cc",
       "local_relay/connection_manager.h",
+      "local_relay/event_storage.cc",
+      "local_relay/event_storage.h",
       "local_relay/local_relay_service.cc",
       "local_relay/local_relay_service.h",
       "local_relay/nostr_database.cc",
@@ -96,6 +98,8 @@ if (enable_nostr) {
       "local_relay/nostr_database_schema.h",
       "local_relay/protocol_handler.cc",
       "local_relay/protocol_handler.h",
+      "local_relay/query_engine.cc",
+      "local_relay/query_engine.h",
     ]
 
     deps = [
@@ -166,6 +170,7 @@ if (enable_nostr) {
   source_set("local_relay_unittests") {
     testonly = true
     sources = [
+      "local_relay/event_storage_unittest.cc",
       "local_relay/local_relay_service_unittest.cc",
       "local_relay/nostr_database_unittest.cc",
     ]
