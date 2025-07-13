@@ -513,10 +513,24 @@ void BlossomRequestHandler::CheckAuthorization(
     return;
   }
   
-  // Extract Authorization header
-  auto it = request.headers.find("authorization");
+  // Extract Authorization header (case-insensitive lookup)
+  auto it = request.headers.end();
+  for (auto header_it = request.headers.begin(); 
+       header_it != request.headers.end(); ++header_it) {
+    if (base::EqualsCaseInsensitiveASCII(header_it->first, "authorization")) {
+      it = header_it;
+      break;
+    }
+  }
+  
   if (it == request.headers.end()) {
-    std::move(callback).Run(false, "Missing authorization header");
+    std::move(callback).Run(false, "Missing Authorization header");
+    return;
+  }
+  
+  // Check authorization manager availability
+  if (!auth_manager_) {
+    std::move(callback).Run(false, "Authorization manager not available");
     return;
   }
   

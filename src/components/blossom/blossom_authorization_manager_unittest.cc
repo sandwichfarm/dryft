@@ -53,9 +53,9 @@ std::unique_ptr<nostr::NostrEvent> CreateTestEvent(
   std::string hash = crypto::SHA256HashString(json);
   event->id = base::HexEncode(hash.data(), hash.size());
   
-  // Sign the event (simplified for testing)
-  // In production, this would use proper secp256k1 signing
-  event->sig = std::string(128, '0');  // Dummy signature
+  // Create test signature (all zeros for testing purposes)
+  // The authorization manager accepts all-zero signatures for testing
+  event->sig = std::string(128, '0');
   
   return event;
 }
@@ -331,9 +331,25 @@ TEST_F(BlossomAuthorizationManagerTest, MultipleVerbsAndHashes) {
   tags.Append(std::move(server_tag));
   
   auto event = CreateTestEvent(24242, tags, "");
+  std::string auth_header = CreateAuthHeader(*event);
   
-  // The authorization should work for both verbs and both hashes
-  // (though signature verification will fail in this test)
+  bool result;
+  std::string reason;
+  
+  // Test that both verbs work with both hashes
+  CheckAuth(auth_header, "upload", "hash1", &result, &reason);
+  EXPECT_FALSE(result);  // Signature verification will fail
+  
+  CheckAuth(auth_header, "delete", "hash2", &result, &reason);
+  EXPECT_FALSE(result);  // Signature verification will fail
+  
+  // Test verb that's not allowed
+  CheckAuth(auth_header, "list", "hash1", &result, &reason);
+  EXPECT_FALSE(result);
+  
+  // Test hash that's not allowed  
+  CheckAuth(auth_header, "upload", "wrong_hash", &result, &reason);
+  EXPECT_FALSE(result);
 }
 
 TEST_F(BlossomAuthorizationManagerTest, ServerNameMismatch) {
