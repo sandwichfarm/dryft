@@ -234,3 +234,73 @@ Main Browser Process
 - Data migration tools
 - Feature flags for rollout
 - Rollback capabilities
+
+### 13. Nsite Streaming Server Architecture
+
+#### 13.1 Server Overview
+The Nsite Streaming Server is a persistent local HTTP server that serves static Nostr websites (nsites) from a local cache while maintaining real-time updates from the Nostr network. It dynamically binds to an available port in a safe range (49152-65535) and communicates this port to the browser for seamless access to decentralized websites.
+
+#### 13.2 Architectural Components
+```
+┌─────────────────────────────────────────────────────────┐
+│                Browser Navigation Layer                  │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │   nostr:// Protocol Handler                      │   │
+│  │   ↓                                              │   │
+│  │   Redirect to localhost:8081/nsite/<npub>/<path> │   │
+│  └─────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+                            │
+┌─────────────────────────────────────────────────────────┐
+│              Local Streaming Server (Port 8081)          │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │   HTTP Request Router                            │   │
+│  │   - Extract npub from URL path                   │   │
+│  │   - Parse requested resource path                │   │
+│  │   - Route to appropriate handler                 │   │
+│  └─────────────────────────────────────────────────┘   │
+│                          │                               │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │   Cache Manager                                  │   │
+│  │   - Check local cache for requested file         │   │
+│  │   - Serve immediately if found                   │   │
+│  │   - Trigger background update check              │   │
+│  └─────────────────────────────────────────────────┘   │
+│                          │                               │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │   Nsite Resolver                                 │   │
+│  │   - Fetch kind 34128 events for path            │   │
+│  │   - Verify content hashes                        │   │
+│  │   - Download from Blossom servers                │   │
+│  └─────────────────────────────────────────────────┘   │
+│                          │                               │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │   Update Monitor                                 │   │
+│  │   - Check for newer versions in background       │   │
+│  │   - Notify browser of available updates          │   │
+│  │   - Manage cache invalidation                    │   │
+│  └─────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### 13.3 URL Resolution Strategy
+Since localhost cannot have subdomains and nsites must be served from root:
+- `nostr://nsite/<identifier>/<path>` → `http://localhost:<dynamic-port>/<path>` with `X-Nsite-Pubkey: <npub>` header
+- The protocol handler queries the browser service for the current server port
+- The protocol handler injects the npub as a custom header
+- The server reads the header to determine which nsite to serve
+- All paths are served from root as the nsite expects
+
+#### 13.4 Caching and Update Strategy
+1. **Immediate Serving**: Cached content is served immediately for instant page loads
+2. **Background Updates**: The server checks for updates after serving cached content
+3. **Version Detection**: Compares event timestamps and content hashes
+4. **User Notification**: Browser displays update banner when new version available
+5. **Progressive Updates**: Downloads new files without interrupting current session
+
+#### 13.5 Integration Points
+- **Protocol Handler**: Redirects nostr:// URLs to local server
+- **Browser IPC**: Communicates update notifications via extension messaging
+- **Local Relay**: Queries for kind 34128 events
+- **Blossom Client**: Fetches file content from user servers
+- **Cache Storage**: Persistent storage for nsite files
