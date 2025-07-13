@@ -85,7 +85,9 @@ void BlossomRequestHandler::HandleRequest(
     const net::HttpServerRequestInfo& request,
     ResponseCallback callback) {
   // Route based on method
-  if (request.method == "GET") {
+  if (request.method == "GET" && request.path == "/list") {
+    HandleList(request, std::move(callback));
+  } else if (request.method == "GET") {
     HandleGet(request, std::move(callback));
   } else if (request.method == "HEAD") {
     HandleHead(request, std::move(callback));
@@ -95,8 +97,6 @@ void BlossomRequestHandler::HandleRequest(
     HandlePut(request, std::move(callback));
   } else if (request.method == "DELETE") {
     HandleDelete(request, std::move(callback));
-  } else if (request.method == "GET" && request.path == "/list") {
-    HandleList(request, std::move(callback));
   } else {
     auto response = std::make_unique<net::HttpServerResponseInfo>(
         net::HTTP_METHOD_NOT_ALLOWED);

@@ -227,7 +227,7 @@ void BlossomServer::HandleRequest(int connection_id,
 }
 
 void BlossomServer::SendResponse(int connection_id,
-                                const std::string& path,
+                                const std::string& /*path*/,
                                 net::HttpStatusCode status,
                                 std::unique_ptr<net::HttpServerResponseInfo> response,
                                 const std::string& body) {

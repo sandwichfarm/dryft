@@ -178,6 +178,18 @@ void BlossomStorage::StoreContentFromFile(const std::string& hash,
               return;
             }
             
+            // Check file size before reading
+            int64_t file_size;
+            if (!base::GetFileSize(source_path, &file_size)) {
+              std::move(callback).Run(false, "Failed to get file size");
+              return;
+            }
+            
+            if (file_size > storage->config_.max_blob_size) {
+              std::move(callback).Run(false, "Blob exceeds maximum size");
+              return;
+            }
+            
             std::string data;
             if (!base::ReadFileToString(source_path, &data)) {
               std::move(callback).Run(false, "Failed to read source file");
@@ -509,7 +521,10 @@ void BlossomStorage::DeleteContentOnFileThread(const std::string& hash,
   
   // Get file size for statistics update
   int64_t file_size = 0;
-  base::GetFileSize(path, &file_size);
+  if (!base::GetFileSize(path, &file_size)) {
+    LOG(WARNING) << "Failed to get file size for: " << path.value();
+    file_size = 0;  // Ensure file_size is explicitly set to 0 on failure.
+  }
   
   // Delete content file
   bool success = base::DeleteFile(path);

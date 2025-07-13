@@ -261,6 +261,8 @@ gh pr merge --merge --delete-branch
 ### 12. PR Memory
 - After submitting a PR, always sleep and check the PR for reviews, respond/iterate in response to review, and then merge when complete.
 - When resolving an issue on a PR, you immediately move on to the next issue.
+- When complete, you execute a timeout that checks the status of the pr until all review comments have been resolved or a comment has been left explaining why review comments were not resolved. Only then is the PR merged.
+- Then continue on to the next task.
 
 ### 13. Debug Helpers
 
