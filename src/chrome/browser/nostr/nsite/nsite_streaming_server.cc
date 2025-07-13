@@ -9,6 +9,7 @@
 #include <set>
 
 #include "chrome/browser/nostr/nsite/nsite_cache_manager.h"
+#include "chrome/browser/nostr/nsite/nsite_security_utils.h"
 #include "chrome/browser/nostr/nsite/nsite_update_monitor.h"
 
 #include "base/guid.h"
@@ -87,6 +88,9 @@ NsiteStreamingServer::NsiteStreamingServer(base::FilePath profile_path)
   // Create cache manager
   base::FilePath cache_dir = profile_path_.Append("nsite_cache");
   cache_manager_ = std::make_unique<NsiteCacheManager>(cache_dir);
+  
+  // Create rate limiter (60 requests per minute per client)
+  rate_limiter_ = std::make_unique<NsiteSecurityUtils::RateLimiter>(60);
 }
 
 NsiteStreamingServer::~NsiteStreamingServer() {
@@ -194,15 +198,28 @@ void NsiteStreamingServer::OnHttpRequest(int connection_id,
                                         const net::HttpServerRequestInfo& info) {
   DCHECK(io_task_runner_->BelongsToCurrentThread());
   
-  // Log request details
-  LOG(INFO) << "Request: " << info.method << " " << info.path 
+  // Get client identifier for rate limiting
+  std::string client_id = info.peer.address().ToString() + ":" + 
+                         std::to_string(info.peer.port());
+  
+  // Apply rate limiting
+  if (!rate_limiter_->IsAllowed(client_id)) {
+    LOG(WARNING) << "Rate limit exceeded for client: " << client_id;
+    SendErrorResponse(connection_id, net::HTTP_TOO_MANY_REQUESTS, 
+                     NsiteSecurityUtils::GetSafeErrorMessage(429));
+    return;
+  }
+  
+  // Log request details (sanitized)
+  std::string sanitized_path = NsiteSecurityUtils::SanitizeInput(info.path, 256);
+  LOG(INFO) << "Request: " << info.method << " " << sanitized_path 
             << " (connection: " << connection_id << ")";
   
   auto context = ParseNsiteRequest(info);
   if (!context.valid) {
     LOG(WARNING) << "Invalid request - no valid npub found";
     SendErrorResponse(connection_id, net::HTTP_BAD_REQUEST, 
-                     "Missing or invalid X-Npub header");
+                     NsiteSecurityUtils::GetSafeErrorMessage(400));
     return;
   }
 
@@ -254,15 +271,9 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
     return context;
   }
 
-  // Validate npub format (enhanced validation)
-  if (!base::StartsWith(npub, "npub1")) {
-    LOG(WARNING) << "Invalid npub format (must start with 'npub1'): " << npub;
-    return context;
-  }
-  
-  // Bech32 npub should be 63 characters (7 for hrp+1, 52 for data, 6 for checksum)
-  if (npub.length() != 63) {
-    LOG(WARNING) << "Invalid npub length (expected 63, got " << npub.length() << "): " << npub;
+  // Validate npub format using security utils
+  if (!NsiteSecurityUtils::IsValidNpub(npub)) {
+    LOG(WARNING) << "Invalid npub format: " << NsiteSecurityUtils::SanitizeInput(npub, 64);
     return context;
   }
 
@@ -272,7 +283,14 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
   }
 
   context.npub = npub;
-  context.path = info.path;
+  
+  // Validate and sanitize path
+  if (!NsiteSecurityUtils::IsPathSafe(info.path)) {
+    LOG(WARNING) << "Unsafe path detected: " << NsiteSecurityUtils::SanitizeInput(info.path, 256);
+    return context;
+  }
+  
+  context.path = NsiteSecurityUtils::SanitizePath(info.path);
   context.valid = true;
   
   // Remove leading slash from path
@@ -400,6 +418,12 @@ std::string NsiteStreamingServer::GetOrCreateSession(
     
     for (const auto& cookie : cookies) {
       if (cookie.first == "nsite_session") {
+        // Validate session ID format
+        if (!NsiteSecurityUtils::IsValidSessionId(cookie.second)) {
+          LOG(WARNING) << "Invalid session ID format";
+          break;
+        }
+        
         // Validate session exists
         if (sessions_.find(cookie.second) != sessions_.end()) {
           return cookie.second;
