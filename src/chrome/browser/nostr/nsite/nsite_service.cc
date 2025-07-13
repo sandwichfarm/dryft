@@ -5,10 +5,12 @@
 #include "chrome/browser/nostr/nsite/nsite_service.h"
 
 #include "base/logging.h"
+#include "chrome/browser/nostr/nsite/nsite_header_injector.h"
 #include "chrome/browser/nostr/nsite/nsite_streaming_server.h"
 #include "chrome/browser/profiles/profile.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
+#include "content/public/browser/web_contents.h"
 
 namespace nostr {
 
@@ -112,6 +114,74 @@ bool NsiteService::IsServerRunning(Profile* profile) {
 void NsiteService::AddServerStateObserver(ServerStateCallback callback) {
   base::AutoLock lock(lock_);
   observers_.push_back(std::move(callback));
+}
+
+void NsiteService::SetNsiteForTab(content::WebContents* web_contents,
+                                  const std::string& npub) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  DCHECK(web_contents);
+  
+  Profile* profile = Profile::FromBrowserContext(web_contents->GetBrowserContext());
+  if (!profile || profile->IsOffTheRecord()) {
+    return;
+  }
+  
+  auto* header_injector = GetOrCreateHeaderInjector(profile);
+  if (header_injector) {
+    header_injector->SetNsiteForTab(web_contents, npub);
+  }
+}
+
+void NsiteService::ClearNsiteForTab(content::WebContents* web_contents) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  DCHECK(web_contents);
+  
+  Profile* profile = Profile::FromBrowserContext(web_contents->GetBrowserContext());
+  if (!profile || profile->IsOffTheRecord()) {
+    return;
+  }
+  
+  auto* header_injector = GetOrCreateHeaderInjector(profile);
+  if (header_injector) {
+    header_injector->ClearNsiteForTab(web_contents);
+  }
+}
+
+std::string NsiteService::GetNsiteForTab(content::WebContents* web_contents) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  DCHECK(web_contents);
+  
+  Profile* profile = Profile::FromBrowserContext(web_contents->GetBrowserContext());
+  if (!profile || profile->IsOffTheRecord()) {
+    return "";
+  }
+  
+  auto* header_injector = GetOrCreateHeaderInjector(profile);
+  if (header_injector) {
+    return header_injector->GetNsiteForTab(web_contents);
+  }
+  
+  return "";
+}
+
+NsiteHeaderInjector* NsiteService::GetOrCreateHeaderInjector(Profile* profile) {
+  base::AutoLock lock(lock_);
+  
+  auto it = servers_.find(profile);
+  if (it == servers_.end()) {
+    // Create new server info with header injector
+    ServerInfo& info = servers_[profile];
+    info.header_injector = std::make_unique<NsiteHeaderInjector>(profile);
+    info.header_injector->Initialize();
+    return info.header_injector.get();
+  }
+  
+  if (!it->second.header_injector) {
+    it->second.header_injector = std::make_unique<NsiteHeaderInjector>(profile);
+    it->second.header_injector->Initialize();
+  }
+  
+  return it->second.header_injector.get();
 }
 
 void NsiteService::NotifyServerStateChange(bool running, uint16_t port) {

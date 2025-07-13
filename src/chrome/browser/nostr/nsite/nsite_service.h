@@ -16,9 +16,14 @@
 #include "base/thread_annotations.h"
 #include "chrome/browser/profiles/profile.h"
 
+namespace content {
+class WebContents;
+}
+
 namespace nostr {
 
 class NsiteStreamingServer;
+class NsiteHeaderInjector;
 
 // Singleton service managing the nsite streaming server
 class NsiteService {
@@ -43,6 +48,12 @@ class NsiteService {
   using ServerStateCallback = base::RepeatingCallback<void(bool running, uint16_t port)>;
   void AddServerStateObserver(ServerStateCallback callback);
 
+  // Header injection management
+  void SetNsiteForTab(content::WebContents* web_contents, 
+                      const std::string& npub);
+  void ClearNsiteForTab(content::WebContents* web_contents);
+  std::string GetNsiteForTab(content::WebContents* web_contents);
+
  private:
   friend class base::NoDestructor<NsiteService>;
   
@@ -52,8 +63,12 @@ class NsiteService {
   // Thread-safe server management
   struct ServerInfo {
     std::unique_ptr<NsiteStreamingServer> server;
+    std::unique_ptr<NsiteHeaderInjector> header_injector;
     uint16_t port = 0;
   };
+
+  // Get or create header injector for profile
+  NsiteHeaderInjector* GetOrCreateHeaderInjector(Profile* profile);
 
   base::Lock lock_;
   std::map<Profile*, ServerInfo> servers_ GUARDED_BY(lock_);
