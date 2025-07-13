@@ -18,6 +18,8 @@ source_set("nsite") {
     "nsite_streaming_server.h",
     "nsite_update_monitor.cc",
     "nsite_update_monitor.h",
+    "nsite_notification_manager.cc",
+    "nsite_notification_manager.h",
   ]
 
   deps = [
@@ -42,6 +44,7 @@ source_set("unit_tests") {
     "nsite_security_utils_unittest.cc",
     "nsite_streaming_server_unittest.cc",
     "nsite_update_monitor_unittest.cc",
+    "nsite_notification_manager_unittest.cc",
   ]
   
   deps = [

@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "chrome/browser/nostr/nsite/nsite_header_injector.h"
+#include "chrome/browser/nostr/nsite/nsite_notification_manager.h"
 #include "chrome/browser/nostr/nsite/nsite_streaming_server.h"
 #include "chrome/browser/nostr/nsite/nsite_update_monitor.h"
 #include "chrome/browser/profiles/profile.h"
@@ -60,6 +61,10 @@ uint16_t NsiteService::GetOrStartServer(Profile* profile) {
   ServerInfo& info = servers_[profile];
   info.server = std::move(server);
   info.port = port;
+
+  // Create notification manager
+  info.notification_manager = std::make_unique<NsiteNotificationManager>();
+  info.server->SetNotificationManager(info.notification_manager.get());
 
   // Create and configure update monitor
   info.update_monitor = std::make_unique<NsiteUpdateMonitor>(
@@ -172,6 +177,25 @@ std::string NsiteService::GetNsiteForTab(content::WebContents* web_contents) {
   }
   
   return "";
+}
+
+void NsiteService::ShowUpdateNotification(content::WebContents* web_contents,
+                                          const std::string& npub,
+                                          const std::string& path) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  DCHECK(web_contents);
+  
+  Profile* profile = Profile::FromBrowserContext(web_contents->GetBrowserContext());
+  if (!profile || profile->IsOffTheRecord()) {
+    return;
+  }
+  
+  base::AutoLock lock(lock_);
+  auto it = servers_.find(profile);
+  if (it != servers_.end() && it->second.notification_manager) {
+    it->second.notification_manager->ShowUpdateNotification(
+        web_contents, npub, path);
+  }
 }
 
 NsiteHeaderInjector* NsiteService::GetOrCreateHeaderInjector(Profile* profile) {
