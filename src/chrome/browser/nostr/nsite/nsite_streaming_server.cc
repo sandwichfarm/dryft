@@ -9,6 +9,7 @@
 #include <set>
 
 #include "chrome/browser/nostr/nsite/nsite_cache_manager.h"
+#include "chrome/browser/nostr/nsite/nsite_metrics.h"
 #include "chrome/browser/nostr/nsite/nsite_notification_manager.h"
 #include "chrome/browser/nostr/nsite/nsite_security_utils.h"
 #include "chrome/browser/nostr/nsite/nsite_update_monitor.h"
@@ -110,6 +111,8 @@ uint16_t NsiteStreamingServer::Start() {
     return port_;
   }
 
+  SCOPED_NSITE_TIMER(kServerStartup);
+
   uint16_t allocated_port = AllocatePort();
   if (allocated_port == 0) {
     LOG(ERROR) << "Failed to allocate port for nsite streaming server";
@@ -201,6 +204,7 @@ void NsiteStreamingServer::OnConnect(int connection_id) {
 void NsiteStreamingServer::OnHttpRequest(int connection_id,
                                         const net::HttpServerRequestInfo& info) {
   DCHECK(io_task_runner_->BelongsToCurrentThread());
+  SCOPED_NSITE_TIMER(kRequestProcessing);
   
   // Get client identifier for rate limiting
   std::string client_id = info.peer.address().ToString() + ":" + 
