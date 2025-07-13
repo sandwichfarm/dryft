@@ -201,7 +201,7 @@ gh pr create --title "[Issue #X] Brief description" \
   --assignee @me
 ```
 
-#### Step 3: Wait for Review (1-5 minutes)
+#### Step 3: Wait for a Review (1-5 minutes)
 ```bash
 # Set a timeout and query for review status
 timeout=300  # 5 minutes

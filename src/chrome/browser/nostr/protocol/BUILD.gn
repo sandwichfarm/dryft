@@ -6,6 +6,10 @@ import("//build/config/features.gni")
 
 source_set("protocol") {
   sources = [
+    "bech32.cc",
+    "bech32.h",
+    "nip19.cc",
+    "nip19.h",
     "nostr_protocol_handler.cc",
     "nostr_protocol_handler.h",
   ]
@@ -27,6 +31,8 @@ source_set("unit_tests") {
   testonly = true
   
   sources = [
+    "bech32_unittest.cc",
+    "nip19_unittest.cc",
     "nostr_protocol_handler_unittest.cc",
   ]
   
