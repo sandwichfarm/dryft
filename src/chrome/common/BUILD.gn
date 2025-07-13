@@ -6,6 +6,39 @@ import("//build/config/features.gni")
 import("//components/nostr/BUILD.gn")
 
 if (enable_nostr) {
+  source_set("chrome_content_client") {
+    sources = [
+      "chrome_content_client.cc",
+      "chrome_content_client.h",
+    ]
+    
+    deps = [
+      ":nostr_scheme",
+      "//base",
+      "//chrome/grit:generated_resources",
+      "//content/public/common",
+      "//extensions/buildflags",
+      "//ui/base",
+    ]
+    
+    if (enable_extensions) {
+      deps += [
+        "//extensions/common",
+      ]
+    }
+  }
+
+  source_set("nostr_scheme") {
+    sources = [
+      "nostr_scheme.cc",
+      "nostr_scheme.h",
+    ]
+    
+    deps = [
+      "//base",
+    ]
+  }
+
   source_set("nostr_messages") {
     sources = [
       "nostr_messages.cc",
