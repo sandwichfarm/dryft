@@ -136,15 +136,27 @@ void EventStorage::QueryEvents(const std::vector<NostrFilter>& filters,
                               QueryCallback callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   
+  // For now, use database directly but apply options
+  // TODO: Integrate QueryEngine for full optimization
   database_->QueryEvents(
       filters,
       options.limit,
       base::BindOnce(
-          [](QueryCallback callback, 
+          [](QueryCallback callback,
+             const QueryOptions& options,
              std::vector<std::unique_ptr<NostrEvent>> events) {
+            // Apply reverse order if requested
+            if (options.reverse_order) {
+              std::reverse(events.begin(), events.end());
+            }
+            
+            // Note: include_deleted is handled by database query
+            // which always excludes deleted unless specifically included
+            
             std::move(callback).Run(std::move(events));
           },
-          std::move(callback)));
+          std::move(callback),
+          options));
 }
 
 void EventStorage::QueryEventsStreaming(const std::vector<NostrFilter>& filters,

@@ -173,6 +173,7 @@ if (enable_nostr) {
       "local_relay/event_storage_unittest.cc",
       "local_relay/local_relay_service_unittest.cc",
       "local_relay/nostr_database_unittest.cc",
+      "local_relay/query_engine_unittest.cc",
     ]
 
     deps = [

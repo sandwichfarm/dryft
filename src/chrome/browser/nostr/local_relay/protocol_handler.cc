@@ -571,7 +571,15 @@ void ProtocolHandler::QueryAndSendEvents(
     const std::vector<NostrFilter>& filters) {
   // Query events using EventStorage
   QueryOptions options;
-  options.limit = 1000;
+  
+  // Determine the limit - use the minimum of all filter limits, or default
+  int query_limit = 1000;  // Default maximum
+  for (const auto& filter : filters) {
+    if (filter.limit.has_value() && filter.limit.value() > 0) {
+      query_limit = std::min(query_limit, filter.limit.value());
+    }
+  }
+  options.limit = query_limit;
   
   event_storage_->QueryEventsStreaming(
       filters,
