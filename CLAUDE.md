@@ -5,50 +5,39 @@ Tungsten is a fork of Thorium browser that adds native Nostr protocol support, i
 
 ## Development Workflow
 
-### 1. Task Breakdown Structure
-When implementing Tungsten features, break down work into these major groups:
+### Quick Reference Decision Tree
 
-#### Group A: Core Browser Integration
-- Chromium/Thorium source modifications
-- Build system integration
-- IPC message definitions
-- Process sandboxing
+```
+START
+  ↓
+TodoRead → Check current state
+  ├─ Active todos? → Continue current work
+  ├─ Review comments pending? → Address reviews (→ Review Process)
+  └─ No active work → Select new issue (→ Issue Selection)
+       ↓
+IMPLEMENTATION LOOP:
+  ├─ 1. Research & Plan (→ Implementation Workflow)
+  ├─ 2. Code & Test
+  ├─ 3. Create PR (CRITICAL: --base main)
+  ├─ 4. Monitor Reviews (→ Review Process)
+  ├─ 5. Address Feedback
+  ├─ 6. Merge & Continue (→ Merge Process)
+  └─ 7. Next Issue → Return to START
+```
 
-#### Group B: Nostr Protocol Implementation
-- NIP-07 window.nostr injection
-- Key management system
-- Permission system
-- Multi-account support
+### Task Groups (Implementation Priority Order)
 
-#### Group C: Local Services
-- Local relay (SQLite-based)
-- Blossom server (file system-based)
-- Service coordination
-- Storage management
+**A. Core Browser** → **B. Nostr Protocol** → **C. Local Services** → **D. Protocol Handlers** → **E. Browser APIs** → **F. User Interface** → **G. Platform Integration**
 
-#### Group D: Protocol Handlers
-- nostr:// URL scheme
-- Nsite static website support
-- Content verification
-- Sandboxed rendering
-
-#### Group E: Browser APIs
-- window.nostr extensions
-- window.blossom API
-- Pre-loaded libraries
-- Local service interfaces
-
-#### Group F: User Interface
-- Settings pages
-- Permission dialogs
-- Status indicators
-- Account management UI
-
-#### Group G: Platform Integration
-- Windows (Credential Manager)
-- macOS (Keychain)
-- Linux (Secret Service)
-- Cross-platform abstractions
+| Group | Focus Area | Examples |
+|-------|------------|----------|
+| **A** | Core Browser Integration | Chromium/Thorium mods, Build system, IPC |
+| **B** | Nostr Protocol | NIP-07, Key management, Permissions |
+| **C** | Local Services | Local relay, Blossom server, Storage |
+| **D** | Protocol Handlers | nostr:// URLs, Nsite support, Content verification |
+| **E** | Browser APIs | window.nostr, window.blossom, Pre-loaded libs |
+| **F** | User Interface | Settings, Dialogs, Status indicators |
+| **G** | Platform Integration | Windows/macOS/Linux platform-specific features |
 
 ### 2. Issue Creation Template
 
@@ -177,77 +166,64 @@ Always refer to:
 - `/memory/specifications/nsite-spec.md` - Correct Nsite specification (kind 34128)
 - `/memory/specifications/BUD-*.md` - Correct Blossom specifications
 
-### 10. Development Process (PR Workflow)
+### 10. Streamlined Development Process
 
-When working on issues, follow this process:
+**Claude should follow this exact sequence for all work:**
 
-#### Step 1: Work on an Issue
-1. Select an issue from the current milestone
-2. Verify all dependencies are resolved
-3. Create a feature branch: `git checkout -b issue-[number]-description`
-4. Implement the solution following specifications
-5. Write/update tests
-6. Update documentation
-7. Run linters and tests locally
-
-#### Step 2: Open a Pull Request
-```bash
-# Push your branch
-git push -u origin issue-[number]-description
-
-# Create PR using GitHub CLI
-gh pr create --title "[Issue #X] Brief description" \
-  --body "Fixes #X\n\n## Summary\n- What was implemented\n- Key changes\n\n## Testing\n- How it was tested\n- Test results" \
-  --assignee @me
+#### Phase 1: Issue Selection & Setup
+```
+1. TodoRead → Check current state
+2. If active todos → Continue current work
+3. If no todos → Select next issue (priority: reviews → current milestone → next milestone)
+4. TodoWrite → Create task breakdown
+5. git checkout -b issue-[group][number]-description
 ```
 
-#### Step 3: Wait for a Review (1-5 minutes)
-```bash
-# Set a timeout and query for review status
-timeout=300  # 5 minutes
-start_time=$(date +%s)
-
-while true; do
-  # Check PR review status
-  review_status=$(gh pr view --json reviews -q '.reviews[-1].state' 2>/dev/null || echo "PENDING")
-  
-  if [[ "$review_status" == "APPROVED" ]]; then
-    echo "PR approved!"
-    break
-  elif [[ "$review_status" != "PENDING" && "$review_status" != "" ]]; then
-    echo "Review status: $review_status"
-    # Fetch review comments
-    gh pr view --json reviews -q '.reviews[-1].body'
-    break
-  fi
-  
-  # Check timeout
-  current_time=$(date +%s)
-  elapsed=$((current_time - start_time))
-  if [[ $elapsed -gt $timeout ]]; then
-    echo "Review timeout reached"
-    break
-  fi
-  
-  # Wait 30 seconds before checking again
-  sleep 30
-done
+#### Phase 2: Implementation
+```
+1. Research specifications and existing patterns
+2. Implement solution incrementally
+3. TodoWrite → Update progress after each major step
+4. Add comprehensive tests
+5. Update documentation
+6. Verify all acceptance criteria met
 ```
 
-#### Step 4: Handle Review Outcome
-
-**If Approved:**
+#### Phase 3: PR Creation (CRITICAL)
 ```bash
-# Merge the PR
-gh pr merge --merge --delete-branch
+# ALWAYS set base branch to main
+gh pr create \
+  --title "[Group-Number]: Brief description" \
+  --base main \
+  --body "Fixes #[issue]
+
+## Summary
+- Implementation details
+- Key changes
+
+## Testing  
+- Test coverage
+- Performance verified
+
+🤖 Generated with [Claude Code](https://claude.ai/code)"
 ```
 
-**If Changes Requested:**
-1. Read review comments carefully
-2. Make requested changes
-3. Commit and push updates
-4. Request re-review: `gh pr review --request`
-5. Return to Step 3
+#### Phase 4: Review & Merge
+```
+1. Monitor for reviews (5 min timeout)
+2. Address ALL review comments systematically
+3. Push fixes and request re-review
+4. Merge when approved: gh pr merge --squash --delete-branch
+5. TodoWrite → Mark all tasks completed
+6. Return to Phase 1 for next issue
+```
+
+#### Detailed Process Documentation
+- **Issue Selection**: `/memory/processes/issue_selection_process.md`
+- **Implementation**: `/memory/processes/implementation_workflow.md`  
+- **Review Handling**: `/memory/processes/review_process.md`
+- **Merge & Continue**: `/memory/processes/merge_and_continuation.md`
+- **Error Recovery**: `/memory/processes/error_handling_process.md`
 
 ### 11. PR Best Practices
 

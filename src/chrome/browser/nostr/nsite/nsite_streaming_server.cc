@@ -31,6 +31,9 @@
 
 namespace nostr {
 
+// static
+constexpr char NsiteStreamingServer::kDismissEndpoint[];
+
 namespace {
 
 // Port allocation constants
@@ -246,6 +249,9 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
     const net::HttpServerRequestInfo& info) {
   RequestContext context;
   
+  // Set HTTP method
+  context.method = info.method;
+  
   // Get or create session
   context.session_id = GetOrCreateSession(info);
   
@@ -308,7 +314,14 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
 void NsiteStreamingServer::HandleNsiteRequest(int connection_id,
                                              const RequestContext& context) {
   // Handle dismiss notification endpoint
-  if (context.path == ".nsite-dismiss") {
+  if (context.path == kDismissEndpoint) {
+    // Only accept POST requests for dismiss endpoint
+    if (context.method != "POST") {
+      SendErrorResponse(connection_id, net::HTTP_METHOD_NOT_ALLOWED, 
+                       "Method not allowed - use POST");
+      return;
+    }
+    
     if (notification_manager_) {
       notification_manager_->DismissNotification(context.npub);
     }
