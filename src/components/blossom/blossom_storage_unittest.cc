@@ -390,4 +390,60 @@ TEST_F(BlossomStorageTest, StoreFromFile) {
   get_loop.Run();
 }
 
+TEST_F(BlossomStorageTest, GetContentPath) {
+  std::string content = "Path test";
+  std::string hash = CalculateHash(content);
+  
+  // Get path before storing
+  base::RunLoop path_loop1;
+  storage_->GetContentPath(
+      hash,
+      base::BindLambdaForTesting([&](const base::FilePath& path) {
+        // Should return valid path even if file doesn't exist yet
+        EXPECT_FALSE(path.empty());
+        // Check sharding structure (2 levels configured in SetUp)
+        EXPECT_EQ(hash.substr(0, 2), path.DirName().BaseName().value());
+        EXPECT_EQ(hash.substr(2, 2), path.DirName().DirName().BaseName().value());
+        EXPECT_EQ(hash, path.BaseName().value());
+        path_loop1.Quit();
+      }));
+  path_loop1.Run();
+  
+  // Store content
+  base::RunLoop store_loop;
+  storage_->StoreContent(
+      hash, content, "",
+      base::BindLambdaForTesting([&](bool success, const std::string& error) {
+        EXPECT_TRUE(success) << error;
+        store_loop.Quit();
+      }));
+  store_loop.Run();
+  
+  // Get path after storing
+  base::RunLoop path_loop2;
+  storage_->GetContentPath(
+      hash,
+      base::BindLambdaForTesting([&](const base::FilePath& path) {
+        EXPECT_FALSE(path.empty());
+        // Verify file exists at returned path
+        EXPECT_TRUE(base::PathExists(path));
+        // Verify content at path
+        std::string file_content;
+        EXPECT_TRUE(base::ReadFileToString(path, &file_content));
+        EXPECT_EQ(content, file_content);
+        path_loop2.Quit();
+      }));
+  path_loop2.Run();
+  
+  // Test with invalid hash
+  base::RunLoop invalid_loop;
+  storage_->GetContentPath(
+      "invalid",
+      base::BindLambdaForTesting([&](const base::FilePath& path) {
+        EXPECT_TRUE(path.empty());
+        invalid_loop.Quit();
+      }));
+  invalid_loop.Run();
+}
+
 }  // namespace blossom

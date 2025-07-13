@@ -11,10 +11,13 @@
 #include "base/files/file_enumerator.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
+#include "base/json/json_reader.h"
+#include "base/json/json_writer.h"
 #include "base/logging.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/task/thread_pool.h"
+#include "base/values.h"
 #include "crypto/sha2.h"
 #include "net/base/mime_sniffer.h"
 
