@@ -5,6 +5,7 @@
 #ifndef CHROME_BROWSER_NOSTR_NSITE_NSITE_STREAMING_SERVER_H_
 #define CHROME_BROWSER_NOSTR_NSITE_NSITE_STREAMING_SERVER_H_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -59,7 +60,9 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
   struct RequestContext {
     std::string npub;
     std::string path;
+    std::string session_id;
     bool valid = false;
+    bool from_session = false;
   };
 
   RequestContext ParseNsiteRequest(const net::HttpServerRequestInfo& info);
@@ -67,11 +70,19 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
   void SendErrorResponse(int connection_id, int status_code,
                         const std::string& message);
 
+  // Session management
+  std::string GetOrCreateSession(const net::HttpServerRequestInfo& info);
+  void UpdateSession(const std::string& session_id, const std::string& npub);
+  std::string GetNpubFromSession(const std::string& session_id);
+
   base::FilePath profile_path_;
   std::unique_ptr<net::HttpServer> server_;
   std::unique_ptr<net::ServerSocket> server_socket_;
   uint16_t port_ = 0;
 
+  // Session tracking: session_id -> npub
+  std::map<std::string, std::string> sessions_;
+  
   scoped_refptr<base::SingleThreadTaskRunner> io_task_runner_;
   
   SEQUENCE_CHECKER(sequence_checker_);

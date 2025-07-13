@@ -200,4 +200,117 @@ TEST_F(NsiteStreamingServerTest, ServerRestartNewPort) {
   EXPECT_LE(port2, 65535);
 }
 
+TEST_F(NsiteStreamingServerTest, ValidateNpubLength) {
+  // Start server
+  uint16_t port = server_->Start();
+  ASSERT_GT(port, 0);
+
+  // Test various npub lengths
+  struct TestCase {
+    std::string npub;
+    bool expected_valid;
+  };
+  
+  TestCase cases[] = {
+    // Valid npub (63 chars)
+    {"npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r", true},
+    // Too short
+    {"npub1short", false},
+    // Too long
+    {"npub1verylongnpubthatexceedstheexpectedlengthof63characterswhichisinvalid", false},
+    // Wrong prefix
+    {"xpub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r", false},
+    // Empty
+    {"", false},
+  };
+
+  for (const auto& test : cases) {
+    net::HttpServerRequestInfo request;
+    request.method = "GET";
+    request.path = "/test.html";
+    if (!test.npub.empty()) {
+      request.headers["X-Nsite-Pubkey"] = test.npub;
+    }
+
+    auto context = server_->ParseNsiteRequest(request);
+    EXPECT_EQ(context.valid, test.expected_valid) 
+        << "Failed for npub: " << test.npub;
+  }
+}
+
+TEST_F(NsiteStreamingServerTest, SessionFallback) {
+  // Start server
+  uint16_t port = server_->Start();
+  ASSERT_GT(port, 0);
+
+  // First request with header - should create session
+  net::HttpServerRequestInfo request1;
+  request1.method = "GET";
+  request1.path = "/index.html";
+  request1.headers["X-Nsite-Pubkey"] = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
+
+  auto context1 = server_->ParseNsiteRequest(request1);
+  EXPECT_TRUE(context1.valid);
+  EXPECT_FALSE(context1.from_session);
+  EXPECT_FALSE(context1.session_id.empty());
+
+  // Second request without header but with session cookie
+  net::HttpServerRequestInfo request2;
+  request2.method = "GET";
+  request2.path = "/page2.html";
+  request2.headers["cookie"] = "nsite_session=" + context1.session_id;
+
+  auto context2 = server_->ParseNsiteRequest(request2);
+  EXPECT_TRUE(context2.valid);
+  EXPECT_TRUE(context2.from_session);
+  EXPECT_EQ(context1.npub, context2.npub);
+  EXPECT_EQ(context1.session_id, context2.session_id);
+}
+
+TEST_F(NsiteStreamingServerTest, SessionWithDifferentNpub) {
+  // Start server
+  uint16_t port = server_->Start();
+  ASSERT_GT(port, 0);
+
+  std::string session_id;
+  
+  // First request establishes session with npub1
+  {
+    net::HttpServerRequestInfo request;
+    request.method = "GET";
+    request.path = "/site1/index.html";
+    request.headers["X-Nsite-Pubkey"] = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
+
+    auto context = server_->ParseNsiteRequest(request);
+    EXPECT_TRUE(context.valid);
+    session_id = context.session_id;
+  }
+
+  // Second request with same session but different npub - should update session
+  {
+    net::HttpServerRequestInfo request;
+    request.method = "GET";
+    request.path = "/site2/index.html";
+    request.headers["X-Nsite-Pubkey"] = "npub14nr0ux0cn38r5rvf3wen3p9sgfxv2ydqchtqt5gu8r8rpa0x97q330wjj";
+    request.headers["cookie"] = "nsite_session=" + session_id;
+
+    auto context = server_->ParseNsiteRequest(request);
+    EXPECT_TRUE(context.valid);
+    EXPECT_EQ(context.npub, "npub14nr0ux0cn38r5rvf3wen3p9sgfxv2ydqchtqt5gu8r8rpa0x97q330wjj");
+  }
+
+  // Third request with session only - should use updated npub
+  {
+    net::HttpServerRequestInfo request;
+    request.method = "GET";
+    request.path = "/site2/page.html";
+    request.headers["cookie"] = "nsite_session=" + session_id;
+
+    auto context = server_->ParseNsiteRequest(request);
+    EXPECT_TRUE(context.valid);
+    EXPECT_TRUE(context.from_session);
+    EXPECT_EQ(context.npub, "npub14nr0ux0cn38r5rvf3wen3p9sgfxv2ydqchtqt5gu8r8rpa0x97q330wjj");
+  }
+}
+
 }  // namespace nostr

@@ -8,6 +8,7 @@
 #include <random>
 #include <set>
 
+#include "base/guid.h"
 #include "base/logging.h"
 #include "base/rand_util.h"
 #include "base/strings/string_number_conversions.h"
@@ -18,6 +19,7 @@
 #include "content/public/browser/browser_thread.h"
 #include "net/base/io_buffer.h"
 #include "net/base/net_errors.h"
+#include "net/cookies/cookie_util.h"
 #include "net/http/http_response_headers.h"
 #include "net/http/http_status_code.h"
 #include "net/socket/tcp_server_socket.h"
@@ -185,8 +187,13 @@ void NsiteStreamingServer::OnHttpRequest(int connection_id,
                                         const net::HttpServerRequestInfo& info) {
   DCHECK(io_task_runner_->BelongsToCurrentThread());
   
+  // Log request details
+  LOG(INFO) << "Request: " << info.method << " " << info.path 
+            << " (connection: " << connection_id << ")";
+  
   auto context = ParseNsiteRequest(info);
   if (!context.valid) {
+    LOG(WARNING) << "Invalid request - no valid npub found";
     SendErrorResponse(connection_id, net::HTTP_BAD_REQUEST, 
                      "Missing or invalid X-Nsite-Pubkey header");
     return;
@@ -214,6 +221,9 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
     const net::HttpServerRequestInfo& info) {
   RequestContext context;
   
+  // Get or create session
+  context.session_id = GetOrCreateSession(info);
+  
   // Extract X-Nsite-Pubkey header (case-insensitive)
   std::string npub;
   for (const auto& header : info.headers) {
@@ -223,15 +233,35 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
     }
   }
 
+  // If no header, try session fallback
+  if (npub.empty() && !context.session_id.empty()) {
+    npub = GetNpubFromSession(context.session_id);
+    if (!npub.empty()) {
+      context.from_session = true;
+      LOG(INFO) << "Using npub from session: " << npub;
+    }
+  }
+
   if (npub.empty()) {
-    LOG(WARNING) << "Request missing X-Nsite-Pubkey header: " << info.path;
+    LOG(WARNING) << "Request missing X-Nsite-Pubkey header and no session: " << info.path;
     return context;
   }
 
-  // Validate npub format (basic check)
-  if (!base::StartsWith(npub, "npub1") || npub.length() < 10) {
-    LOG(WARNING) << "Invalid npub format: " << npub;
+  // Validate npub format (enhanced validation)
+  if (!base::StartsWith(npub, "npub1")) {
+    LOG(WARNING) << "Invalid npub format (must start with 'npub1'): " << npub;
     return context;
+  }
+  
+  // Bech32 npub should be 63 characters (7 for hrp+1, 52 for data, 6 for checksum)
+  if (npub.length() != 63) {
+    LOG(WARNING) << "Invalid npub length (expected 63, got " << npub.length() << "): " << npub;
+    return context;
+  }
+
+  // Update session with this npub
+  if (!context.session_id.empty()) {
+    UpdateSession(context.session_id, npub);
   }
 
   context.npub = npub;
@@ -243,7 +273,8 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
     context.path = context.path.substr(1);
   }
 
-  LOG(INFO) << "Nsite request: " << npub << " -> " << context.path;
+  LOG(INFO) << "Nsite request: " << npub << " -> " << context.path 
+            << " (session: " << context.session_id << ")";
   
   return context;
 }
@@ -284,6 +315,13 @@ code { background: #e1e4e8; padding: 2px 4px; border-radius: 3px; }
   headers->AddHeader("Content-Type", "text/html; charset=utf-8");
   headers->AddHeader("Cache-Control", "no-cache");
   
+  // Set session cookie if we have a session
+  if (!context.session_id.empty()) {
+    headers->AddHeader("Set-Cookie", 
+        base::StringPrintf("nsite_session=%s; Path=/; HttpOnly; SameSite=Strict",
+                          context.session_id.c_str()));
+  }
+  
   server_->SendResponse(connection_id, headers, response);
 }
 
@@ -301,6 +339,46 @@ void NsiteStreamingServer::SendErrorResponse(int connection_id,
   headers->AddHeader("Content-Type", "text/html; charset=utf-8");
   
   server_->SendResponse(connection_id, headers, body);
+}
+
+std::string NsiteStreamingServer::GetOrCreateSession(
+    const net::HttpServerRequestInfo& info) {
+  // Look for session cookie
+  auto cookie_it = info.headers.find("cookie");
+  if (cookie_it != info.headers.end()) {
+    // Parse cookies
+    std::vector<std::pair<std::string, std::string>> cookies =
+        net::cookie_util::ParseRequestCookieLine(cookie_it->second);
+    
+    for (const auto& cookie : cookies) {
+      if (cookie.first == "nsite_session") {
+        // Validate session exists
+        if (sessions_.find(cookie.second) != sessions_.end()) {
+          return cookie.second;
+        }
+        break;
+      }
+    }
+  }
+  
+  // Create new session
+  std::string session_id = base::GenerateGUID();
+  sessions_[session_id] = "";  // Empty npub initially
+  return session_id;
+}
+
+void NsiteStreamingServer::UpdateSession(const std::string& session_id,
+                                        const std::string& npub) {
+  sessions_[session_id] = npub;
+}
+
+std::string NsiteStreamingServer::GetNpubFromSession(
+    const std::string& session_id) {
+  auto it = sessions_.find(session_id);
+  if (it != sessions_.end()) {
+    return it->second;
+  }
+  return "";
 }
 
 }  // namespace nostr
