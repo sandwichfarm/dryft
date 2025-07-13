@@ -59,7 +59,7 @@ private:
 
  public:
   // For testing
-  bool IsNsiteUrl(const GURL& url);
+  bool IsNsiteUrl(const GURL& url) const;
   GURL ConvertNostrUrlToLocalhost(const GURL& nostr_url);
 
  private:

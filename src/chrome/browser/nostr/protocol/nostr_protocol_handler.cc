@@ -34,6 +34,9 @@ namespace {
 // Default port for local Nostr server (matches LocalRelayConfigManager::kDefaultPort)
 constexpr int kDefaultLocalServerPort = 8081;
 
+// Nsite URL prefix
+constexpr char kNsitePrefix[] = "/nsite/";
+
 }  // namespace
 
 // static
@@ -106,7 +109,7 @@ void NostrProtocolURLLoaderFactory::Clone(
   new NostrProtocolURLLoaderFactory(browser_context_, std::move(factory));
 }
 
-bool NostrProtocolURLLoaderFactory::IsNsiteUrl(const GURL& url) {
+bool NostrProtocolURLLoaderFactory::IsNsiteUrl(const GURL& url) const {
   if (!url.is_valid()) {
     return false;
   }
@@ -116,9 +119,9 @@ bool NostrProtocolURLLoaderFactory::IsNsiteUrl(const GURL& url) {
     return false;
   }
   
-  // Check if path starts with /nsite/
+  // Check if path starts with /nsite/ and contains a non-empty identifier
   std::string path = url.path();
-  return base::StartsWith(path, "/nsite/");
+  return base::StartsWith(path, kNsitePrefix) && path.size() > strlen(kNsitePrefix);
 }
 
 void NostrProtocolURLLoaderFactory::HandleNsiteUrl(
@@ -129,14 +132,14 @@ void NostrProtocolURLLoaderFactory::HandleNsiteUrl(
   
   // Extract identifier from URL: nostr://host/nsite/<identifier>/path
   std::string path = request.url.path();
-  if (!base::StartsWith(path, "/nsite/")) {
+  if (!base::StartsWith(path, kNsitePrefix)) {
     LOG(ERROR) << "Invalid nsite URL format: " << request.url;
     client_remote->OnComplete(network::URLLoaderCompletionStatus(net::ERR_INVALID_URL));
     return;
   }
   
   // Remove /nsite/ prefix
-  path = path.substr(7); // len("/nsite/") = 7
+  path = path.substr(strlen(kNsitePrefix));
   
   // Extract identifier (everything up to next slash or end)
   std::string identifier;
