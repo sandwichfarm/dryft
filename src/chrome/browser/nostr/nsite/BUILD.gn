@@ -6,6 +6,8 @@ import("//build/config/features.gni")
 
 source_set("nsite") {
   sources = [
+    "nsite_cache_manager.cc",
+    "nsite_cache_manager.h",
     "nsite_service.cc",
     "nsite_service.h",
     "nsite_streaming_server.cc",
@@ -16,6 +18,7 @@ source_set("nsite") {
     "//base",
     "//chrome/browser/profiles",
     "//content/public/browser",
+    "//crypto",
     "//net",
     "//net:net_with_v8",
     "//services/network/public/cpp",
@@ -27,6 +30,7 @@ source_set("unit_tests") {
   testonly = true
   
   sources = [
+    "nsite_cache_manager_unittest.cc",
     "nsite_streaming_server_unittest.cc",
   ]
   

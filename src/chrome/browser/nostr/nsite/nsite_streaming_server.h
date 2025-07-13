@@ -20,6 +20,8 @@
 
 namespace nostr {
 
+class NsiteCacheManager;
+
 // HTTP server for streaming nsite content with dynamic port allocation
 class NsiteStreamingServer : public net::HttpServer::Delegate {
  public:
@@ -38,6 +40,15 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
 
   // Get the server port (0 if not running)
   uint16_t GetPort() const { return port_; }
+
+  // Cache management (for testing and future content injection)
+  void CacheFile(const std::string& npub,
+                 const std::string& path,
+                 const std::string& content,
+                 const std::string& content_type);
+  
+  // Get cache manager (for testing)
+  NsiteCacheManager* GetCacheManager() const { return cache_manager_.get(); }
 
   // net::HttpServer::Delegate implementation
   void OnConnect(int connection_id) override;
@@ -78,6 +89,7 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
   base::FilePath profile_path_;
   std::unique_ptr<net::HttpServer> server_;
   std::unique_ptr<net::ServerSocket> server_socket_;
+  std::unique_ptr<NsiteCacheManager> cache_manager_;
   uint16_t port_ = 0;
 
   // Session tracking: session_id -> npub
