@@ -6,6 +6,11 @@ import("//build/config/features.gni")
 
 component("blossom") {
   sources = [
+    "authorization_manager.h",
+    "blossom_request_handler.cc",
+    "blossom_request_handler.h",
+    "blossom_server.cc",
+    "blossom_server.h",
     "blossom_storage.cc",
     "blossom_storage.h",
   ]
@@ -14,6 +19,7 @@ component("blossom") {
     "//base",
     "//crypto",
     "//net",
+    "//net/server:http_server",
   ]
 
   defines = [ "IS_BLOSSOM_IMPL" ]
@@ -23,6 +29,7 @@ source_set("unit_tests") {
   testonly = true
   
   sources = [
+    "blossom_server_unittest.cc",
     "blossom_storage_unittest.cc",
   ]
   
@@ -31,6 +38,8 @@ source_set("unit_tests") {
     "//base",
     "//base/test:test_support",
     "//crypto",
+    "//net",
+    "//net:test_support",
     "//testing/gtest",
   ]
 }
