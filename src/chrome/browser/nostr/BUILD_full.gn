@@ -1,0 +1,140 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+import("//components/nostr/BUILD.gn")
+
+if (enable_nostr) {
+  source_set("nostr") {
+    sources = [
+      "key_encryption.cc",
+      "key_encryption.h",
+      "key_storage_factory.cc",
+      "key_storage_factory.h",
+      "key_storage_in_memory.cc",
+      "key_storage_in_memory.h",
+      "key_storage_interface.h",
+      "nostr_browser_utils.cc",
+      "nostr_browser_utils.h",
+      "nostr_permission_manager.cc",
+      "nostr_permission_manager.h",
+      "nostr_permission_manager_factory.cc",
+      "nostr_permission_manager_factory.h",
+      "nostr_service.cc",
+      "nostr_service.h",
+      "nostr_service_factory.cc",
+      "nostr_service_factory.h",
+    ]
+
+    deps = [
+      "//base",
+      "//chrome/browser/profiles",
+      "//chrome/browser/resources:nostr_resource_handler",
+      "//chrome/browser/ui",
+      "//chrome/common",
+      "//components/keyed_service/content",
+      "//components/nostr",
+      "//components/prefs",
+      "//content/public/browser",
+      "//crypto",
+      "//net",
+      "//third_party/boringssl",
+      "//ui/views",
+      "//url",
+      
+      # Include local relay components
+      "//chrome/browser/nostr/local_relay:local_relay",
+    ]
+    
+    if (is_win) {
+      sources += [
+        "key_storage_windows.cc",
+        "key_storage_windows.h",
+      ]
+    }
+    
+    if (is_mac) {
+      sources += [
+        "key_storage_mac.h",
+        "key_storage_mac.mm",
+        "mac_keychain_manager.h",
+        "mac_keychain_manager.mm",
+      ]
+      
+      frameworks = [
+        "Foundation.framework",
+        "Security.framework",
+      ]
+    }
+    
+    if (is_linux) {
+      sources += [
+        "key_storage_linux.cc",
+        "key_storage_linux.h",
+        "secret_service_client.cc",
+        "secret_service_client.h",
+        "file_fallback_storage.cc",
+        "file_fallback_storage.h",
+      ]
+      
+      pkg_config("libsecret") {
+        packages = [ "libsecret-1" ]
+      }
+      
+      configs += [ ":libsecret" ]
+    }
+  }
+
+  source_set("nostr_browser_tests") {
+    testonly = true
+    sources = [
+      "nostr_protocol_handler_browsertest.cc",
+      "nostr_permission_dialog_browsertest.cc",
+    ]
+
+    deps = [
+      ":nostr",
+      "//chrome/test:test_support",
+      "//chrome/test:test_support_ui",
+      "//components/nostr:nostr",
+      "//testing/gtest",
+    ]
+  }
+
+  source_set("unit_tests") {
+    testonly = true
+    sources = [
+      "key_encryption_unittest.cc",
+      "key_storage_integration_unittest.cc",
+      "nostr_permission_manager_unittest.cc",
+      "multi_account_service_test.cc",
+    ]
+    
+    if (is_win) {
+      sources += [ "key_storage_windows_unittest.cc" ]
+    }
+    
+    if (is_mac) {
+      sources += [ "key_storage_mac_unittest.cc" ]
+    }
+    
+    if (is_linux) {
+      sources += [ 
+        "key_storage_linux_unittest.cc",
+        "secret_service_client_unittest.cc"
+      ]
+    }
+
+    deps = [
+      ":nostr",
+      "//base",
+      "//chrome/test:test_support",
+      "//content/test:test_support",
+      "//testing/gtest",
+      
+      # Include local relay tests
+      "//chrome/browser/nostr/local_relay:local_relay_unittests",
+    ]
+  }
+}
