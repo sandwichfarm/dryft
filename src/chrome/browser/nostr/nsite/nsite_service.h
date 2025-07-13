@@ -5,7 +5,9 @@
 #ifndef CHROME_BROWSER_NOSTR_NSITE_NSITE_SERVICE_H_
 #define CHROME_BROWSER_NOSTR_NSITE_NSITE_SERVICE_H_
 
+#include <map>
 #include <memory>
+#include <vector>
 
 #include "base/functional/callback.h"
 #include "base/memory/singleton.h"
