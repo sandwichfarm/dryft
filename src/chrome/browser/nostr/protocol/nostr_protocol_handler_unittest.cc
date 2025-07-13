@@ -89,4 +89,40 @@ TEST_F(NostrProtocolHandlerTest, NostrUrlWithoutHost) {
   EXPECT_EQ("/nostr/path/only", converted.path());
 }
 
+TEST_F(NostrProtocolHandlerTest, IsNsiteUrl) {
+  auto factory = new NostrProtocolURLLoaderFactory(
+      &browser_context_, factory_.InitWithNewPipeAndPassReceiver());
+  
+  // Test valid nsite URLs
+  EXPECT_TRUE(factory->IsNsiteUrl(GURL("nostr://example.com/nsite/identifier")));
+  EXPECT_TRUE(factory->IsNsiteUrl(GURL("snostr://relay.damus.io/nsite/npub123/index.html")));
+  
+  // Test non-nsite URLs
+  EXPECT_FALSE(factory->IsNsiteUrl(GURL("nostr://example.com/regular/path")));
+  EXPECT_FALSE(factory->IsNsiteUrl(GURL("http://example.com/nsite/test")));
+  EXPECT_FALSE(factory->IsNsiteUrl(GURL("nostr://example.com/nsites/typo")));
+  
+  // Test invalid URLs
+  EXPECT_FALSE(factory->IsNsiteUrl(GURL("invalid-url")));
+}
+
+TEST_F(NostrProtocolHandlerTest, NsiteUrlWithPath) {
+  auto factory = new NostrProtocolURLLoaderFactory(
+      &browser_context_, factory_.InitWithNewPipeAndPassReceiver());
+  
+  // Test nsite URL with additional path
+  GURL nsite_url("nostr://relay.example.com/nsite/test-identifier/about/team.html");
+  EXPECT_TRUE(factory->IsNsiteUrl(nsite_url));
+}
+
+TEST_F(NostrProtocolHandlerTest, NsiteUrlEdgeCases) {
+  auto factory = new NostrProtocolURLLoaderFactory(
+      &browser_context_, factory_.InitWithNewPipeAndPassReceiver());
+  
+  // Test edge cases
+  EXPECT_FALSE(factory->IsNsiteUrl(GURL("nostr://example.com/nsite")));  // No trailing slash
+  EXPECT_FALSE(factory->IsNsiteUrl(GURL("nostr://example.com/nsite/")));  // Empty identifier
+  EXPECT_TRUE(factory->IsNsiteUrl(GURL("nostr://example.com/nsite/a")));  // Single char identifier
+}
+
 }  // namespace nostr

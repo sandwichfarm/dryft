@@ -19,6 +19,8 @@ source_set("protocol") {
   deps = [
     "//base",
     "//chrome/browser/nostr/local_relay",
+    "//chrome/browser/nostr/nsite",
+    "//chrome/browser/profiles",
     "//chrome/common:nostr_scheme",
     "//content/public/browser",
     "//mojo/public/cpp/bindings",
@@ -43,6 +45,9 @@ source_set("unit_tests") {
     ":protocol",
     "//base",
     "//base/test:test_support",
+    "//chrome/browser/nostr/nsite",
+    "//chrome/browser/profiles:test_support",
+    "//chrome/test:test_support",
     "//content/test:test_support",
     "//net:test_support",
     "//services/network:test_support",
