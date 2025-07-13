@@ -12,6 +12,8 @@ source_set("protocol") {
     "nip19.h",
     "nostr_protocol_handler.cc",
     "nostr_protocol_handler.h",
+    "nsite_resolver.cc",
+    "nsite_resolver.h",
   ]
 
   deps = [
@@ -34,6 +36,7 @@ source_set("unit_tests") {
     "bech32_unittest.cc",
     "nip19_unittest.cc",
     "nostr_protocol_handler_unittest.cc",
+    "nsite_resolver_unittest.cc",
   ]
   
   deps = [
@@ -41,6 +44,9 @@ source_set("unit_tests") {
     "//base",
     "//base/test:test_support",
     "//content/test:test_support",
+    "//net:test_support",
+    "//services/network:test_support",
+    "//services/network/public/cpp",
     "//testing/gtest",
     "//url",
   ]
