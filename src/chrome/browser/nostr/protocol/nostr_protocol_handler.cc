@@ -22,8 +22,8 @@ namespace nostr {
 
 namespace {
 
-// Default port for local Nostr server
-constexpr int kDefaultLocalServerPort = 7777;
+// Default port for local Nostr server (matches LocalRelayConfigManager::kDefaultPort)
+constexpr int kDefaultLocalServerPort = 8081;
 
 }  // namespace
 
@@ -74,9 +74,9 @@ void NostrProtocolURLLoaderFactory::CreateLoaderAndStart(
   
   // Create a redirect response
   auto response_head = network::mojom::URLResponseHead::New();
-  response_head->headers = base::MakeRefCounted<net::HttpResponseHeaders>(
-      "HTTP/1.1 307 Temporary Redirect\r\n"
-      "Location: " + localhost_url.spec() + "\r\n\r\n");
+  response_head->headers = base::MakeRefCounted<net::HttpResponseHeaders>("");
+  response_head->headers->ReplaceStatusLine("HTTP/1.1 307 Temporary Redirect");
+  response_head->headers->SetHeader("Location", localhost_url.spec());
   response_head->encoded_data_length = 0;
   response_head->content_length = 0;
   
@@ -107,41 +107,47 @@ GURL NostrProtocolURLLoaderFactory::ConvertNostrUrlToLocalhost(const GURL& nostr
   // Get the local server port
   int port = GetLocalServerPort();
   
-  // Build the localhost URL
+  // Build the localhost URL using GURL APIs
   // nostr://example.com/path -> http://localhost:7777/nostr/example.com/path
   // snostr://example.com/path -> https://localhost:7777/nostr/example.com/path
   
-  std::string localhost_url = target_scheme + "://localhost:" + 
-                             base::NumberToString(port) + "/nostr";
+  // Start with the base localhost URL
+  GURL::Replacements replacements;
+  replacements.SetSchemeStr(target_scheme);
+  replacements.SetHostStr("localhost");
+  replacements.SetPortStr(base::NumberToString(port));
   
-  // Add the host and path from the original URL
+  // Build the path: /nostr/[host][original_path]
+  std::string new_path = "/nostr";
   if (nostr_url.has_host()) {
-    localhost_url += "/" + nostr_url.host();
+    new_path += "/" + nostr_url.host();
   }
-  
   if (nostr_url.has_path()) {
-    localhost_url += nostr_url.path();
+    new_path += nostr_url.path();
   }
+  replacements.SetPathStr(new_path);
   
+  // Preserve query and fragment
   if (nostr_url.has_query()) {
-    localhost_url += "?" + nostr_url.query();
+    replacements.SetQueryStr(nostr_url.query());
   }
-  
   if (nostr_url.has_ref()) {
-    localhost_url += "#" + nostr_url.ref();
+    replacements.SetRefStr(nostr_url.ref());
   }
   
-  return GURL(localhost_url);
+  // Create a base URL and apply replacements
+  GURL base_url("http://localhost/");
+  return base_url.ReplaceComponents(replacements);
 }
 
 int NostrProtocolURLLoaderFactory::GetLocalServerPort() {
-  // Try to get the port from the local relay service
+  // Try to get the port from the local relay config manager
   if (browser_context_) {
-    auto* local_relay_service = 
+    auto* config_manager = 
         nostr::local_relay::LocalRelayServiceFactory::GetForBrowserContext(
             browser_context_);
-    if (local_relay_service) {
-      int port = local_relay_service->GetPort();
+    if (config_manager) {
+      int port = config_manager->GetPort();
       if (port > 0) {
         return port;
       }
