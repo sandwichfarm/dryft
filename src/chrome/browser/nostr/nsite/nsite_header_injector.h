@@ -53,7 +53,7 @@ class NsiteNavigationContext : public content::WebContentsObserver {
   base::WeakPtrFactory<NsiteNavigationContext> weak_factory_{this};
 };
 
-// Injects X-Nsite-Pubkey headers for requests to the streaming server
+// Injects X-Npub headers for requests to the streaming server
 class NsiteHeaderInjector {
  public:
   explicit NsiteHeaderInjector(content::BrowserContext* browser_context);

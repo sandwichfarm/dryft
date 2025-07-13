@@ -101,7 +101,7 @@ TEST_F(NsiteStreamingServerTest, ParseRequestMissingHeader) {
   uint16_t port = server_->Start();
   ASSERT_GT(port, 0);
 
-  // Create request without X-Nsite-Pubkey header
+  // Create request without X-Npub header
   net::HttpServerRequestInfo request;
   request.method = "GET";
   request.path = "/index.html";
@@ -120,7 +120,7 @@ TEST_F(NsiteStreamingServerTest, ParseRequestValidHeader) {
   net::HttpServerRequestInfo request;
   request.method = "GET";
   request.path = "/path/to/file.html";
-  request.headers["X-Nsite-Pubkey"] = "npub1234567890abcdef";
+  request.headers["X-Npub"] = "npub1234567890abcdef";
 
   // Parse should succeed
   auto context = server_->ParseNsiteRequest(request);
@@ -138,7 +138,7 @@ TEST_F(NsiteStreamingServerTest, ParseRequestCaseInsensitiveHeader) {
   net::HttpServerRequestInfo request;
   request.method = "GET";
   request.path = "/test.js";
-  request.headers["x-nsite-pubkey"] = "npub1test";
+  request.headers["x-npub"] = "npub1test";
 
   // Parse should succeed (case-insensitive)
   auto context = server_->ParseNsiteRequest(request);
@@ -155,7 +155,7 @@ TEST_F(NsiteStreamingServerTest, ParseRequestInvalidNpub) {
   net::HttpServerRequestInfo request;
   request.method = "GET";
   request.path = "/index.html";
-  request.headers["X-Nsite-Pubkey"] = "invalid";
+  request.headers["X-Npub"] = "invalid";
 
   // Parse should fail
   auto context = server_->ParseNsiteRequest(request);
@@ -229,7 +229,7 @@ TEST_F(NsiteStreamingServerTest, ValidateNpubLength) {
     request.method = "GET";
     request.path = "/test.html";
     if (!test.npub.empty()) {
-      request.headers["X-Nsite-Pubkey"] = test.npub;
+      request.headers["X-Npub"] = test.npub;
     }
 
     auto context = server_->ParseNsiteRequest(request);
@@ -247,7 +247,7 @@ TEST_F(NsiteStreamingServerTest, SessionFallback) {
   net::HttpServerRequestInfo request1;
   request1.method = "GET";
   request1.path = "/index.html";
-  request1.headers["X-Nsite-Pubkey"] = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
+  request1.headers["X-Npub"] = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
 
   auto context1 = server_->ParseNsiteRequest(request1);
   EXPECT_TRUE(context1.valid);
@@ -279,7 +279,7 @@ TEST_F(NsiteStreamingServerTest, SessionWithDifferentNpub) {
     net::HttpServerRequestInfo request;
     request.method = "GET";
     request.path = "/site1/index.html";
-    request.headers["X-Nsite-Pubkey"] = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
+    request.headers["X-Npub"] = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
 
     auto context = server_->ParseNsiteRequest(request);
     EXPECT_TRUE(context.valid);
@@ -291,7 +291,7 @@ TEST_F(NsiteStreamingServerTest, SessionWithDifferentNpub) {
     net::HttpServerRequestInfo request;
     request.method = "GET";
     request.path = "/site2/index.html";
-    request.headers["X-Nsite-Pubkey"] = "npub14nr0ux0cn38r5rvf3wen3p9sgfxv2ydqchtqt5gu8r8rpa0x97q330wjj";
+    request.headers["X-Npub"] = "npub14nr0ux0cn38r5rvf3wen3p9sgfxv2ydqchtqt5gu8r8rpa0x97q330wjj";
     request.headers["cookie"] = "nsite_session=" + session_id;
 
     auto context = server_->ParseNsiteRequest(request);

@@ -197,10 +197,10 @@ void NsiteHeaderInjector::OnBeforeRequest(
     return;
   }
   
-  // Inject X-Nsite-Pubkey header
+  // Inject X-Npub header
   if (headers) {
-    headers->SetHeader("X-Nsite-Pubkey", npub);
-    LOG(INFO) << "Injected header X-Nsite-Pubkey: " << npub 
+    headers->SetHeader("X-Npub", npub);
+    LOG(INFO) << "Injected header X-Npub: " << npub 
               << " for URL: " << info.url;
   }
 }

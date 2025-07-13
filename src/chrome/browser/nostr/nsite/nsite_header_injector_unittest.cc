@@ -158,9 +158,8 @@ TEST_F(NsiteNavigationContextTest, LocalhostNavigationKeepsContext) {
   auto* web_contents_tester = content::WebContentsTester::For(web_contents_);
   web_contents_tester->NavigateAndCommit(GURL("http://localhost:8080/page.html"));
   
-  // Context should be preserved (though in practice this might change
-  // based on actual implementation details)
-  // For now we'll test the basic functionality
+  // Context should be preserved for localhost navigation
+  EXPECT_EQ(context_->GetCurrentNsite(), npub);
 }
 
 }  // namespace nostr
