@@ -11,6 +11,7 @@
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
 #include "base/task/single_thread_task_runner.h"
+#include "components/blossom/blossom_authorization_manager.h"
 #include "components/blossom/blossom_request_handler.h"
 #include "net/base/net_errors.h"
 #include "net/server/http_server_response_info.h"
@@ -149,9 +150,21 @@ void BlossomServer::OnClose(int connection_id) {
 void BlossomServer::StartOnServerThread(StartCallback callback) {
   DCHECK(server_thread_->task_runner()->BelongsToCurrentThread());
   
+  // Create authorization manager if server name is configured
+  std::unique_ptr<AuthorizationManager> auth_manager;
+  if (!config_.server_name.empty()) {
+    BlossomAuthorizationManager::Config auth_config;
+    auth_config.server_name = config_.server_name;
+    auth_config.cache_ttl = base::Hours(1);
+    auth_config.max_cache_size = 1000;
+    auth_config.require_expiration = true;
+    
+    auth_manager = std::make_unique<BlossomAuthorizationManager>(auth_config);
+  }
+  
   // Create request handler
   request_handler_ = std::make_unique<BlossomRequestHandler>(
-      storage_, nullptr);  // TODO: Add authorization manager
+      storage_, std::move(auth_manager));
   
   // Create HTTP server
   server_ = std::make_unique<net::HttpServer>(

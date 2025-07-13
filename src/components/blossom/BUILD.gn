@@ -7,6 +7,8 @@ import("//build/config/features.gni")
 component("blossom") {
   sources = [
     "authorization_manager.h",
+    "blossom_authorization_manager.cc",
+    "blossom_authorization_manager.h",
     "blossom_request_handler.cc",
     "blossom_request_handler.h",
     "blossom_server.cc",
@@ -17,9 +19,11 @@ component("blossom") {
 
   deps = [
     "//base",
+    "//components/nostr",
     "//crypto",
     "//net",
     "//net/server:http_server",
+    "//third_party/boringssl",
   ]
 
   defines = [ "IS_BLOSSOM_IMPL" ]
@@ -29,6 +33,7 @@ source_set("unit_tests") {
   testonly = true
   
   sources = [
+    "blossom_authorization_manager_unittest.cc",
     "blossom_server_unittest.cc",
     "blossom_storage_unittest.cc",
   ]
@@ -37,9 +42,11 @@ source_set("unit_tests") {
     ":blossom",
     "//base",
     "//base/test:test_support",
+    "//components/nostr",
     "//crypto",
     "//net",
     "//net:test_support",
     "//testing/gtest",
+    "//third_party/boringssl",
   ]
 }
