@@ -14,6 +14,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/task/thread_pool.h"
+#include "chrome/browser/nostr/nsite/nsite_metrics.h"
 #include "crypto/sha2.h"
 
 namespace nostr {
@@ -106,6 +107,11 @@ void NsiteCacheManager::PutFile(const std::string& npub,
     // Update indices
     total_size_ += content_size;
     lru_index_.emplace(file->last_accessed, cache_key);
+    npub_index_[npub].insert(cache_key);
+    
+    // Emit UMA metrics for cache size and file count
+    NsiteMetrics::RecordCacheSize(total_size_);
+    NsiteMetrics::RecordCacheFileCount(cache_.size() + 1);  // +1 for the file we're about to add
     
     // Write to disk
     WriteFileToDisk(cache_key, *file);
@@ -129,10 +135,13 @@ std::unique_ptr<NsiteCacheManager::CachedFile> NsiteCacheManager::GetFile(
   
   auto it = cache_.find(cache_key);
   if (it == cache_.end()) {
+    SCOPED_NSITE_TIMER(kCacheMiss);
+    
     // Try loading from disk
     auto file = ReadFileFromDisk(cache_key);
     if (!file) {
       stats_.miss_count++;
+      NsiteMetrics::RecordCacheHitRate(false);
       return nullptr;
     }
     
@@ -140,11 +149,14 @@ std::unique_ptr<NsiteCacheManager::CachedFile> NsiteCacheManager::GetFile(
     UpdateAccessInfo(file.get());
     cache_[cache_key] = std::move(file);
     it = cache_.find(cache_key);
+  } else {
+    SCOPED_NSITE_TIMER(kCacheHit);
   }
   
   // Update access info
   UpdateAccessInfo(it->second.get());
   stats_.hit_count++;
+  NsiteMetrics::RecordCacheHitRate(true);
   
   // Return a copy
   auto result = std::make_unique<CachedFile>(*it->second);
@@ -172,6 +184,15 @@ void NsiteCacheManager::RemoveFile(const std::string& npub,
       }
     }
     
+    // Remove from npub index
+    auto npub_it = npub_index_.find(npub);
+    if (npub_it != npub_index_.end()) {
+      npub_it->second.erase(cache_key);
+      if (npub_it->second.empty()) {
+        npub_index_.erase(npub_it);
+      }
+    }
+    
     cache_.erase(it);
     DeleteFileFromDisk(cache_key);
     
@@ -184,14 +205,13 @@ void NsiteCacheManager::ClearNsite(const std::string& npub) {
   
   base::AutoLock lock(lock_);
   
-  std::vector<std::string> keys_to_remove;
-  
-  // Find all files for this npub
-  for (const auto& entry : cache_) {
-    if (entry.second->npub == npub) {
-      keys_to_remove.push_back(entry.first);
-    }
+  // Use npub index for faster lookup
+  auto npub_it = npub_index_.find(npub);
+  if (npub_it == npub_index_.end()) {
+    return;  // No files for this npub
   }
+  
+  std::vector<std::string> keys_to_remove(npub_it->second.begin(), npub_it->second.end());
   
   // Remove them
   for (const auto& key : keys_to_remove) {
@@ -212,6 +232,9 @@ void NsiteCacheManager::ClearNsite(const std::string& npub) {
       DeleteFileFromDisk(key);
     }
   }
+  
+  // Remove npub from index
+  npub_index_.erase(npub_it);
   
   LOG(INFO) << "Cleared " << keys_to_remove.size() << " files for nsite: " << npub;
 }

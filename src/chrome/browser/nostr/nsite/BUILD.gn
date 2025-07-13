@@ -10,6 +10,10 @@ source_set("nsite") {
     "nsite_cache_manager.h",
     "nsite_header_injector.cc",
     "nsite_header_injector.h",
+    "nsite_internals_ui.cc",
+    "nsite_internals_ui.h",
+    "nsite_metrics.cc",
+    "nsite_metrics.h",
     "nsite_security_utils.cc",
     "nsite_security_utils.h",
     "nsite_service.cc",
@@ -32,6 +36,22 @@ source_set("nsite") {
     "//net:net_with_v8",
     "//services/network/public/cpp",
     "//url",
+  ]
+}
+
+source_set("performance_tests") {
+  testonly = true
+  
+  sources = [
+    "nsite_performance_test.cc",
+  ]
+  
+  deps = [
+    ":nsite",
+    "//base",
+    "//base/test:test_support",
+    "//testing/gtest",
+    "//testing/perf",
   ]
 }
 

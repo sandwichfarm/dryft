@@ -8,6 +8,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "base/files/file_path.h"
@@ -106,11 +108,14 @@ class NsiteCacheManager {
   
   mutable base::Lock lock_;
   
-  // Main cache storage: cache_key -> file
-  std::map<std::string, std::unique_ptr<CachedFile>> cache_ GUARDED_BY(lock_);
+  // Main cache storage: cache_key -> file (using unordered_map for O(1) lookup)
+  std::unordered_map<std::string, std::unique_ptr<CachedFile>> cache_ GUARDED_BY(lock_);
   
   // LRU tracking: access_time -> cache_key
   std::multimap<base::Time, std::string> lru_index_ GUARDED_BY(lock_);
+  
+  // Fast lookup by npub: npub -> set of cache_keys
+  std::unordered_map<std::string, std::unordered_set<std::string>> npub_index_ GUARDED_BY(lock_);
   
   // Size tracking
   size_t total_size_ GUARDED_BY(lock_) = 0;
