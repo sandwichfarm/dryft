@@ -85,6 +85,7 @@ class BlossomContentResolver {
     std::vector<BlossomServer*> servers_to_try;
     size_t current_server_index = 0;
     base::Time start_time;
+    base::Time current_server_start_time;
     ContentResolutionResult result;
   };
 
@@ -99,6 +100,8 @@ class BlossomContentResolver {
     std::vector<GURL> success_urls;
     std::vector<std::pair<GURL, std::string>> failures;
     size_t pending_uploads = 0;
+    size_t total_servers = 0;
+    size_t next_server_index = 0;
   };
 
   // Try to resolve content from next server

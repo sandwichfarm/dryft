@@ -20,6 +20,11 @@ class MockBlossomUserServerManager : public BlossomUserServerManager {
                                             size_t max_count = 5) override {
     std::vector<BlossomServer*> result;
     
+    // Return empty if servers_empty_ is set
+    if (servers_empty_) {
+      return result;
+    }
+    
     // Return test servers
     static std::vector<std::unique_ptr<BlossomServer>> test_servers;
     if (test_servers.empty()) {

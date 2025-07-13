@@ -5,6 +5,7 @@
 #include "components/blossom/blossom_content_resolver.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <utility>
 
 #include "base/logging.h"
@@ -82,13 +83,17 @@ void BlossomContentResolver::UploadContent(const std::string& pubkey,
   LOG(INFO) << "Uploading content " << hash << " to " 
             << state->servers.size() << " servers";
   
-  // Start concurrent uploads
-  size_t concurrent_uploads = std::min(state->servers.size(),
-                                      config_.max_concurrent_requests);
-  state->pending_uploads = concurrent_uploads;
+  // Start concurrent uploads (limit concurrent requests, but upload to all servers)
+  state->total_servers = state->servers.size();
+  state->pending_uploads = state->total_servers;
+  state->next_server_index = 0;
   
-  for (size_t i = 0; i < concurrent_uploads; i++) {
+  // Start initial batch of uploads up to max_concurrent_requests
+  size_t initial_uploads = std::min(state->servers.size(),
+                                   config_.max_concurrent_requests);
+  for (size_t i = 0; i < initial_uploads; i++) {
     UploadToServer(state, state->servers[i]);
+    state->next_server_index++;
   }
 }
 
@@ -137,6 +142,7 @@ void BlossomContentResolver::TryNextServer(std::unique_ptr<ResolutionState> stat
   
   BlossomServer* server = state->servers_to_try[state->current_server_index];
   state->current_server_index++;
+  state->current_server_start_time = base::Time::Now();
   
   LOG(INFO) << "Trying server " << server->url << " for content " << state->hash;
   
@@ -154,6 +160,13 @@ void BlossomContentResolver::OnServerResolutionComplete(
     const std::string& mime_type,
     const std::string& error) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  
+  // Check if this server took too long
+  base::TimeDelta server_duration = base::Time::Now() - state->current_server_start_time;
+  if (server_duration >= config_.server_timeout) {
+    LOG(WARNING) << "Server request timed out after " << server_duration;
+    success = false;
+  }
   
   if (success) {
     LOG(INFO) << "Content resolved successfully from server";
@@ -214,6 +227,13 @@ void BlossomContentResolver::OnServerUploadComplete(
   }
   
   state->pending_uploads--;
+  
+  // Start upload to next server if we have more servers to try
+  if (state->next_server_index < state->servers.size()) {
+    UploadToServer(state, state->servers[state->next_server_index]);
+    state->next_server_index++;
+    state->pending_uploads++;
+  }
   
   // Check if all uploads are complete
   if (state->pending_uploads == 0) {

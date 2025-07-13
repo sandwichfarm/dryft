@@ -107,6 +107,9 @@ class BlossomUserServerManager {
   };
   std::map<std::string, std::unique_ptr<ServerListEntry>> server_cache_;
 
+  // Default server objects for fallback
+  std::vector<std::unique_ptr<BlossomServer>> default_server_objects_;
+
   // Periodic cleanup timer
   base::RepeatingTimer cleanup_timer_;
 

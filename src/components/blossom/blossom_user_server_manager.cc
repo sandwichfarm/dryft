@@ -77,6 +77,12 @@ BlossomUserServerManager::BlossomUserServerManager(const Config& config)
   DCHECK_GT(config_.max_servers_per_user, 0u);
   DCHECK_GT(config_.max_concurrent_checks, 0u);
   
+  // Initialize default server objects
+  for (const auto& url : config_.default_servers) {
+    default_server_objects_.push_back(
+        std::make_unique<BlossomServer>(url, "default"));
+  }
+  
   // Start periodic cleanup
   cleanup_timer_.Start(FROM_HERE, base::Minutes(10),
                       base::BindRepeating(&BlossomUserServerManager::CleanupCache,
@@ -173,22 +179,9 @@ std::vector<BlossomServer*> BlossomUserServerManager::GetBestServers(
   auto cache_it = server_cache_.find(pubkey);
   if (cache_it == server_cache_.end()) {
     // Return default servers if no user servers
-    for (const auto& default_url : config_.default_servers) {
-      if (result.size() >= max_count) break;
-      
-      // Create temporary server objects (this is a bit hacky)
-      // In practice, default servers should be managed separately
-      static std::vector<std::unique_ptr<BlossomServer>> default_server_objects;
-      if (default_server_objects.empty()) {
-        for (const auto& url : config_.default_servers) {
-          default_server_objects.push_back(
-              std::make_unique<BlossomServer>(url, "default"));
-        }
-      }
-      
-      if (result.size() < default_server_objects.size()) {
-        result.push_back(default_server_objects[result.size()].get());
-      }
+    size_t count = std::min(max_count, default_server_objects_.size());
+    for (size_t i = 0; i < count; i++) {
+      result.push_back(default_server_objects_[i].get());
     }
     return result;
   }
