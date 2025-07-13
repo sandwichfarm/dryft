@@ -44,6 +44,7 @@ if (enable_nostr) {
       "//ui/views",
       "//url",
       "protocol",
+      "nsite",
     ]
     
     if (is_win) {
@@ -202,6 +203,9 @@ if (enable_nostr) {
       
       # Include local relay tests
       "//chrome/browser/nostr/local_relay:local_relay_unittests",
+      
+      # Include nsite tests
+      "//chrome/browser/nostr/nsite:unit_tests",
     ]
   }
 
