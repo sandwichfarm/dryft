@@ -275,10 +275,9 @@ bool BlossomUserServerManager::IsValidServerUrl(const GURL& url) {
     return false;
   }
   
-  // Reject localhost/loopback unless explicitly allowed
+  // Reject localhost/loopback to prevent SSRF attacks
   if (net::IsLocalhost(url)) {
-    // For development, we might want to allow localhost
-    // return false;
+    return false;
   }
   
   return true;
