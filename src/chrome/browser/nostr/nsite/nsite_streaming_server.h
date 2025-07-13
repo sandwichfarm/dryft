@@ -28,6 +28,8 @@ class NsiteNotificationManager;
 // HTTP server for streaming nsite content with dynamic port allocation
 class NsiteStreamingServer : public net::HttpServer::Delegate {
  public:
+  // Endpoint paths
+  static constexpr char kDismissEndpoint[] = "/.nsite-dismiss";
   explicit NsiteStreamingServer(base::FilePath profile_path);
   ~NsiteStreamingServer() override;
 
@@ -57,6 +59,9 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
   void SetUpdateMonitor(NsiteUpdateMonitor* update_monitor);
 
   // Set notification manager (called by NsiteService)
+  // Takes ownership reference to the notification manager instance.
+  // Must be called on the sequence that owns this server.
+  // The manager pointer is not owned and must remain valid for the lifetime of this server.
   void SetNotificationManager(NsiteNotificationManager* notification_manager);
 
   // net::HttpServer::Delegate implementation
@@ -80,6 +85,7 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
   struct RequestContext {
     std::string npub;
     std::string path;
+    std::string method;
     std::string session_id;
     bool valid = false;
     bool from_session = false;
