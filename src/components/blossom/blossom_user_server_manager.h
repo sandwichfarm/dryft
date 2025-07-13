@@ -51,7 +51,6 @@ class BlossomUserServerManager {
   // Configuration for server management
   struct Config {
     base::TimeDelta server_list_ttl = base::Hours(1);
-    base::TimeDelta server_health_ttl = base::Minutes(5);
     size_t max_servers_per_user = 50;
     size_t max_concurrent_checks = 10;
     base::TimeDelta server_timeout = base::Seconds(30);

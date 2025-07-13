@@ -4,7 +4,6 @@
 
 #include "components/blossom/blossom_user_server_manager.h"
 
-#include "base/json/json_writer.h"
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/test/bind.h"

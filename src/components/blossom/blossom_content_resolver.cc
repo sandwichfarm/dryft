@@ -255,7 +255,7 @@ void BlossomContentResolver::FetchFromServer(
   
   GURL content_url = server_url.Resolve("/" + hash);
   
-  // Simulate network delay and random success/failure
+  // Simulate network delay and failure
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
       FROM_HERE,
       base::BindOnce(std::move(callback), 
@@ -263,7 +263,7 @@ void BlossomContentResolver::FetchFromServer(
                      "",     // No content
                      "",     // No mime type
                      "Simulated network error"),
-      base::Milliseconds(100 + (rand() % 500)));  // Random delay
+      base::Milliseconds(100));  // Fixed delay for deterministic tests
 }
 
 void BlossomContentResolver::UploadToServerHttp(
@@ -277,13 +277,13 @@ void BlossomContentResolver::UploadToServerHttp(
   
   GURL upload_url = server_url.Resolve("/" + hash);
   
-  // Simulate network delay and random success/failure
+  // Simulate network delay and success
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
       FROM_HERE,
       base::BindOnce(std::move(callback), 
                      true,  // Simulate success for now
                      ""),   // No error
-      base::Milliseconds(200 + (rand() % 800)));  // Random delay
+      base::Milliseconds(200));  // Fixed delay for deterministic tests
 }
 
 }  // namespace blossom
