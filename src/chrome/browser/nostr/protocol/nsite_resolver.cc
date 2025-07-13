@@ -11,7 +11,6 @@
 #include "base/logging.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
-#include "chrome/browser/nostr/protocol/nip19.h"
 #include "net/base/load_flags.h"
 #include "net/base/url_util.h"
 #include "net/dns/public/dns_query_type.h"
@@ -110,22 +109,6 @@ void NsiteResolver::Resolve(const GURL& nsite_url, ResolveCallback callback) {
     return;
   }
   
-  // Try npub subdomain first
-  if (parsed->is_npub_subdomain) {
-    auto npub_pubkey = ExtractNpubFromSubdomain(parsed->identifier);
-    if (npub_pubkey) {
-      ResolveResult result;
-      result.pubkey = *npub_pubkey;
-      result.domain = parsed->identifier;
-      result.path = parsed->path;
-      result.resolved_at = base::Time::Now();
-      
-      CacheResult(parsed->identifier, result);
-      std::move(callback).Run(result);
-      return;
-    }
-  }
-  
   // Try NIP-05 resolution
   ResolveViaNip05(parsed->identifier, parsed->path, std::move(callback));
 }
@@ -168,47 +151,14 @@ std::optional<NsiteResolver::ParsedNsiteUrl> NsiteResolver::ParseNsiteUrl(
   }
   
   // Determine type of identifier
-  if (result.identifier.find("npub1") != std::string::npos) {
-    result.is_npub_subdomain = true;
-  } else if (result.identifier.find('@') != std::string::npos || 
-             result.identifier.find('.') != std::string::npos) {
+  if (result.identifier.find('@') != std::string::npos || 
+      result.identifier.find('.') != std::string::npos) {
     result.is_nip05 = true;
   }
   
   return result;
 }
 
-std::optional<std::string> NsiteResolver::ExtractNpubFromSubdomain(
-    const std::string& host) {
-  // Look for npub1 prefix in the host
-  size_t npub_pos = host.find("npub1");
-  if (npub_pos == std::string::npos) {
-    return std::nullopt;
-  }
-  
-  // Extract until the next dot or end of string
-  size_t dot_pos = host.find('.', npub_pos);
-  std::string npub;
-  
-  if (dot_pos != std::string::npos) {
-    npub = host.substr(npub_pos, dot_pos - npub_pos);
-  } else {
-    npub = host.substr(npub_pos);
-  }
-  
-  // Decode npub to hex pubkey
-  auto decoded = nip19::Decode(npub);
-  if (!decoded) {
-    return std::nullopt;
-  }
-  
-  auto* entity = std::get_if<nip19::Entity>(&decoded.value());
-  if (!entity || entity->type != nip19::EntityType::kNpub) {
-    return std::nullopt;
-  }
-  
-  return entity->hex_id;
-}
 
 void NsiteResolver::ResolveViaNip05(const std::string& identifier,
                                     const std::string& path,

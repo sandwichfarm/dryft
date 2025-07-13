@@ -95,24 +95,7 @@ TEST_F(NsiteResolverTest, ParseInvalidNsiteUrl) {
   EXPECT_TRUE(callback_called);
 }
 
-TEST_F(NsiteResolverTest, ResolveNpubSubdomain) {
-  // Use a valid test npub
-  GURL url("nostr://nsite/npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6.example.com/index.html");
-  
-  bool callback_called = false;
-  resolver_->Resolve(url, base::BindOnce(
-      [](bool* called, std::optional<NsiteResolver::ResolveResult> result) {
-        *called = true;
-        ASSERT_TRUE(result.has_value());
-        EXPECT_EQ(result->pubkey, 
-                  "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d");
-        EXPECT_EQ(result->path, "index.html");
-      },
-      &callback_called));
-  
-  RunUntilIdle();
-  EXPECT_TRUE(callback_called);
-}
+// Npub subdomain test removed - local servers cannot have subdomains
 
 TEST_F(NsiteResolverTest, ResolveNip05WithUsername) {
   const std::string test_pubkey = 
@@ -329,6 +312,29 @@ TEST_F(NsiteResolverTest, ComplexPath) {
         *called = true;
         ASSERT_TRUE(result.has_value());
         EXPECT_EQ(result->path, "path/to/deep/content.html?query=123#anchor");
+      },
+      &callback_called));
+  
+  RunUntilIdle();
+  EXPECT_TRUE(callback_called);
+}
+
+TEST_F(NsiteResolverTest, DnsTxtLookupStub) {
+  // DNS TXT lookup is not yet implemented and should always fail
+  // This test ensures the stub behavior is consistent
+  
+  // Use a domain-only identifier that would trigger DNS lookup
+  // after NIP-05 fails
+  GURL url("nostr://nsite/dns-only-domain.com");
+  
+  // Don't set up any NIP-05 response, so it will fall through to DNS
+  
+  bool callback_called = false;
+  resolver_->Resolve(url, base::BindOnce(
+      [](bool* called, std::optional<NsiteResolver::ResolveResult> result) {
+        *called = true;
+        // DNS lookup is stubbed to always fail
+        EXPECT_FALSE(result.has_value());
       },
       &callback_called));
   

@@ -5,9 +5,11 @@
 #ifndef CHROME_BROWSER_NOSTR_PROTOCOL_NSITE_RESOLVER_H_
 #define CHROME_BROWSER_NOSTR_PROTOCOL_NSITE_RESOLVER_H_
 
+#include <map>
 #include <memory>
 #include <string>
 #include <optional>
+#include <vector>
 
 #include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
@@ -41,9 +43,9 @@ class NsiteResolver {
   // Resolve a Nsite URL to a pubkey
   // Format: nostr://nsite/<identifier>/<path>
   // Where identifier can be:
-  // - npub1xxx.domain.com (npub in subdomain)
   // - user@domain.com (NIP-05 format)
   // - domain.com (look up _@domain.com)
+  // Note: npub subdomains are not supported as local servers cannot have subdomains
   void Resolve(const GURL& nsite_url, ResolveCallback callback);
 
   // Clear the resolution cache
@@ -57,14 +59,10 @@ class NsiteResolver {
   struct ParsedNsiteUrl {
     std::string identifier;
     std::string path;
-    bool is_npub_subdomain = false;
     bool is_nip05 = false;
   };
 
   std::optional<ParsedNsiteUrl> ParseNsiteUrl(const GURL& url);
-
-  // Try to extract npub from subdomain
-  std::optional<std::string> ExtractNpubFromSubdomain(const std::string& host);
 
   // Resolve via NIP-05 (HTTPS lookup)
   void ResolveViaNip05(const std::string& identifier,
