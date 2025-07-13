@@ -411,6 +411,6 @@ Each issue should include:
 - **Milestone**: Which milestone it belongs to
 - **Blocks**: List of issue numbers this blocks
 - **Blocked by**: List of issue numbers blocking this
-- **Related specs**: Links to relevant .md files in /memory/
+- **Related specs**: Links to relevant .md files in /memory/ (now organized in memory/design/, memory/specifications/, memory/reference/)
 
 This ensures clear dependency tracking and allows working on multiple non-blocking issues in parallel.

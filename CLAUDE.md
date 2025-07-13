@@ -171,11 +171,11 @@ Remember these targets:
 ### 9. Specification References
 
 Always refer to:
-- `/memory/Storage_Architecture.md` - Storage design
-- `/memory/Browser_API_Extensions.md` - API specifications
-- `/memory/Preferences_Schema.md` - Settings structure
-- `/memory/nsite-spec.md` - Correct Nsite specification (kind 34128)
-- `/memory/BUD-*.md` - Correct Blossom specifications
+- `/memory/reference/Storage_Architecture.md` - Storage design
+- `/memory/reference/Browser_API_Extensions.md` - API specifications
+- `/memory/reference/Preferences_Schema.md` - Settings structure
+- `/memory/specifications/nsite-spec.md` - Correct Nsite specification (kind 34128)
+- `/memory/specifications/BUD-*.md` - Correct Blossom specifications
 
 ### 10. Development Process (PR Workflow)
 

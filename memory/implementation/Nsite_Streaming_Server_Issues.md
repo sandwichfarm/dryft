@@ -29,7 +29,7 @@ Implement dynamic port allocation for the Nsite streaming server in the ephemera
 - Thread-safe port storage in NsiteService
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Related specs: Dynamic port allocation (Section 10)
 
 ---
@@ -60,7 +60,7 @@ Implement request parsing and routing based on X-Nsite-Pubkey header. The server
 - Consider session-based fallback for missing headers
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Header injection design (Section 4)
 
 ---
@@ -92,7 +92,7 @@ Build the caching system for nsite files with LRU eviction, persistence, and eff
 - Consider memory-mapped files for large content
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Cache implementation (Section 5)
 
 ---
@@ -123,7 +123,7 @@ Implement WebRequest interceptor to inject X-Nsite-Pubkey header for all request
 - Cache tab-to-npub mappings for performance
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Browser integration (Section 11)
 
 ---
@@ -155,7 +155,7 @@ Update the nostr:// protocol handler to redirect nsite URLs to the streaming ser
 - Set referrer header as fallback
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Protocol handler updates (Section 12)
 
 ---
@@ -186,7 +186,7 @@ Implement background checking for nsite updates after serving cached content. Mu
 - Implement progressive download
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Update monitoring (Section 7)
 
 ---
@@ -217,7 +217,7 @@ Show non-intrusive banner to users when nsite updates are available, allowing th
 - Ensure accessibility compliance
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Update notifications (Section 8)
 
 ---
@@ -248,7 +248,7 @@ Security audit and hardening of the streaming server to prevent attacks and ensu
 - Structured error responses
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Security considerations (Section 13)
 
 ---
@@ -279,7 +279,7 @@ Optimize streaming server performance and add monitoring capabilities for debugg
 - Consider memory mapping for large files
 
 ### References
-- Related LLDDs: /memory/LLDD_Nsite_Streaming_Server.md
+- Related LLDDs: ../design/LLDD_Nsite_Streaming_Server.md
 - Performance targets (Section 15)
 
 ---
