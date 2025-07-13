@@ -118,11 +118,11 @@ class Bech32Decoder {
   ParseTlv(const std::vector<uint8_t>& data, size_t offset);
   
   // Entity-specific decoders
-  std::unique_ptr<NostrEntity> DecodeSimpleEntity(
+  base::expected<std::unique_ptr<NostrEntity>, DecodeError> DecodeSimpleEntity(
       NostrEntity::Type type, const std::string& raw_data, 
       const std::vector<uint8_t>& data);
   
-  std::unique_ptr<NostrEntity> DecodeComplexEntity(
+  base::expected<std::unique_ptr<NostrEntity>, DecodeError> DecodeComplexEntity(
       NostrEntity::Type type, const std::string& raw_data,
       const std::vector<uint8_t>& data);
 

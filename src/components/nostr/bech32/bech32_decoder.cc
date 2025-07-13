@@ -345,25 +345,27 @@ Bech32Decoder::ParseTlv(const std::vector<uint8_t>& data, size_t offset) {
   return entries;
 }
 
-std::unique_ptr<NostrEntity> Bech32Decoder::DecodeSimpleEntity(
+base::expected<std::unique_ptr<NostrEntity>, DecodeError>
+Bech32Decoder::DecodeSimpleEntity(
     NostrEntity::Type type, const std::string& raw_data, 
     const std::vector<uint8_t>& data) {
   
   // npub and note should be exactly 32 bytes
   if (data.size() != 32) {
-    return nullptr;
+    return base::unexpected(DecodeError::MALFORMED_DATA);
   }
   
   return std::make_unique<SimpleEntity>(type, raw_data, data);
 }
 
-std::unique_ptr<NostrEntity> Bech32Decoder::DecodeComplexEntity(
+base::expected<std::unique_ptr<NostrEntity>, DecodeError> 
+Bech32Decoder::DecodeComplexEntity(
     NostrEntity::Type type, const std::string& raw_data,
     const std::vector<uint8_t>& data) {
   
   // Complex entities start with 32 bytes of primary data (pubkey or event ID)
   if (data.size() < 32) {
-    return nullptr;
+    return base::unexpected(DecodeError::MALFORMED_DATA);
   }
   
   std::vector<uint8_t> primary_data(data.begin(), data.begin() + 32);
@@ -373,7 +375,7 @@ std::unique_ptr<NostrEntity> Bech32Decoder::DecodeComplexEntity(
   if (data.size() > 32) {
     auto tlv_result = ParseTlv(data, 32);
     if (!tlv_result.has_value()) {
-      return nullptr;
+      return base::unexpected(tlv_result.error());
     }
     tlv_entries = std::move(tlv_result.value());
   }
