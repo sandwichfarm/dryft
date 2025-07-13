@@ -16,6 +16,7 @@
 #include "url/origin.h"
 
 class Profile;
+class PrefService;
 
 // Forward declarations for Nostr structures
 struct NostrRelayPolicy;
@@ -25,6 +26,11 @@ namespace nostr {
 
 class KeyStorage;
 class NostrPermissionManager;
+
+namespace local_relay {
+class LocalRelayService;
+class LocalRelayConfigManager;
+}  // namespace local_relay
 
 // Main service for Nostr operations in Tungsten Browser
 // Provides cryptographic operations, key management, and NIP-07 compliance
@@ -197,6 +203,32 @@ class NostrService : public KeyedService {
   bool UpdateAccountMetadata(const std::string& public_key_hex,
                             const base::Value::Dict& metadata);
 
+  // Local Relay Management
+
+  /**
+   * Start the local relay service if enabled.
+   * @param callback Called with success status
+   */
+  void StartLocalRelay(base::OnceCallback<void(bool)> callback);
+
+  /**
+   * Stop the local relay service.
+   * @param callback Called when stopped
+   */
+  void StopLocalRelay(base::OnceClosure callback);
+
+  /**
+   * Get local relay status and statistics.
+   * @return status dictionary
+   */
+  base::Value::Dict GetLocalRelayStatus();
+
+  /**
+   * Check if local relay is enabled in preferences.
+   * @return true if enabled
+   */
+  bool IsLocalRelayEnabled();
+
   // KeyedService implementation
   void Shutdown() override;
 
@@ -235,6 +267,13 @@ class NostrService : public KeyedService {
   
   // Permission manager
   NostrPermissionManager* permission_manager_;
+  
+  // Preference service
+  PrefService* pref_service_;
+  
+  // Local relay components
+  std::unique_ptr<local_relay::LocalRelayService> local_relay_service_;
+  std::unique_ptr<local_relay::LocalRelayConfigManager> local_relay_config_;
   
   // Current default key (cached)
   std::string default_public_key_;

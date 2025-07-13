@@ -87,8 +87,12 @@ if (enable_nostr) {
     sources = [
       "local_relay/connection_manager.cc",
       "local_relay/connection_manager.h",
+      "local_relay/local_relay_config.cc",
+      "local_relay/local_relay_config.h",
       "local_relay/local_relay_service.cc",
       "local_relay/local_relay_service.h",
+      "local_relay/local_relay_service_factory.cc",
+      "local_relay/local_relay_service_factory.h",
       "local_relay/nostr_database.cc",
       "local_relay/nostr_database.h",
       "local_relay/nostr_database_migration.cc",
@@ -100,7 +104,11 @@ if (enable_nostr) {
 
     deps = [
       "//base",
+      "//chrome/browser/profiles",
+      "//components/keyed_service/content",
       "//components/nostr",
+      "//components/prefs",
+      "//content/public/browser",
       "//crypto",
       "//net",
       "//net/server:http_server",
@@ -166,6 +174,7 @@ if (enable_nostr) {
   source_set("local_relay_unittests") {
     testonly = true
     sources = [
+      "local_relay/local_relay_config_unittest.cc",
       "local_relay/local_relay_service_unittest.cc",
       "local_relay/nostr_database_unittest.cc",
     ]
