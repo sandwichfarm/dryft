@@ -10,6 +10,8 @@ source_set("nsite") {
     "nsite_cache_manager.h",
     "nsite_header_injector.cc",
     "nsite_header_injector.h",
+    "nsite_security_utils.cc",
+    "nsite_security_utils.h",
     "nsite_service.cc",
     "nsite_service.h",
     "nsite_streaming_server.cc",
@@ -37,6 +39,7 @@ source_set("unit_tests") {
   sources = [
     "nsite_cache_manager_unittest.cc",
     "nsite_header_injector_unittest.cc",
+    "nsite_security_utils_unittest.cc",
     "nsite_streaming_server_unittest.cc",
     "nsite_update_monitor_unittest.cc",
   ]

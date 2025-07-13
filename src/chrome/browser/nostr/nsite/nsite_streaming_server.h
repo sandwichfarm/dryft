@@ -21,6 +21,7 @@
 namespace nostr {
 
 class NsiteCacheManager;
+class NsiteSecurityUtils;
 class NsiteUpdateMonitor;
 
 // HTTP server for streaming nsite content with dynamic port allocation
@@ -101,6 +102,9 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
 
   // Session tracking: session_id -> npub
   std::map<std::string, std::string> sessions_;
+  
+  // Security utilities
+  std::unique_ptr<NsiteSecurityUtils::RateLimiter> rate_limiter_;
   
   scoped_refptr<base::SingleThreadTaskRunner> io_task_runner_;
   
