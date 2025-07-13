@@ -21,6 +21,10 @@
 namespace nostr {
 namespace local_relay {
 
+// Forward declarations
+class EventStorage;
+class ProtocolHandler;
+
 // Configuration for the local relay service
 struct LocalRelayConfig {
   // Network configuration
@@ -105,6 +109,12 @@ class LocalRelayService : public net::HttpServer::Delegate {
   
   // Connection management
   std::unique_ptr<ConnectionManager> connection_manager_;
+  
+  // Event storage manager
+  std::unique_ptr<EventStorage> event_storage_;
+  
+  // Protocol handler
+  std::unique_ptr<ProtocolHandler> protocol_handler_;
   
   // Database for event storage
   std::unique_ptr<NostrDatabase> database_;

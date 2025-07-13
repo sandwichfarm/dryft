@@ -13,6 +13,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/stringprintf.h"
 #include "base/task/single_thread_task_runner.h"
+#include "chrome/browser/nostr/local_relay/event_storage.h"
 #include "chrome/browser/nostr/local_relay/protocol_handler.h"
 #include "net/base/net_errors.h"
 #include "net/server/http_server_response_info.h"
@@ -272,9 +273,12 @@ void LocalRelayService::StartOnServerThread(
       config.max_connections,
       config.max_subscriptions_per_connection);
   
+  // Create event storage
+  event_storage_ = std::make_unique<EventStorage>(database_.get());
+  
   // Create protocol handler
   protocol_handler_ = std::make_unique<ProtocolHandler>(
-      database_.get(),
+      event_storage_.get(),
       connection_manager_.get(),
       base::BindRepeating(&LocalRelayService::SendMessage,
                          weak_factory_.GetWeakPtr()),
@@ -338,6 +342,7 @@ void LocalRelayService::StopOnServerThread(base::OnceClosure callback) {
   
   // Clean up components
   protocol_handler_.reset();
+  event_storage_.reset();
   connection_manager_.reset();
   database_.reset();
   
