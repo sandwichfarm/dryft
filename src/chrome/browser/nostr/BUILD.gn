@@ -33,6 +33,7 @@ if (enable_nostr) {
       "//chrome/browser/resources:nostr_resource_handler",
       "//chrome/browser/ui",
       "//chrome/common",
+      "//chrome/common:nostr_scheme",
       "//components/keyed_service/content",
       "//components/nostr",
       "//components/prefs",
@@ -42,6 +43,7 @@ if (enable_nostr) {
       "//third_party/boringssl",
       "//ui/views",
       "//url",
+      "protocol",
     ]
     
     if (is_win) {

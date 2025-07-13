@@ -107,6 +107,7 @@
 #include "chrome/browser/net/profile_network_context_service.h"
 #include "chrome/browser/net/profile_network_context_service_factory.h"
 #include "chrome/browser/net/system_network_context_manager.h"
+#include "chrome/browser/nostr/protocol/nostr_protocol_handler.h"
 #include "chrome/browser/optimization_guide/chrome_browser_main_extra_parts_optimization_guide.h"
 #include "chrome/browser/payments/payment_request_display_manager_factory.h"
 #include "chrome/browser/performance_manager/public/chrome_browser_main_extra_parts_performance_manager.h"
@@ -209,6 +210,7 @@
 #include "chrome/common/chrome_switches.h"
 #include "chrome/common/crash_keys.h"
 #include "chrome/common/env_vars.h"
+#include "chrome/common/nostr_scheme.h"
 #include "chrome/common/google_url_loader_throttle.h"
 #include "chrome/common/logging_chrome.h"
 #include "chrome/common/ppapi_utils.h"
@@ -6623,6 +6625,18 @@ void ChromeContentBrowserClient::
     }
   }
 #endif
+
+  // Register nostr:// and snostr:// protocol handlers
+  {
+    auto* rph = content::RenderProcessHost::FromID(render_process_id);
+    content::BrowserContext* browser_context = rph->GetBrowserContext();
+    if (browser_context && !browser_context->ShutdownStarted()) {
+      factories->emplace(chrome::kNostrScheme,
+                         nostr::NostrProtocolURLLoaderFactory::Create(browser_context));
+      factories->emplace(chrome::kSecureNostrScheme,
+                         nostr::NostrProtocolURLLoaderFactory::Create(browser_context));
+    }
+  }
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
   content::BrowserContext* browser_context =

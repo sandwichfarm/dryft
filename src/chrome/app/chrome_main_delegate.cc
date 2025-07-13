@@ -255,6 +255,9 @@ base::LazyInstance<ChromeContentRendererClient>::DestructorAtExit
 
 extern int NaClMain(content::MainFunctionParams);
 
+// Global Chrome content client instance
+static ChromeContentClient g_chrome_content_client;
+
 const char* const ChromeMainDelegate::kNonWildcardDomainNonPortSchemes[] = {
 #if BUILDFLAG(ENABLE_EXTENSIONS)
     extensions::kExtensionScheme,
@@ -1914,7 +1917,7 @@ void ChromeMainDelegate::ZygoteForked() {
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 
 content::ContentClient* ChromeMainDelegate::CreateContentClient() {
-  return &chrome_content_client_;
+  return &g_chrome_content_client;
 }
 
 content::ContentBrowserClient*
