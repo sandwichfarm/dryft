@@ -11,6 +11,8 @@
 #include "base/memory/weak_ptr.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
+#include "mojo/public/cpp/bindings/remote.h"
+#include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/cpp/self_deleting_url_loader_factory.h"
 #include "services/network/public/mojom/url_loader.mojom.h"
 #include "services/network/public/mojom/url_loader_factory.mojom.h"
@@ -20,7 +22,11 @@ namespace content {
 class BrowserContext;
 }
 
+class Profile;
+
 namespace nostr {
+
+class NsiteResolver;
 
 // URL loader factory that handles nostr:// and snostr:// schemes by redirecting
 // them to the local Nostr server for Nsite resolution and serving.
@@ -51,8 +57,30 @@ private:
   void Clone(mojo::PendingReceiver<network::mojom::URLLoaderFactory> factory)
       override;
 
-  // Convert nostr:// URL to localhost HTTP URL for local server (public for testing)
+ public:
+  // For testing
+  bool IsNsiteUrl(const GURL& url);
   GURL ConvertNostrUrlToLocalhost(const GURL& nostr_url);
+
+ private:
+  // Data structure for nsite resolution callbacks
+  struct NsiteResolveCallbackData {
+    mojo::Remote<network::mojom::URLLoaderClient> client;
+    Profile* profile;
+    std::string remaining_path;
+    GURL original_url;
+  };
+
+  // Handle nsite URL resolution and redirection
+  void HandleNsiteUrl(
+      const network::ResourceRequest& request,
+      mojo::PendingRemote<network::mojom::URLLoaderClient> client);
+
+  // Callback for nsite identifier resolution
+  void OnNsiteResolved(
+      std::unique_ptr<NsiteResolver> resolver,
+      NsiteResolveCallbackData* callback_data,
+      const std::string& npub);
 
   // Get the local Nostr server port
   int GetLocalServerPort();
