@@ -162,7 +162,7 @@ std::string NsiteNotificationManager::GetNotificationScript(
   const message = document.createElement('div');
   message.innerHTML = `
     <strong>📡 Nsite Update Available</strong>
-    <br><span style="font-size: 12px; opacity: 0.9;">New content is ready for <code style="background: rgba(255,255,255,0.2); padding: 2px 4px; border-radius: 3px;">%s</code></span>
+    <br><span style="font-size: 12px; opacity: 0.9;">New content is ready for <code style="background: rgba(255,255,255,0.2); padding: 2px 4px; border-radius: 3px;">%s</code>%s</span>
   `;
 
   // Button container
@@ -210,7 +210,13 @@ std::string NsiteNotificationManager::GetNotificationScript(
   dismissBtn.onclick = () => {
     banner.classList.add('nsite-notification-hide');
     setTimeout(() => banner.remove(), 300);
-    // TODO: Notify backend about dismissal
+    
+    // Store dismissal in localStorage and make a request to notify server
+    localStorage.setItem('nsite-dismissed-%s', Date.now().toString());
+    fetch('/.nsite-dismiss', { 
+      method: 'POST', 
+      headers: { 'X-Npub': '%s' }
+    }).catch(() => {}); // Ignore errors
   };
 
   buttons.appendChild(reloadBtn);
@@ -230,7 +236,7 @@ std::string NsiteNotificationManager::GetNotificationScript(
     }
   }, 30000);
 })();
-)", npub.c_str());
+)", npub.c_str(), path.empty() ? "" : base::StringPrintf(" at %s", path.c_str()).c_str(), npub.c_str(), npub.c_str());
 }
 
 std::string NsiteNotificationManager::GetRemoveNotificationScript() const {

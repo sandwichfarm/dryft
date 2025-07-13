@@ -9,6 +9,7 @@
 #include <set>
 
 #include "chrome/browser/nostr/nsite/nsite_cache_manager.h"
+#include "chrome/browser/nostr/nsite/nsite_notification_manager.h"
 #include "chrome/browser/nostr/nsite/nsite_security_utils.h"
 #include "chrome/browser/nostr/nsite/nsite_update_monitor.h"
 
@@ -306,6 +307,20 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
 
 void NsiteStreamingServer::HandleNsiteRequest(int connection_id,
                                              const RequestContext& context) {
+  // Handle dismiss notification endpoint
+  if (context.path == ".nsite-dismiss") {
+    if (notification_manager_) {
+      notification_manager_->DismissNotification(context.npub);
+    }
+    
+    // Send simple success response
+    scoped_refptr<net::HttpResponseHeaders> headers =
+        net::HttpResponseHeaders::TryToCreate("HTTP/1.1 200 OK\r\n\r\n");
+    headers->AddHeader("Content-Type", "text/plain");
+    server_->SendResponse(connection_id, headers, "dismissed");
+    return;
+  }
+  
   // Try to get file from cache first
   auto cached_file = cache_manager_->GetFile(context.npub, context.path);
   
@@ -455,6 +470,10 @@ std::string NsiteStreamingServer::GetNpubFromSession(
 
 void NsiteStreamingServer::SetUpdateMonitor(NsiteUpdateMonitor* update_monitor) {
   update_monitor_ = update_monitor;
+}
+
+void NsiteStreamingServer::SetNotificationManager(NsiteNotificationManager* notification_manager) {
+  notification_manager_ = notification_manager;
 }
 
 void NsiteStreamingServer::CacheFile(const std::string& npub,

@@ -64,6 +64,7 @@ uint16_t NsiteService::GetOrStartServer(Profile* profile) {
 
   // Create notification manager
   info.notification_manager = std::make_unique<NsiteNotificationManager>();
+  info.server->SetNotificationManager(info.notification_manager.get());
 
   // Create and configure update monitor
   info.update_monitor = std::make_unique<NsiteUpdateMonitor>(
