@@ -109,6 +109,10 @@ void NsiteCacheManager::PutFile(const std::string& npub,
     lru_index_.emplace(file->last_accessed, cache_key);
     npub_index_[npub].insert(cache_key);
     
+    // Emit UMA metrics for cache size and file count
+    NsiteMetrics::RecordCacheSize(total_size_);
+    NsiteMetrics::RecordCacheFileCount(cache_.size() + 1);  // +1 for the file we're about to add
+    
     // Write to disk
     WriteFileToDisk(cache_key, *file);
     

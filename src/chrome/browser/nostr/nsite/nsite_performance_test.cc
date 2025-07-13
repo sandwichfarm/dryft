@@ -20,6 +20,7 @@ constexpr char kMetricCacheHitTimeSuffix[] = "cache_hit_time";
 constexpr char kMetricCacheMissTimeSuffix[] = "cache_miss_time";
 constexpr char kMetricServerStartupTimeSuffix[] = "server_startup_time";
 constexpr char kMetricMemoryUsageSuffix[] = "memory_usage";
+constexpr char kMetricConcurrentThroughputSuffix[] = "concurrent_throughput";
 
 perf_test::PerfResultReporter SetUpReporter(const std::string& story) {
   perf_test::PerfResultReporter reporter(kMetricPrefixNsitePerformance, story);
@@ -27,6 +28,7 @@ perf_test::PerfResultReporter SetUpReporter(const std::string& story) {
   reporter.RegisterImportantMetric(kMetricCacheMissTimeSuffix, "ms");
   reporter.RegisterImportantMetric(kMetricServerStartupTimeSuffix, "ms");
   reporter.RegisterImportantMetric(kMetricMemoryUsageSuffix, "MB");
+  reporter.RegisterImportantMetric(kMetricConcurrentThroughputSuffix, "req/s");
   return reporter;
 }
 
@@ -201,7 +203,7 @@ TEST_F(NsitePerformanceTest, ConcurrentCacheAccess) {
   double throughput = kIterations / total_time.InSecondsF();
   
   // Report throughput as requests per second
-  reporter.AddResult("concurrent_throughput", throughput);
+  reporter.AddResult(kMetricConcurrentThroughputSuffix, throughput);
   
   // Verify performance: should handle at least 100 requests/second
   EXPECT_GT(throughput, 100.0) << "Concurrent access throughput too low";
