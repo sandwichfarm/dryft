@@ -7,10 +7,12 @@
 #include "base/logging.h"
 #include "chrome/browser/nostr/nsite/nsite_header_injector.h"
 #include "chrome/browser/nostr/nsite/nsite_streaming_server.h"
+#include "chrome/browser/nostr/nsite/nsite_update_monitor.h"
 #include "chrome/browser/profiles/profile.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/web_contents.h"
+#include "services/network/public/cpp/shared_url_loader_factory.h"
 
 namespace nostr {
 
@@ -58,6 +60,14 @@ uint16_t NsiteService::GetOrStartServer(Profile* profile) {
   ServerInfo& info = servers_[profile];
   info.server = std::move(server);
   info.port = port;
+
+  // Create and configure update monitor
+  info.update_monitor = std::make_unique<NsiteUpdateMonitor>(
+      profile->GetURLLoaderFactory(),
+      info.server->GetCacheManager());
+  
+  // Connect update monitor to streaming server
+  info.server->SetUpdateMonitor(info.update_monitor.get());
 
   // Notify observers
   NotifyServerStateChange(true, port);

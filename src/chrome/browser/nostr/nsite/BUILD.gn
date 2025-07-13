@@ -14,6 +14,8 @@ source_set("nsite") {
     "nsite_service.h",
     "nsite_streaming_server.cc",
     "nsite_streaming_server.h",
+    "nsite_update_monitor.cc",
+    "nsite_update_monitor.h",
   ]
 
   deps = [
@@ -36,6 +38,7 @@ source_set("unit_tests") {
     "nsite_cache_manager_unittest.cc",
     "nsite_header_injector_unittest.cc",
     "nsite_streaming_server_unittest.cc",
+    "nsite_update_monitor_unittest.cc",
   ]
   
   deps = [

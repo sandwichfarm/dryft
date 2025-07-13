@@ -24,6 +24,7 @@ namespace nostr {
 
 class NsiteStreamingServer;
 class NsiteHeaderInjector;
+class NsiteUpdateMonitor;
 
 // Singleton service managing the nsite streaming server
 class NsiteService {
@@ -64,6 +65,7 @@ class NsiteService {
   struct ServerInfo {
     std::unique_ptr<NsiteStreamingServer> server;
     std::unique_ptr<NsiteHeaderInjector> header_injector;
+    std::unique_ptr<NsiteUpdateMonitor> update_monitor;
     uint16_t port = 0;
   };
 

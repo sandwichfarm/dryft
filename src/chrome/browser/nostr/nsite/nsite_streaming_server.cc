@@ -9,6 +9,7 @@
 #include <set>
 
 #include "chrome/browser/nostr/nsite/nsite_cache_manager.h"
+#include "chrome/browser/nostr/nsite/nsite_update_monitor.h"
 
 #include "base/guid.h"
 #include "base/logging.h"
@@ -306,6 +307,17 @@ void NsiteStreamingServer::HandleNsiteRequest(int connection_id,
     }
     
     server_->SendResponse(connection_id, headers, cached_file->content);
+    
+    // Trigger background update check after serving cached content
+    if (update_monitor_) {
+      update_monitor_->CheckForUpdates(
+          context.npub, 
+          context.path,
+          base::BindRepeating([](const std::string& npub, const std::string& path) {
+            VLOG(1) << "Update available for nsite: " << npub << " path: " << path;
+          }));
+    }
+    
     return;
   }
   
@@ -415,6 +427,10 @@ std::string NsiteStreamingServer::GetNpubFromSession(
     return it->second;
   }
   return "";
+}
+
+void NsiteStreamingServer::SetUpdateMonitor(NsiteUpdateMonitor* update_monitor) {
+  update_monitor_ = update_monitor;
 }
 
 void NsiteStreamingServer::CacheFile(const std::string& npub,
