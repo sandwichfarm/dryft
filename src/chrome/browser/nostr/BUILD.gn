@@ -83,6 +83,34 @@ if (enable_nostr) {
     }
   }
 
+  source_set("local_relay") {
+    sources = [
+      "local_relay/connection_manager.cc",
+      "local_relay/connection_manager.h",
+      "local_relay/local_relay_service.cc",
+      "local_relay/local_relay_service.h",
+      "local_relay/nostr_database.cc",
+      "local_relay/nostr_database.h",
+      "local_relay/nostr_database_migration.cc",
+      "local_relay/nostr_database_migration.h",
+      "local_relay/nostr_database_schema.h",
+      "local_relay/protocol_handler.cc",
+      "local_relay/protocol_handler.h",
+    ]
+
+    deps = [
+      "//base",
+      "//components/nostr",
+      "//crypto",
+      "//net",
+      "//net/server:http_server",
+      "//sql",
+      "//third_party/boringssl",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
+  }
+
   source_set("nostr_browser_tests") {
     testonly = true
     sources = [
@@ -129,6 +157,30 @@ if (enable_nostr) {
       "//chrome/test:test_support",
       "//content/test:test_support",
       "//testing/gtest",
+      
+      # Include local relay tests
+      "//chrome/browser/nostr/local_relay:local_relay_unittests",
     ]
+  }
+
+  source_set("local_relay_unittests") {
+    testonly = true
+    sources = [
+      "local_relay/local_relay_service_unittest.cc",
+      "local_relay/nostr_database_unittest.cc",
+    ]
+
+    deps = [
+      ":local_relay",
+      "//base",
+      "//base/test:test_support",
+      "//net",
+      "//net:test_support",
+      "//sql",
+      "//sql:test_support",
+      "//testing/gtest",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
   }
 }
