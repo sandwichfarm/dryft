@@ -313,4 +313,101 @@ TEST_F(NsiteStreamingServerTest, SessionWithDifferentNpub) {
   }
 }
 
+TEST_F(NsiteStreamingServerTest, CacheIntegration) {
+  // Start server
+  uint16_t port = server_->Start();
+  ASSERT_GT(port, 0);
+
+  const std::string npub = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
+  const std::string path = "index.html";
+  const std::string content = "<html><body>Hello Nsite!</body></html>";
+  
+  // Cache a file
+  server_->CacheFile(npub, path, content, "text/html");
+  
+  // Verify it was cached
+  auto cache_manager = server_->GetCacheManager();
+  ASSERT_TRUE(cache_manager);
+  
+  auto cached_file = cache_manager->GetFile(npub, path);
+  ASSERT_TRUE(cached_file);
+  EXPECT_EQ(cached_file->content, content);
+  EXPECT_EQ(cached_file->content_type, "text/html");
+}
+
+TEST_F(NsiteStreamingServerTest, CacheStats) {
+  // Start server
+  uint16_t port = server_->Start();
+  ASSERT_GT(port, 0);
+
+  auto cache_manager = server_->GetCacheManager();
+  ASSERT_TRUE(cache_manager);
+  
+  // Initial stats
+  auto stats = cache_manager->GetStats();
+  EXPECT_EQ(stats.file_count, 0u);
+  EXPECT_EQ(stats.total_size, 0u);
+  
+  // Cache some files
+  server_->CacheFile("npub1test1", "file1.html", "content1", "text/html");
+  server_->CacheFile("npub1test2", "file2.js", "content2", "application/javascript");
+  
+  // Check updated stats
+  stats = cache_manager->GetStats();
+  EXPECT_EQ(stats.file_count, 2u);
+  EXPECT_EQ(stats.total_size, 16u);  // "content1" + "content2"
+}
+
+TEST_F(NsiteStreamingServerTest, CachePersistence) {
+  // Start server
+  uint16_t port = server_->Start();
+  ASSERT_GT(port, 0);
+
+  const std::string npub = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
+  const std::string path = "persistent.html";
+  const std::string content = "persistent content";
+  
+  // Cache file and save metadata
+  server_->CacheFile(npub, path, content, "text/html");
+  server_->GetCacheManager()->SaveMetadata();
+  
+  // Stop and restart server (simulating restart)
+  server_->Stop();
+  server_.reset();
+  server_ = std::make_unique<NsiteStreamingServer>(temp_dir_.GetPath());
+  port = server_->Start();
+  ASSERT_GT(port, 0);
+  
+  // File should still be accessible
+  auto cached_file = server_->GetCacheManager()->GetFile(npub, path);
+  ASSERT_TRUE(cached_file);
+  EXPECT_EQ(cached_file->content, content);
+}
+
+TEST_F(NsiteStreamingServerTest, CacheClearNsite) {
+  // Start server
+  uint16_t port = server_->Start();
+  ASSERT_GT(port, 0);
+
+  const std::string npub1 = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
+  const std::string npub2 = "npub14nr0ux0cn38r5rvf3wen3p9sgfxv2ydqchtqt5gu8r8rpa0x97q330wjj";
+  
+  // Cache files for both nsites
+  server_->CacheFile(npub1, "file1.html", "content1", "text/html");
+  server_->CacheFile(npub1, "file2.css", "content2", "text/css");
+  server_->CacheFile(npub2, "file3.js", "content3", "application/javascript");
+  
+  auto cache_manager = server_->GetCacheManager();
+  
+  // Clear npub1
+  cache_manager->ClearNsite(npub1);
+  
+  // Verify npub1 files are gone
+  EXPECT_FALSE(cache_manager->GetFile(npub1, "file1.html"));
+  EXPECT_FALSE(cache_manager->GetFile(npub1, "file2.css"));
+  
+  // Verify npub2 file still exists
+  EXPECT_TRUE(cache_manager->GetFile(npub2, "file3.js"));
+}
+
 }  // namespace nostr

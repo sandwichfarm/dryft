@@ -8,6 +8,8 @@
 #include <random>
 #include <set>
 
+#include "chrome/browser/nostr/nsite/nsite_cache_manager.h"
+
 #include "base/guid.h"
 #include "base/logging.h"
 #include "base/rand_util.h"
@@ -80,6 +82,10 @@ NsiteStreamingServer::NsiteStreamingServer(base::FilePath profile_path)
     : profile_path_(std::move(profile_path)),
       io_task_runner_(content::GetIOThreadTaskRunner({})) {
   DCHECK(!profile_path_.empty());
+  
+  // Create cache manager
+  base::FilePath cache_dir = profile_path_.Append("nsite_cache");
+  cache_manager_ = std::make_unique<NsiteCacheManager>(cache_dir);
 }
 
 NsiteStreamingServer::~NsiteStreamingServer() {
@@ -281,8 +287,30 @@ NsiteStreamingServer::RequestContext NsiteStreamingServer::ParseNsiteRequest(
 
 void NsiteStreamingServer::HandleNsiteRequest(int connection_id,
                                              const RequestContext& context) {
-  // TODO: Implement actual file serving from cache
-  // For now, return a placeholder response
+  // Try to get file from cache first
+  auto cached_file = cache_manager_->GetFile(context.npub, context.path);
+  
+  if (cached_file) {
+    // Serve from cache
+    scoped_refptr<net::HttpResponseHeaders> headers =
+        net::HttpResponseHeaders::TryToCreate("HTTP/1.1 200 OK\r\n\r\n");
+    headers->AddHeader("Content-Type", cached_file->content_type);
+    headers->AddHeader("Cache-Control", "public, max-age=3600");  // 1 hour
+    headers->AddHeader("ETag", cached_file->hash);
+    
+    // Set session cookie if we have a session
+    if (!context.session_id.empty()) {
+      headers->AddHeader("Set-Cookie", 
+          base::StringPrintf("nsite_session=%s; Path=/; HttpOnly; SameSite=Strict",
+                            context.session_id.c_str()));
+    }
+    
+    server_->SendResponse(connection_id, headers, cached_file->content);
+    return;
+  }
+  
+  // File not in cache - serve placeholder for now
+  // TODO: Implement background fetching from Nostr relays
   
   std::string response = base::StringPrintf(
       R"(<!DOCTYPE html>
@@ -294,6 +322,7 @@ body { font-family: system-ui, sans-serif; margin: 40px; }
 h1 { color: #0366d6; }
 p { color: #586069; }
 .info { background: #f6f8fa; padding: 20px; border-radius: 6px; }
+.error { background: #ffebee; border-left: 4px solid #f44336; padding: 20px; margin: 20px 0; }
 code { background: #e1e4e8; padding: 2px 4px; border-radius: 3px; }
 </style>
 </head>
@@ -302,16 +331,23 @@ code { background: #e1e4e8; padding: 2px 4px; border-radius: 3px; }
 <div class="info">
 <p><strong>Nsite:</strong> <code>%s</code></p>
 <p><strong>Path:</strong> <code>%s</code></p>
-<p><strong>Status:</strong> Cache implementation pending</p>
+<p><strong>Session:</strong> <code>%s</code></p>
+<p><strong>From Session:</strong> %s</p>
+</div>
+<div class="error">
+<p><strong>File not found in cache</strong></p>
+<p>Nsite content fetching from relays will be implemented in a future update.</p>
 </div>
 </body>
 </html>)",
       context.npub.c_str(),
       context.npub.c_str(),
-      context.path.c_str());
+      context.path.c_str(),
+      context.session_id.c_str(),
+      context.from_session ? "Yes" : "No");
 
   scoped_refptr<net::HttpResponseHeaders> headers =
-      net::HttpResponseHeaders::TryToCreate("HTTP/1.1 200 OK\r\n\r\n");
+      net::HttpResponseHeaders::TryToCreate("HTTP/1.1 404 Not Found\r\n\r\n");
   headers->AddHeader("Content-Type", "text/html; charset=utf-8");
   headers->AddHeader("Cache-Control", "no-cache");
   
@@ -379,6 +415,13 @@ std::string NsiteStreamingServer::GetNpubFromSession(
     return it->second;
   }
   return "";
+}
+
+void NsiteStreamingServer::CacheFile(const std::string& npub,
+                                    const std::string& path,
+                                    const std::string& content,
+                                    const std::string& content_type) {
+  cache_manager_->PutFile(npub, path, content, content_type);
 }
 
 }  // namespace nostr
