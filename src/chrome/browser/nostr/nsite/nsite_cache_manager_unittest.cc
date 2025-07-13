@@ -101,25 +101,33 @@ TEST_F(NsiteCacheManagerTest, ClearNsite) {
 }
 
 TEST_F(NsiteCacheManagerTest, LRUEviction) {
+  // Create a cache manager with a small size limit for testing
+  const size_t test_max_size = 1000;  // 1KB for testing
+  auto small_cache = std::make_unique<NsiteCacheManager>(temp_dir_.GetPath(), test_max_size);
+  
   const std::string npub = "npub1hyfvhwydfdsfwdz2ey2v4jz2x3xvryj8f8qnxv5xppsuamgas2rskp7w0r";
   
-  // Calculate sizes to trigger eviction
-  // Max cache is 500MB, so we'll use smaller test size
-  const size_t test_max_size = 1024 * 1024;  // 1MB for testing
-  const size_t file_size = 400 * 1024;      // 400KB per file
+  // Add files that will trigger eviction
+  const size_t file_size = 400;  // 400 bytes per file
   
-  // Override max cache size for testing (would need to make it configurable)
-  // For now, test the eviction logic exists
+  // Add first file
+  small_cache->PutFile(npub, "file1.html", CreateContent(file_size, 'A'), "text/html");
+  EXPECT_TRUE(small_cache->GetFile(npub, "file1.html"));
   
-  // Add multiple files
-  cache_manager_->PutFile(npub, "file1.html", CreateContent(file_size, 'A'), "text/html");
-  cache_manager_->PutFile(npub, "file2.html", CreateContent(file_size, 'B'), "text/html");
-  cache_manager_->PutFile(npub, "file3.html", CreateContent(file_size, 'C'), "text/html");
+  // Add second file
+  small_cache->PutFile(npub, "file2.html", CreateContent(file_size, 'B'), "text/html");
+  EXPECT_TRUE(small_cache->GetFile(npub, "file2.html"));
   
-  // All files should exist (under 500MB limit)
-  EXPECT_TRUE(cache_manager_->GetFile(npub, "file1.html"));
-  EXPECT_TRUE(cache_manager_->GetFile(npub, "file2.html"));
-  EXPECT_TRUE(cache_manager_->GetFile(npub, "file3.html"));
+  // Access file1 to make it more recent
+  small_cache->GetFile(npub, "file1.html");
+  
+  // Add third file - should trigger eviction of file2 (least recently used)
+  small_cache->PutFile(npub, "file3.html", CreateContent(file_size, 'C'), "text/html");
+  
+  // file1 and file3 should exist, file2 should be evicted
+  EXPECT_TRUE(small_cache->GetFile(npub, "file1.html"));
+  EXPECT_FALSE(small_cache->GetFile(npub, "file2.html"));  // Evicted
+  EXPECT_TRUE(small_cache->GetFile(npub, "file3.html"));
 }
 
 TEST_F(NsiteCacheManagerTest, CacheStats) {

@@ -49,6 +49,7 @@ class NsiteCacheManager {
   };
 
   explicit NsiteCacheManager(const base::FilePath& cache_dir);
+  NsiteCacheManager(const base::FilePath& cache_dir, size_t max_cache_size);
   ~NsiteCacheManager();
 
   // Cache operations
@@ -101,6 +102,7 @@ class NsiteCacheManager {
   void DeleteFileFromDisk(const std::string& cache_key);
 
   base::FilePath cache_dir_;
+  size_t max_cache_size_;
   
   mutable base::Lock lock_;
   

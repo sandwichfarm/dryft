@@ -37,7 +37,11 @@ std::string FormatBytes(size_t bytes) {
 }  // namespace
 
 NsiteCacheManager::NsiteCacheManager(const base::FilePath& cache_dir)
-    : cache_dir_(cache_dir) {
+    : NsiteCacheManager(cache_dir, kMaxCacheSize) {}
+
+NsiteCacheManager::NsiteCacheManager(const base::FilePath& cache_dir, 
+                                     size_t max_cache_size)
+    : cache_dir_(cache_dir), max_cache_size_(max_cache_size) {
   DCHECK(!cache_dir_.empty());
   
   // Create cache directory if needed
@@ -83,7 +87,7 @@ void NsiteCacheManager::PutFile(const std::string& npub,
     }
     
     // Check if we need to make room
-    if (total_size_ + content_size > kMaxCacheSize) {
+    if (total_size_ + content_size > max_cache_size_) {
       EvictToMakeRoom(content_size);
     }
     
@@ -369,7 +373,7 @@ void NsiteCacheManager::EvictToMakeRoom(size_t bytes_needed) {
   
   // Start with oldest files
   for (const auto& lru_entry : lru_index_) {
-    if (total_size_ - freed + bytes_needed <= kMaxCacheSize) {
+    if (total_size_ - freed + bytes_needed <= max_cache_size_) {
       break;
     }
     
