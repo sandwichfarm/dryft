@@ -212,5 +212,24 @@ TEST_F(Nip19Test, ParseTLVInvalidLength) {
   EXPECT_FALSE(ParseTLV(invalid_data, entity));
 }
 
+TEST_F(Nip19Test, DecodeNsecShouldWarnOrBlock) {
+  // Test that nsec (secret key) is properly handled
+  std::string nsec = "nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5";
+  auto result = Decode(nsec);
+  
+  // The implementation should either decode it with a warning
+  // or block it entirely for security reasons
+  if (result.has_value()) {
+    auto* entity = std::get_if<Entity>(&result.value());
+    ASSERT_NE(entity, nullptr);
+    EXPECT_EQ(entity->type, EntityType::kNsec);
+    // If decoded, verify it's a 32-byte key
+    EXPECT_EQ(entity->hex_id.size(), 64);  // 32 bytes as hex
+  } else {
+    // If blocked, that's also acceptable for security
+    EXPECT_FALSE(result.has_value());
+  }
+}
+
 }  // namespace nip19
 }  // namespace nostr

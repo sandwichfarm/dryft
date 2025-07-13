@@ -151,8 +151,8 @@ TEST_F(Bech32DecoderTest, DecodeNevent) {
   ASSERT_EQ(relays.size(), 1u);
   EXPECT_EQ(relays[0], relay);
   
-  std::string author_hex = complex_entity->GetAuthor();
-  EXPECT_EQ(author_hex, base::HexEncode(author.data(), author.size()));
+  std::string author_hex_str = complex_entity->GetAuthor();
+  EXPECT_EQ(author_hex_str, base::HexEncode(author.data(), author.size()));
 }
 
 // Test naddr (parameterized replaceable event) decoding
