@@ -18,8 +18,9 @@
       <!-- Bundled Nostr JavaScript libraries -->
       <include name="IDR_NOSTR_NDK_JS" file="${root_gen_dir}/nostr/ndk.js" type="BINDATA" />
       <include name="IDR_NOSTR_TOOLS_JS" file="${root_gen_dir}/nostr/nostr-tools.js" type="BINDATA" />
-      <include name="IDR_NOSTR_APPLESAUCE_JS" file="${root_gen_dir}/nostr/applesauce.js" type="BINDATA" />
-      <include name="IDR_NOSTR_NOSTRIFY_JS" file="${root_gen_dir}/nostr/nostrify.js" type="BINDATA" />
+      <include name="IDR_NOSTR_APPLESAUCE_CORE_JS" file="${root_gen_dir}/nostr/applesauce-core.js" type="BINDATA" />
+      <include name="IDR_NOSTR_APPLESAUCE_CONTENT_JS" file="${root_gen_dir}/nostr/applesauce-content.js" type="BINDATA" />
+      <include name="IDR_NOSTR_APPLESAUCE_LISTS_JS" file="${root_gen_dir}/nostr/applesauce-lists.js" type="BINDATA" />
       <include name="IDR_NOSTR_ALBY_SDK_JS" file="${root_gen_dir}/nostr/alby-sdk.js" type="BINDATA" />
     </includes>
   </release>

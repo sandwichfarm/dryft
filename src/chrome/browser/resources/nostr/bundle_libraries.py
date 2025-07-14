@@ -10,6 +10,9 @@ import os
 import shutil
 import sys
 
+# Import shared library configuration
+from library_config import get_input_to_output_mapping
+
 
 def main():
     parser = argparse.ArgumentParser(description='Bundle Nostr libraries')
@@ -27,14 +30,8 @@ def main():
     # Create output directory if it doesn't exist
     os.makedirs(args.output_dir, exist_ok=True)
     
-    # Map of input files to output files
-    library_map = {
-        'ndk-2.0.0.js': 'ndk.js',
-        'nostr-tools-1.17.0.js': 'nostr-tools.js',
-        'applesauce-0.5.0.js': 'applesauce.js',
-        'nostrify-1.2.0.js': 'nostrify.js',
-        'alby-sdk-3.0.0.js': 'alby-sdk.js'
-    }
+    # Get library mappings from shared configuration
+    library_map = get_input_to_output_mapping()
     
     # Process each library
     for input_name, output_name in library_map.items():

@@ -36,7 +36,12 @@ class NostrRelayBindings : public gin::Wrappable<NostrRelayBindings>,
   int64_t GetEventCount() const;
   int64_t GetStorageUsed() const;
 
-  // Methods
+  // New relay methods
+  std::string GetLocalRelayURL() const;
+  v8::Local<v8::Promise> GetLocalRelaySocket(v8::Isolate* isolate);
+  std::string GetPubkeyRelayURL(const std::string& pubkey) const;
+  
+  // Query methods
   v8::Local<v8::Promise> Query(v8::Isolate* isolate,
                                v8::Local<v8::Object> filter);
   v8::Local<v8::Promise> Count(v8::Isolate* isolate,
@@ -94,6 +99,9 @@ class NostrRelayBindings : public gin::Wrappable<NostrRelayBindings>,
   mutable int64_t cached_event_count_;
   mutable int64_t cached_storage_used_;
   mutable base::Time last_status_update_;
+  
+  // Cached WebSocket constructor for performance
+  mutable v8::Global<v8::Function> cached_websocket_constructor_;
   
   base::WeakPtrFactory<NostrRelayBindings> weak_factory_{this};
 };
