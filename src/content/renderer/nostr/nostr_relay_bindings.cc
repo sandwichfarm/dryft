@@ -108,13 +108,13 @@ v8::Local<v8::Promise> NostrRelayBindings::Query(
   auto resolver = v8::Promise::Resolver::New(
       isolate->GetCurrentContext()).ToLocalChecked();
   
-  int request_id = GetNextRequestId();
-  pending_resolvers_[request_id].Reset(isolate, resolver);
-  
   base::Value::Dict filter_dict = ConvertFilterToDict(isolate, filter);
   if (filter_dict.empty()) {
     return CreateErrorPromise(isolate, kInvalidFilterError);
   }
+  
+  int request_id = GetNextRequestId();
+  pending_resolvers_[request_id].Reset(isolate, resolver);
   
   SendRelayQuery(request_id, filter_dict);
   
