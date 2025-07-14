@@ -8,6 +8,8 @@ import("//build/config/tungsten/tungsten.gni")
 if (enable_nostr) {
   source_set("nostr") {
     sources = [
+      "blossom_bindings.cc",
+      "blossom_bindings.h",
       "nostr_bindings.cc",
       "nostr_bindings.h",
       "nostr_injection.cc",
@@ -35,6 +37,7 @@ if (enable_nostr) {
   source_set("nostr_unittests") {
     testonly = true
     sources = [ 
+      "blossom_bindings_unittest.cc",
       "nostr_bindings_unittest.cc",
       "nostr_libs_bindings_unittest.cc",
       "nostr_relay_bindings_unittest.cc",
