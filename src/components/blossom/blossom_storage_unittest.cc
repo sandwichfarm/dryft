@@ -446,4 +446,268 @@ TEST_F(BlossomStorageTest, GetContentPath) {
   invalid_loop.Run();
 }
 
+TEST_F(BlossomStorageTest, LRUEvictionWhenExceedingMaxSize) {
+  // Set up storage with a smaller limit for testing
+  base::ScopedTempDir eviction_temp_dir;
+  ASSERT_TRUE(eviction_temp_dir.CreateUniqueTempDir());
+  
+  StorageConfig config;
+  config.root_path = eviction_temp_dir.GetPath();
+  config.max_total_size = 1024;  // 1KB limit for easy testing
+  config.max_blob_size = 512;    // 512 bytes max per blob
+  config.shard_depth = 2;
+  config.enable_lru_eviction = true;
+  
+  auto eviction_storage = base::MakeRefCounted<BlossomStorage>(config);
+  
+  // Initialize storage
+  base::RunLoop init_loop;
+  eviction_storage->Initialize(base::BindLambdaForTesting([&](bool success) {
+    EXPECT_TRUE(success);
+    init_loop.Quit();
+  }));
+  init_loop.Run();
+  
+  // Store first blob (400 bytes)
+  std::string content1(400, 'A');
+  std::string hash1 = CalculateHash(content1);
+  
+  base::RunLoop store_loop1;
+  eviction_storage->StoreContent(
+      hash1, content1, "",
+      base::BindLambdaForTesting([&](bool success, const std::string& error) {
+        EXPECT_TRUE(success) << error;
+        store_loop1.Quit();
+      }));
+  store_loop1.Run();
+  
+  // Store second blob (400 bytes) - total 800 bytes
+  std::string content2(400, 'B');
+  std::string hash2 = CalculateHash(content2);
+  
+  base::RunLoop store_loop2;
+  eviction_storage->StoreContent(
+      hash2, content2, "",
+      base::BindLambdaForTesting([&](bool success, const std::string& error) {
+        EXPECT_TRUE(success) << error;
+        store_loop2.Quit();
+      }));
+  store_loop2.Run();
+  
+  // Access first blob to update its LRU timestamp
+  base::RunLoop access_loop;
+  eviction_storage->GetContent(
+      hash1,
+      base::BindLambdaForTesting([&](bool success,
+                                   const std::string& data,
+                                   const std::string& mime_type) {
+        EXPECT_TRUE(success);
+        EXPECT_EQ(content1, data);
+        access_loop.Quit();
+      }));
+  access_loop.Run();
+  
+  // Store third blob (400 bytes) - should evict blob2 (least recently used)
+  std::string content3(400, 'C');
+  std::string hash3 = CalculateHash(content3);
+  
+  base::RunLoop store_loop3;
+  eviction_storage->StoreContent(
+      hash3, content3, "",
+      base::BindLambdaForTesting([&](bool success, const std::string& error) {
+        EXPECT_TRUE(success) << error;
+        store_loop3.Quit();
+      }));
+  store_loop3.Run();
+  
+  // Verify blob1 still exists (was accessed recently)
+  base::RunLoop check_loop1;
+  eviction_storage->HasContent(
+      hash1,
+      base::BindLambdaForTesting([&](bool exists) {
+        EXPECT_TRUE(exists);
+        check_loop1.Quit();
+      }));
+  check_loop1.Run();
+  
+  // Verify blob2 was evicted (least recently used)
+  base::RunLoop check_loop2;
+  eviction_storage->HasContent(
+      hash2,
+      base::BindLambdaForTesting([&](bool exists) {
+        EXPECT_FALSE(exists);
+        check_loop2.Quit();
+      }));
+  check_loop2.Run();
+  
+  // Verify blob3 exists (just added)
+  base::RunLoop check_loop3;
+  eviction_storage->HasContent(
+      hash3,
+      base::BindLambdaForTesting([&](bool exists) {
+        EXPECT_TRUE(exists);
+        check_loop3.Quit();
+      }));
+  check_loop3.Run();
+}
+
+TEST_F(BlossomStorageTest, LRUEvictionWithMultipleBlobs) {
+  // Set up storage with specific size limit
+  base::ScopedTempDir eviction_temp_dir;
+  ASSERT_TRUE(eviction_temp_dir.CreateUniqueTempDir());
+  
+  StorageConfig config;
+  config.root_path = eviction_temp_dir.GetPath();
+  config.max_total_size = 2048;  // 2KB limit
+  config.max_blob_size = 512;     // 512 bytes max per blob
+  config.shard_depth = 2;
+  config.enable_lru_eviction = true;
+  
+  auto eviction_storage = base::MakeRefCounted<BlossomStorage>(config);
+  
+  base::RunLoop init_loop;
+  eviction_storage->Initialize(base::BindLambdaForTesting([&](bool success) {
+    EXPECT_TRUE(success);
+    init_loop.Quit();
+  }));
+  init_loop.Run();
+  
+  // Store 5 blobs of 500 bytes each (total 2500 bytes > 2048 limit)
+  std::vector<std::pair<std::string, std::string>> blobs;
+  for (int i = 0; i < 5; i++) {
+    std::string content(500, 'A' + i);
+    std::string hash = CalculateHash(content);
+    blobs.push_back({hash, content});
+    
+    base::RunLoop store_loop;
+    eviction_storage->StoreContent(
+        hash, content, "",
+        base::BindLambdaForTesting([&](bool success, const std::string& error) {
+          EXPECT_TRUE(success) << error;
+          store_loop.Quit();
+        }));
+    store_loop.Run();
+    
+    // Add small delay to ensure different timestamps
+    base::RunLoop delay_loop;
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
+        FROM_HERE, delay_loop.QuitClosure(), base::Milliseconds(10));
+    delay_loop.Run();
+  }
+  
+  // Get storage stats to verify eviction occurred
+  base::RunLoop stats_loop;
+  eviction_storage->GetStats(
+      base::BindLambdaForTesting([&](int64_t total_size, int64_t blob_count) {
+        // Should have evicted oldest blobs to stay under 2048 bytes
+        EXPECT_LE(total_size, 2048);
+        // With 500 byte blobs and 2048 limit, we can fit at most 4 blobs
+        EXPECT_LE(blob_count, 4);
+        stats_loop.Quit();
+      }));
+  stats_loop.Run();
+  
+  // Verify oldest blobs were evicted
+  base::RunLoop check_loop0;
+  eviction_storage->HasContent(
+      blobs[0].first,  // Oldest blob
+      base::BindLambdaForTesting([&](bool exists) {
+        EXPECT_FALSE(exists);  // Should be evicted
+        check_loop0.Quit();
+      }));
+  check_loop0.Run();
+  
+  // Verify newest blobs still exist
+  base::RunLoop check_loop4;
+  eviction_storage->HasContent(
+      blobs[4].first,  // Newest blob
+      base::BindLambdaForTesting([&](bool exists) {
+        EXPECT_TRUE(exists);  // Should still exist
+        check_loop4.Quit();
+      }));
+  check_loop4.Run();
+}
+
+TEST_F(BlossomStorageTest, NoEvictionWhenLRUDisabled) {
+  // Set up storage with LRU eviction disabled
+  base::ScopedTempDir no_eviction_temp_dir;
+  ASSERT_TRUE(no_eviction_temp_dir.CreateUniqueTempDir());
+  
+  StorageConfig config;
+  config.root_path = no_eviction_temp_dir.GetPath();
+  config.max_total_size = 1024;  // 1KB limit
+  config.max_blob_size = 512;    // 512 bytes max per blob
+  config.shard_depth = 2;
+  config.enable_lru_eviction = false;  // Disable LRU eviction
+  
+  auto no_eviction_storage = base::MakeRefCounted<BlossomStorage>(config);
+  
+  base::RunLoop init_loop;
+  no_eviction_storage->Initialize(base::BindLambdaForTesting([&](bool success) {
+    EXPECT_TRUE(success);
+    init_loop.Quit();
+  }));
+  init_loop.Run();
+  
+  // Store first blob (400 bytes)
+  std::string content1(400, 'X');
+  std::string hash1 = CalculateHash(content1);
+  
+  base::RunLoop store_loop1;
+  no_eviction_storage->StoreContent(
+      hash1, content1, "",
+      base::BindLambdaForTesting([&](bool success, const std::string& error) {
+        EXPECT_TRUE(success) << error;
+        store_loop1.Quit();
+      }));
+  store_loop1.Run();
+  
+  // Store second blob (400 bytes) - total 800 bytes
+  std::string content2(400, 'Y');
+  std::string hash2 = CalculateHash(content2);
+  
+  base::RunLoop store_loop2;
+  no_eviction_storage->StoreContent(
+      hash2, content2, "",
+      base::BindLambdaForTesting([&](bool success, const std::string& error) {
+        EXPECT_TRUE(success) << error;
+        store_loop2.Quit();
+      }));
+  store_loop2.Run();
+  
+  // Try to store third blob (400 bytes) - should fail without eviction
+  std::string content3(400, 'Z');
+  std::string hash3 = CalculateHash(content3);
+  
+  base::RunLoop store_loop3;
+  no_eviction_storage->StoreContent(
+      hash3, content3, "",
+      base::BindLambdaForTesting([&](bool success, const std::string& error) {
+        // Should fail because it would exceed max_total_size and LRU is disabled
+        EXPECT_FALSE(success);
+        EXPECT_EQ("Storage limit exceeded", error);
+        store_loop3.Quit();
+      }));
+  store_loop3.Run();
+  
+  // Verify both original blobs still exist (no eviction)
+  base::RunLoop check_loop1;
+  no_eviction_storage->HasContent(
+      hash1,
+      base::BindLambdaForTesting([&](bool exists) {
+        EXPECT_TRUE(exists);
+        check_loop1.Quit();
+      }));
+  check_loop1.Run();
+  
+  base::RunLoop check_loop2;
+  no_eviction_storage->HasContent(
+      hash2,
+      base::BindLambdaForTesting([&](bool exists) {
+        EXPECT_TRUE(exists);
+        check_loop2.Quit();
+      }));
+  check_loop2.Run();
+}
+
 }  // namespace blossom
