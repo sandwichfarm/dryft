@@ -334,4 +334,28 @@ TEST_F(BlossomBindingsTest, CreateAuthReturnsPromise) {
   EXPECT_TRUE(result->IsPromise());
 }
 
+TEST_F(BlossomBindingsTest, MirrorReturnsPromise) {
+  v8::Isolate* isolate = GetMainFrame()->GetWebFrame()->GetAgentGroupScheduler()->Isolate();
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = GetMainFrame()->GetWebFrame()->MainWorldScriptContext();
+  v8::Context::Scope context_scope(context);
+  
+  v8::Local<v8::Value> blossom_value = GetBlossom();
+  ASSERT_TRUE(blossom_value->IsObject());
+  
+  v8::Local<v8::Object> blossom = blossom_value.As<v8::Object>();
+  v8::Local<v8::Value> mirror_value;
+  ASSERT_TRUE(blossom->Get(context, gin::StringToV8(isolate, "mirror")).ToLocal(&mirror_value));
+  ASSERT_TRUE(mirror_value->IsFunction());
+  
+  v8::Local<v8::Function> mirror = mirror_value.As<v8::Function>();
+  
+  // Call mirror with a test hash
+  v8::Local<v8::Value> args[] = {gin::StringToV8(isolate, "testhash123")};
+  v8::Local<v8::Value> result;
+  ASSERT_TRUE(mirror->Call(context, blossom, 1, args).ToLocal(&result));
+  
+  EXPECT_TRUE(result->IsPromise());
+}
+
 }  // namespace tungsten
