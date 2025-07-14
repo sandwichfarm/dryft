@@ -33,6 +33,9 @@ class NostrLibsBindings : public gin::Wrappable<NostrLibsBindings> {
   std::string GetApplesauceContent() const;
   std::string GetApplesauceLists() const;
   std::string GetAlbySdk() const;
+  
+  // Version information getter
+  v8::Local<v8::Object> GetVersions(v8::Isolate* isolate) const;
 
  private:
   NostrLibsBindings();

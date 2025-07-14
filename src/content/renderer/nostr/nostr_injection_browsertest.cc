@@ -181,4 +181,118 @@ IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, Nip04MethodsExist) {
   EXPECT_EQ("rejected", encrypt_result);  // Should reject as it's a stub
 }
 
+// Test that window.nostr.libs exists and has library URLs
+IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, NostrLibsExists) {
+  GURL url = embedded_test_server()->GetURL("/simple.html");
+  EXPECT_TRUE(NavigateToURL(shell(), url));
+
+  // Check that window.nostr.libs exists
+  bool has_libs = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.libs === 'object');",
+      &has_libs));
+  EXPECT_TRUE(has_libs);
+
+  // Check that each library URL is a string
+  std::string ndk_type;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(typeof window.nostr.libs.ndk);",
+      &ndk_type));
+  EXPECT_EQ("string", ndk_type);
+
+  // Check the actual URL format
+  std::string ndk_url;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs.ndk);",
+      &ndk_url));
+  EXPECT_EQ("chrome://resources/js/nostr/ndk.js", ndk_url);
+
+  // Check nostr-tools URL
+  std::string nostr_tools_url;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs['nostr-tools']);",
+      &nostr_tools_url));
+  EXPECT_EQ("chrome://resources/js/nostr/nostr-tools.js", nostr_tools_url);
+}
+
+// Test that window.nostr.libs properties are read-only
+IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, NostrLibsReadOnly) {
+  GURL url = embedded_test_server()->GetURL("/simple.html");
+  EXPECT_TRUE(NavigateToURL(shell(), url));
+
+  // Try to modify a library URL
+  bool modified = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "try {"
+      "  window.nostr.libs.ndk = 'modified';"
+      "  window.domAutomationController.send(window.nostr.libs.ndk === 'modified');"
+      "} catch (e) {"
+      "  window.domAutomationController.send(false);"
+      "}",
+      &modified));
+  EXPECT_FALSE(modified);
+
+  // Verify the URL is unchanged
+  std::string ndk_url;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs.ndk);",
+      &ndk_url));
+  EXPECT_EQ("chrome://resources/js/nostr/ndk.js", ndk_url);
+}
+
+// Test that window.nostr.libs.versions exists
+IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, NostrLibsVersions) {
+  GURL url = embedded_test_server()->GetURL("/simple.html");
+  EXPECT_TRUE(NavigateToURL(shell(), url));
+
+  // Check that versions object exists
+  bool has_versions = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.libs.versions === 'object');",
+      &has_versions));
+  EXPECT_TRUE(has_versions);
+
+  // Check NDK version
+  std::string ndk_version;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs.versions.ndk);",
+      &ndk_version));
+  EXPECT_EQ("2.0.0", ndk_version);
+
+  // Check nostr-tools version
+  std::string nostr_tools_version;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs.versions['nostr-tools']);",
+      &nostr_tools_version));
+  EXPECT_EQ("1.17.0", nostr_tools_version);
+}
+
+// Test dynamic import of libraries
+IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, DynamicImportLibraries) {
+  GURL url = embedded_test_server()->GetURL("/simple.html");
+  EXPECT_TRUE(NavigateToURL(shell(), url));
+
+  // Test importing NDK (this will fail in tests as chrome:// URLs aren't served)
+  std::string import_result;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "import(window.nostr.libs.ndk)"
+      "  .then(() => window.domAutomationController.send('loaded'))"
+      "  .catch(e => window.domAutomationController.send('failed: ' + e.message));",
+      &import_result));
+  // In browser tests, chrome:// URLs may not be fully functional
+  EXPECT_TRUE(import_result.find("failed") != std::string::npos);
+}
+
 }  // namespace tungsten

@@ -5,6 +5,7 @@
 #include "content/renderer/nostr/nostr_libs_bindings.h"
 
 #include "gin/converter.h"
+#include "gin/dictionary.h"
 #include "gin/object_template_builder.h"
 
 namespace tungsten {
@@ -27,7 +28,8 @@ gin::ObjectTemplateBuilder NostrLibsBindings::GetObjectTemplateBuilder(
       .SetProperty("applesauce-core", &NostrLibsBindings::GetApplesauceCore)
       .SetProperty("applesauce-content", &NostrLibsBindings::GetApplesauceContent)
       .SetProperty("applesauce-lists", &NostrLibsBindings::GetApplesauceLists)
-      .SetProperty("alby-sdk", &NostrLibsBindings::GetAlbySdk);
+      .SetProperty("alby-sdk", &NostrLibsBindings::GetAlbySdk)
+      .SetProperty("versions", &NostrLibsBindings::GetVersions);
 }
 
 std::string NostrLibsBindings::GetNdk() const {
@@ -52,6 +54,20 @@ std::string NostrLibsBindings::GetApplesauceLists() const {
 
 std::string NostrLibsBindings::GetAlbySdk() const {
   return "chrome://resources/js/nostr/alby-sdk.js";
+}
+
+v8::Local<v8::Object> NostrLibsBindings::GetVersions(v8::Isolate* isolate) const {
+  gin::Dictionary versions(isolate);
+  
+  // These version numbers should match what's in library_config.py
+  versions.Set("ndk", "2.0.0");
+  versions.Set("nostr-tools", "1.17.0");
+  versions.Set("applesauce-core", "0.3.4");
+  versions.Set("applesauce-content", "0.3.4");
+  versions.Set("applesauce-lists", "0.3.4");
+  versions.Set("alby-sdk", "3.0.0");
+  
+  return versions.GetHandle();
 }
 
 }  // namespace tungsten
