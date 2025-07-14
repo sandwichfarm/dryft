@@ -128,16 +128,16 @@ v8::Local<v8::Promise> NostrRelayBindings::Count(
     return CreateErrorPromise(isolate, kRelayNotAvailableError);
   }
 
+  base::Value::Dict filter_dict = ConvertFilterToDict(isolate, filter);
+  if (filter_dict.empty()) {
+    return CreateErrorPromise(isolate, kInvalidFilterError);
+  }
+  
   auto resolver = v8::Promise::Resolver::New(
       isolate->GetCurrentContext()).ToLocalChecked();
   
   int request_id = GetNextRequestId();
   pending_resolvers_[request_id].Reset(isolate, resolver);
-  
-  base::Value::Dict filter_dict = ConvertFilterToDict(isolate, filter);
-  if (filter_dict.empty()) {
-    return CreateErrorPromise(isolate, kInvalidFilterError);
-  }
   
   SendRelayCount(request_id, filter_dict);
   
