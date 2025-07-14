@@ -13,6 +13,7 @@
 #include "content/public/renderer/render_frame_observer.h"
 #include "content/renderer/nostr/nostr_relay_bindings.h"
 #include "content/renderer/nostr/nostr_libs_bindings.h"
+#include "content/renderer/nostr/nostr_accounts_bindings.h"
 #include "gin/arguments.h"
 #include "gin/converter.h"
 #include "gin/dictionary.h"
@@ -104,7 +105,8 @@ gin::ObjectTemplateBuilder NostrBindings::GetObjectTemplateBuilder(
       .SetLazyDataProperty("nip04", &NostrBindings::GetNip04Object)
       .SetLazyDataProperty("relay", &NostrBindings::GetRelayObject)
       .SetLazyDataProperty("libs", &NostrBindings::GetLibsObject)
-      // Account management methods (non-standard but useful)
+      .SetLazyDataProperty("accounts", &NostrBindings::GetAccountsObject)
+      // Account management methods (deprecated - use window.nostr.accounts.*)
       .SetMethod("listAccounts", &NostrBindings::ListAccounts)
       .SetMethod("getCurrentAccount", &NostrBindings::GetCurrentAccount)
       .SetMethod("switchAccount", &NostrBindings::SwitchAccount);
@@ -429,6 +431,17 @@ v8::Local<v8::Object> NostrBindings::GetLibsObject(v8::Isolate* isolate) {
   }
   
   return libs_value.As<v8::Object>();
+}
+
+v8::Local<v8::Object> NostrBindings::GetAccountsObject(v8::Isolate* isolate) {
+  // Create the accounts bindings object
+  v8::Local<v8::Value> accounts_value = NostrAccountsBindings::Create(isolate, this);
+  if (accounts_value.IsEmpty()) {
+    LOG(ERROR) << "Failed to create window.nostr.accounts object";
+    return v8::Object::New(isolate);
+  }
+  
+  return accounts_value.As<v8::Object>();
 }
 
 // IPC Message Sending Methods

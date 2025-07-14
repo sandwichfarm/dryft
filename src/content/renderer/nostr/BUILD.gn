@@ -16,6 +16,8 @@ if (enable_nostr) {
       "nostr_relay_bindings.h",
       "nostr_libs_bindings.cc",
       "nostr_libs_bindings.h",
+      "nostr_accounts_bindings.cc",
+      "nostr_accounts_bindings.h",
     ]
 
     deps = [
@@ -37,6 +39,7 @@ if (enable_nostr) {
     sources = [ 
       "nostr_bindings_unittest.cc",
       "nostr_libs_bindings_unittest.cc",
+      "nostr_accounts_bindings_unittest.cc",
       "nostr_relay_bindings_unittest.cc",
       "nostr_relay_integration_test.cc",
       "nip07_integration_test.cc",

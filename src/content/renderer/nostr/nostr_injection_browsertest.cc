@@ -295,4 +295,96 @@ IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, DynamicImportLibraries) {
   EXPECT_TRUE(import_result.find("failed") != std::string::npos);
 }
 
+// Test that window.nostr.accounts exists
+IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, NostrAccountsExists) {
+  GURL url = embedded_test_server()->GetURL("/simple.html");
+  EXPECT_TRUE(NavigateToURL(shell(), url));
+
+  // Check that window.nostr.accounts exists
+  bool has_accounts = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.accounts === 'object');",
+      &has_accounts));
+  EXPECT_TRUE(has_accounts);
+
+  // Check that accounts methods exist
+  bool has_list = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.accounts.list === 'function');",
+      &has_list));
+  EXPECT_TRUE(has_list);
+
+  bool has_current = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.accounts.current === 'function');",
+      &has_current));
+  EXPECT_TRUE(has_current);
+
+  bool has_switch = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.accounts.switch === 'function');",
+      &has_switch));
+  EXPECT_TRUE(has_switch);
+
+  bool has_create = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.accounts.create === 'function');",
+      &has_create));
+  EXPECT_TRUE(has_create);
+
+  bool has_import = false;
+  EXPECT_TRUE(ExecuteScriptAndExtractBool(
+      web_contents(),
+      "window.domAutomationController.send("
+      "  typeof window.nostr.accounts.import === 'function');",
+      &has_import));
+  EXPECT_TRUE(has_import);
+}
+
+// Test that accounts methods return promises
+IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, AccountsMethodsReturnPromises) {
+  GURL url = embedded_test_server()->GetURL("/simple.html");
+  EXPECT_TRUE(NavigateToURL(shell(), url));
+
+  // Test list returns a promise
+  std::string list_result;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.nostr.accounts.list()"
+      "  .then(() => window.domAutomationController.send('resolved'))"
+      "  .catch(() => window.domAutomationController.send('rejected'));",
+      &list_result));
+  EXPECT_EQ("rejected", list_result);  // Should reject as it's a stub
+
+  // Test current returns a promise
+  std::string current_result;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.nostr.accounts.current()"
+      "  .then(() => window.domAutomationController.send('resolved'))"
+      "  .catch(() => window.domAutomationController.send('rejected'));",
+      &current_result));
+  EXPECT_EQ("rejected", current_result);  // Should reject as it's a stub
+
+  // Test create returns a promise
+  std::string create_result;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.nostr.accounts.create({name: 'Test'})"
+      "  .then(() => window.domAutomationController.send('resolved'))"
+      "  .catch(() => window.domAutomationController.send('rejected'));",
+      &create_result));
+  EXPECT_EQ("rejected", create_result);  // Should reject as not implemented
+}
+
 }  // namespace tungsten
