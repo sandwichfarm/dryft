@@ -100,6 +100,9 @@ class NostrRelayBindings : public gin::Wrappable<NostrRelayBindings>,
   mutable int64_t cached_storage_used_;
   mutable base::Time last_status_update_;
   
+  // Cached WebSocket constructor for performance
+  mutable v8::Global<v8::Function> cached_websocket_constructor_;
+  
   base::WeakPtrFactory<NostrRelayBindings> weak_factory_{this};
 };
 

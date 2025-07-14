@@ -11,34 +11,8 @@ import os
 import sys
 import urllib.request
 
-
-# Library definitions with CDN URLs
-LIBRARIES = {
-    'ndk-2.0.0.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@nostr-dev-kit/ndk@2.0.0/dist/index.js',
-        'sha256': None  # Will be calculated on first download
-    },
-    'nostr-tools-1.17.0.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/nostr-tools@1.17.0/lib/nostr.js',
-        'sha256': None
-    },
-    'applesauce-core-0.3.4.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@hzrd149/applesauce-core@0.3.4/dist/index.js',
-        'sha256': None
-    },
-    'applesauce-content-0.3.4.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@hzrd149/applesauce-content@0.3.4/dist/index.js',
-        'sha256': None
-    },
-    'applesauce-lists-0.3.4.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@hzrd149/applesauce-lists@0.3.4/dist/index.js',
-        'sha256': None
-    },
-    'alby-sdk-3.0.0.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@getalby/sdk@3.0.0/dist/index.js',
-        'sha256': None
-    }
-}
+# Import shared library configuration
+from library_config import get_download_urls
 
 
 def calculate_sha256(file_path):
@@ -83,9 +57,12 @@ def main():
     else:
         saved_hashes = {}
     
+    # Get library download URLs from shared configuration
+    libraries = get_download_urls()
+    
     # Download and verify each library
     updated_hashes = {}
-    for filename, info in LIBRARIES.items():
+    for filename, info in libraries.items():
         output_path = filename
         
         # Check if file exists and matches hash

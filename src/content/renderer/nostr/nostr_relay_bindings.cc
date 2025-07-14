@@ -57,7 +57,10 @@ NostrRelayBindings::NostrRelayBindings(content::RenderFrame* render_frame)
   SendRelayGetStatus(GetNextRequestId());
 }
 
-NostrRelayBindings::~NostrRelayBindings() = default;
+NostrRelayBindings::~NostrRelayBindings() {
+  // Clear the cached WebSocket constructor
+  cached_websocket_constructor_.Reset();
+}
 
 gin::ObjectTemplateBuilder NostrRelayBindings::GetObjectTemplateBuilder(
     v8::Isolate* isolate) {
@@ -119,27 +122,35 @@ v8::Local<v8::Promise> NostrRelayBindings::GetLocalRelaySocket(
       v8::Promise::Resolver::New(isolate->GetCurrentContext()).ToLocalChecked();
   
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
-  v8::Local<v8::Object> global = context->Global();
+  v8::Local<v8::Function> constructor;
   
-  // Get the WebSocket constructor from the global object
-  v8::Local<v8::Value> web_socket_constructor;
-  if (!global->Get(context, gin::StringToV8(isolate, "WebSocket"))
-           .ToLocal(&web_socket_constructor)) {
-    resolver->Reject(context,
-        gin::StringToV8(isolate, "WebSocket not available")).ToChecked();
-    return resolver->GetPromise();
-  }
-  
-  if (!web_socket_constructor->IsFunction()) {
-    resolver->Reject(context,
-        gin::StringToV8(isolate, "WebSocket is not a constructor")).ToChecked();
-    return resolver->GetPromise();
+  // Check if we have a cached WebSocket constructor
+  if (!cached_websocket_constructor_.IsEmpty()) {
+    constructor = cached_websocket_constructor_.Get(isolate);
+  } else {
+    // Get the WebSocket constructor from the global object
+    v8::Local<v8::Object> global = context->Global();
+    v8::Local<v8::Value> web_socket_constructor;
+    
+    if (!global->Get(context, gin::StringToV8(isolate, "WebSocket"))
+             .ToLocal(&web_socket_constructor)) {
+      resolver->Reject(context,
+          gin::StringToV8(isolate, "WebSocket not available")).ToChecked();
+      return resolver->GetPromise();
+    }
+    
+    if (!web_socket_constructor->IsFunction()) {
+      resolver->Reject(context,
+          gin::StringToV8(isolate, "WebSocket is not a constructor")).ToChecked();
+      return resolver->GetPromise();
+    }
+    
+    // Cache the constructor for future use
+    constructor = v8::Local<v8::Function>::Cast(web_socket_constructor);
+    cached_websocket_constructor_.Reset(isolate, constructor);
   }
   
   // Create WebSocket instance using the constructor
-  v8::Local<v8::Function> constructor = 
-      v8::Local<v8::Function>::Cast(web_socket_constructor);
-  
   v8::Local<v8::Value> args[] = {gin::StringToV8(isolate, cached_url_)};
   v8::MaybeLocal<v8::Object> maybe_web_socket = 
       constructor->NewInstance(context, 1, args);
