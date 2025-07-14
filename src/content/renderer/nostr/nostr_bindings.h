@@ -59,6 +59,12 @@ class NostrBindings : public gin::Wrappable<NostrBindings>,
   
   // Library paths property
   v8::Local<v8::Object> GetLibsObject(v8::Isolate* isolate);
+  
+  // Accounts management property
+  v8::Local<v8::Object> GetAccountsObject(v8::Isolate* isolate);
+
+  // Make accounts bindings a friend so it can access our methods
+  friend class NostrAccountsBindings;
 
  private:
   explicit NostrBindings(content::RenderFrame* render_frame);
