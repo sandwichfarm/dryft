@@ -115,6 +115,24 @@ TEST_F(NostrLibsBindingsTest, VersionsObjectExists) {
       versions->Get(context, gin::StringToV8(isolate, "alby-sdk")).ToLocalChecked();
   ASSERT_TRUE(alby_version->IsString());
   EXPECT_EQ("3.0.0", gin::V8ToString(isolate, alby_version));
+
+  // Check applesauce-core version
+  v8::Local<v8::Value> applesauce_core_version = 
+      versions->Get(context, gin::StringToV8(isolate, "applesauce-core")).ToLocalChecked();
+  ASSERT_TRUE(applesauce_core_version->IsString());
+  EXPECT_EQ("0.3.4", gin::V8ToString(isolate, applesauce_core_version));
+
+  // Check applesauce-content version
+  v8::Local<v8::Value> applesauce_content_version = 
+      versions->Get(context, gin::StringToV8(isolate, "applesauce-content")).ToLocalChecked();
+  ASSERT_TRUE(applesauce_content_version->IsString());
+  EXPECT_EQ("0.3.4", gin::V8ToString(isolate, applesauce_content_version));
+
+  // Check applesauce-lists version
+  v8::Local<v8::Value> applesauce_lists_version = 
+      versions->Get(context, gin::StringToV8(isolate, "applesauce-lists")).ToLocalChecked();
+  ASSERT_TRUE(applesauce_lists_version->IsString());
+  EXPECT_EQ("0.3.4", gin::V8ToString(isolate, applesauce_lists_version));
 }
 
 TEST_F(NostrLibsBindingsTest, AllLibrariesPresent) {

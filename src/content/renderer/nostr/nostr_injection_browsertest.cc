@@ -218,6 +218,38 @@ IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, NostrLibsExists) {
       "window.domAutomationController.send(window.nostr.libs['nostr-tools']);",
       &nostr_tools_url));
   EXPECT_EQ("chrome://resources/js/nostr/nostr-tools.js", nostr_tools_url);
+
+  // Check applesauce-core URL
+  std::string applesauce_core_url;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs['applesauce-core']);",
+      &applesauce_core_url));
+  EXPECT_EQ("chrome://resources/js/nostr/applesauce-core.js", applesauce_core_url);
+
+  // Check applesauce-content URL
+  std::string applesauce_content_url;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs['applesauce-content']);",
+      &applesauce_content_url));
+  EXPECT_EQ("chrome://resources/js/nostr/applesauce-content.js", applesauce_content_url);
+
+  // Check applesauce-lists URL
+  std::string applesauce_lists_url;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs['applesauce-lists']);",
+      &applesauce_lists_url));
+  EXPECT_EQ("chrome://resources/js/nostr/applesauce-lists.js", applesauce_lists_url);
+
+  // Check alby-sdk URL
+  std::string alby_sdk_url;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.domAutomationController.send(window.nostr.libs['alby-sdk']);",
+      &alby_sdk_url));
+  EXPECT_EQ("chrome://resources/js/nostr/alby-sdk.js", alby_sdk_url);
 }
 
 // Test that window.nostr.libs properties are read-only
