@@ -30,10 +30,23 @@ class NostrAccountsBindings : public gin::Wrappable<NostrAccountsBindings> {
                                      NostrBindings* parent_bindings);
 
   // Account management methods
+  
+  // Returns a promise that resolves to an array of all configured accounts
   v8::Local<v8::Promise> List(v8::Isolate* isolate);
+  
+  // Returns a promise that resolves to the currently active account
   v8::Local<v8::Promise> Current(v8::Isolate* isolate);
+  
+  // Switches to the specified account by public key
+  // Returns a promise that resolves when the switch is complete
   v8::Local<v8::Promise> Switch(v8::Isolate* isolate, const std::string& pubkey);
+  
+  // Creates a new account with optional settings
+  // Currently returns a rejected promise - backend support not yet implemented
   v8::Local<v8::Promise> Create(v8::Isolate* isolate, v8::Local<v8::Object> options);
+  
+  // Imports an account from nsec or private key
+  // Currently returns a rejected promise - backend support not yet implemented
   v8::Local<v8::Promise> Import(v8::Isolate* isolate, v8::Local<v8::Object> options);
 
  private:

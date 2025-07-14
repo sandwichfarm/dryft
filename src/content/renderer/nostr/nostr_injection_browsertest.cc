@@ -385,6 +385,26 @@ IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, AccountsMethodsReturnPromises)
       "  .catch(() => window.domAutomationController.send('rejected'));",
       &create_result));
   EXPECT_EQ("rejected", create_result);  // Should reject as not implemented
+
+  // Test switch returns a promise
+  std::string switch_result;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.nostr.accounts.switch('test-pubkey')"
+      "  .then(() => window.domAutomationController.send('resolved'))"
+      "  .catch(() => window.domAutomationController.send('rejected'));",
+      &switch_result));
+  EXPECT_EQ("rejected", switch_result);  // Should reject as it's a stub
+
+  // Test import returns a promise
+  std::string import_result;
+  EXPECT_TRUE(ExecuteScriptAndExtractString(
+      web_contents(),
+      "window.nostr.accounts.import({nsec: 'nsec1test'})"
+      "  .then(() => window.domAutomationController.send('resolved'))"
+      "  .catch(() => window.domAutomationController.send('rejected'));",
+      &import_result));
+  EXPECT_EQ("rejected", import_result);  // Should reject as not implemented
 }
 
 }  // namespace tungsten
