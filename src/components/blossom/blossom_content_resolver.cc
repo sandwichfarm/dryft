@@ -113,7 +113,9 @@ void BlossomContentResolver::CheckContentExists(
   
   // TODO: Implement HEAD request checking
   // For now, simulate by checking first server
-  std::move(callback).Run(true, servers[0]->url);
+  // Return the full resource URL including the hash path
+  GURL resource_url = servers[0]->url.Resolve("/" + hash);
+  std::move(callback).Run(true, resource_url);
 }
 
 void BlossomContentResolver::TryNextServer(std::unique_ptr<ResolutionState> state) {
