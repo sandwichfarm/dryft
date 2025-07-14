@@ -24,6 +24,7 @@ namespace {
 
 const char kRelayNotAvailableError[] = "Local relay is not available";
 const char kInvalidFilterError[] = "Invalid filter object";
+const char kDefaultRelayUrl[] = "ws://127.0.0.1:8081";
 
 // Status cache timeout (5 seconds)
 constexpr base::TimeDelta kStatusCacheTimeout = base::Seconds(5);
@@ -50,7 +51,7 @@ NostrRelayBindings::NostrRelayBindings(content::RenderFrame* render_frame)
   // TODO: The relay URL should be obtained from the browser process
   // which knows the actual port the LocalRelayService is listening on.
   // For now, use the default port from LocalRelayConfig
-  cached_url_ = "ws://127.0.0.1:8081";
+  cached_url_ = kDefaultRelayUrl;
   
   // Request initial status update
   SendRelayGetStatus(GetNextRequestId());
@@ -118,25 +119,36 @@ v8::Local<v8::Promise> NostrRelayBindings::GetLocalRelaySocket(
       v8::Promise::Resolver::New(isolate->GetCurrentContext()).ToLocalChecked();
   
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Object> global = context->Global();
   
-  // Create WebSocket in JavaScript context
-  std::string script = "new WebSocket('" + cached_url_ + "')";
-  v8::Local<v8::String> source = gin::StringToV8(isolate, script);
+  // Get the WebSocket constructor from the global object
+  v8::Local<v8::Value> web_socket_constructor;
+  if (!global->Get(context, gin::StringToV8(isolate, "WebSocket"))
+           .ToLocal(&web_socket_constructor)) {
+    resolver->Reject(context,
+        gin::StringToV8(isolate, "WebSocket not available")).ToChecked();
+    return resolver->GetPromise();
+  }
   
-  v8::MaybeLocal<v8::Script> maybe_script = v8::Script::Compile(context, source);
-  if (!maybe_script.IsEmpty()) {
-    v8::Local<v8::Script> compiled_script = maybe_script.ToLocalChecked();
-    v8::MaybeLocal<v8::Value> maybe_result = compiled_script->Run(context);
-    
-    if (!maybe_result.IsEmpty()) {
-      resolver->Resolve(context, maybe_result.ToLocalChecked()).ToChecked();
-    } else {
-      resolver->Reject(context,
-          gin::StringToV8(isolate, "Failed to create WebSocket")).ToChecked();
-    }
+  if (!web_socket_constructor->IsFunction()) {
+    resolver->Reject(context,
+        gin::StringToV8(isolate, "WebSocket is not a constructor")).ToChecked();
+    return resolver->GetPromise();
+  }
+  
+  // Create WebSocket instance using the constructor
+  v8::Local<v8::Function> constructor = 
+      v8::Local<v8::Function>::Cast(web_socket_constructor);
+  
+  v8::Local<v8::Value> args[] = {gin::StringToV8(isolate, cached_url_)};
+  v8::MaybeLocal<v8::Object> maybe_web_socket = 
+      constructor->NewInstance(context, 1, args);
+  
+  if (!maybe_web_socket.IsEmpty()) {
+    resolver->Resolve(context, maybe_web_socket.ToLocalChecked()).ToChecked();
   } else {
     resolver->Reject(context,
-        gin::StringToV8(isolate, "Failed to compile WebSocket script")).ToChecked();
+        gin::StringToV8(isolate, "Failed to create WebSocket")).ToChecked();
   }
   
   return resolver->GetPromise();
@@ -352,10 +364,13 @@ void NostrRelayBindings::OnRelayStatusResponse(
   cached_storage_used_ = storage_used;
   
   // Update connection status
-  // Note: The actual URL will need to be obtained separately from the browser process
-  // For now, we'll keep the URL if connected
+  // TODO: The actual URL should be provided by the browser process
+  // which knows the dynamically assigned port from LocalRelayService::GetLocalAddress()
   if (!connected) {
     cached_url_ = "";
+  } else if (cached_url_.empty()) {
+    // If we don't have a URL yet but we're connected, use the default
+    cached_url_ = kDefaultRelayUrl;
   }
   
   last_status_update_ = base::Time::Now();

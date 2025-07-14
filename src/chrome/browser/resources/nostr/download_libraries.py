@@ -14,20 +14,24 @@ import urllib.request
 
 # Library definitions with CDN URLs
 LIBRARIES = {
-    'ndk-2.8.2.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@nostr-dev-kit/ndk@2.8.2/dist/index.js',
+    'ndk-2.0.0.js': {
+        'url': 'https://cdn.jsdelivr.net/npm/@nostr-dev-kit/ndk@2.0.0/dist/index.js',
         'sha256': None  # Will be calculated on first download
     },
     'nostr-tools-1.17.0.js': {
         'url': 'https://cdn.jsdelivr.net/npm/nostr-tools@1.17.0/lib/nostr.js',
         'sha256': None
     },
-    'applesauce-0.6.0.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@welshman/lib@0.6.0/dist/index.js',
+    'applesauce-core-0.3.4.js': {
+        'url': 'https://cdn.jsdelivr.net/npm/@hzrd149/applesauce-core@0.3.4/dist/index.js',
         'sha256': None
     },
-    'nostrify-0.32.2.js': {
-        'url': 'https://cdn.jsdelivr.net/npm/@nostrify/nostrify@0.32.2/index.js',
+    'applesauce-content-0.3.4.js': {
+        'url': 'https://cdn.jsdelivr.net/npm/@hzrd149/applesauce-content@0.3.4/dist/index.js',
+        'sha256': None
+    },
+    'applesauce-lists-0.3.4.js': {
+        'url': 'https://cdn.jsdelivr.net/npm/@hzrd149/applesauce-lists@0.3.4/dist/index.js',
         'sha256': None
     },
     'alby-sdk-3.0.0.js': {
