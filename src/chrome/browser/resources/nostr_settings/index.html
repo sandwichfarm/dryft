@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Nostr Settings</title>
+  <link rel="stylesheet" href="chrome://resources/css/chrome_shared.css">
+  <link rel="stylesheet" href="nostr_settings.css">
+  <script src="chrome://resources/js/cr.js"></script>
+  <script src="chrome://resources/js/promise_resolver.js"></script>
+  <script src="chrome://resources/js/util.js"></script>
+  <script src="nostr_settings.js"></script>
+</head>
+<body>
+  <div class="settings-container">
+    <h1>Nostr Settings</h1>
+    
+    <nav class="settings-nav">
+      <button class="nav-button" data-section="accounts">Accounts</button>
+      <button class="nav-button" data-section="permissions">Permissions</button>
+      <button class="nav-button" data-section="local-relay">Local Relay</button>
+      <button class="nav-button" data-section="blossom">Blossom Storage</button>
+      <button class="nav-button" data-section="security">Security</button>
+    </nav>
+    
+    <div class="settings-content">
+      <!-- Accounts Section -->
+      <section id="accounts" class="settings-section">
+        <h2>Nostr Accounts</h2>
+        <div class="section-content">
+          <div class="setting-item">
+            <p>Manage your Nostr identities</p>
+            <div id="accounts-list" class="accounts-list"></div>
+            <button id="add-account-button" class="primary-button">Add Account</button>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Permissions Section -->
+      <section id="permissions" class="settings-section" hidden>
+        <h2>Site Permissions</h2>
+        <div class="section-content">
+          <div class="setting-item">
+            <p>Control which sites can access your Nostr identity</p>
+            <div id="permissions-list" class="permissions-list"></div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Local Relay Section -->
+      <section id="local-relay" class="settings-section" hidden>
+        <h2>Local Relay</h2>
+        <div class="section-content">
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="relay-enabled">
+              <span>Enable local relay</span>
+            </label>
+          </div>
+          
+          <div class="relay-settings" id="relay-settings">
+            <div class="setting-item">
+              <label for="relay-port">Port:</label>
+              <input type="number" id="relay-port" min="1024" max="65535">
+            </div>
+            
+            <div class="setting-item">
+              <label for="relay-interface">Interface:</label>
+              <input type="text" id="relay-interface" placeholder="127.0.0.1">
+            </div>
+            
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="relay-external">
+                <span>Allow external connections</span>
+              </label>
+            </div>
+            
+            <div class="setting-item">
+              <label for="relay-storage">Max storage (GB):</label>
+              <input type="number" id="relay-storage" min="1" max="1000">
+            </div>
+            
+            <div class="setting-item">
+              <label for="relay-events">Max events:</label>
+              <input type="number" id="relay-events" min="1000" max="10000000">
+            </div>
+            
+            <div class="setting-item">
+              <label for="relay-retention">Retention days:</label>
+              <input type="number" id="relay-retention" min="1" max="365">
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Blossom Section -->
+      <section id="blossom" class="settings-section" hidden>
+        <h2>Blossom Storage</h2>
+        <div class="section-content">
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="blossom-enabled">
+              <span>Enable Blossom storage</span>
+            </label>
+          </div>
+          
+          <div class="blossom-settings" id="blossom-settings">
+            <div class="setting-item">
+              <label for="blossom-port">Port:</label>
+              <input type="number" id="blossom-port" min="1024" max="65535">
+            </div>
+            
+            <div class="setting-item">
+              <label for="blossom-storage">Max storage (GB):</label>
+              <input type="number" id="blossom-storage" min="1" max="1000">
+            </div>
+            
+            <div class="setting-item">
+              <h3>Blossom Servers</h3>
+              <div id="blossom-servers-list"></div>
+              <button id="add-blossom-server">Add Server</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Security Section -->
+      <section id="security" class="settings-section" hidden>
+        <h2>Security</h2>
+        <div class="section-content">
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="require-password">
+              <span>Require password for signing</span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <label for="key-timeout">Key timeout (minutes):</label>
+            <input type="number" id="key-timeout" min="1" max="1440">
+          </div>
+          
+          <div class="setting-item">
+            <button id="export-keys" class="secondary-button">Export Keys</button>
+            <button id="backup-settings" class="secondary-button">Backup Settings</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

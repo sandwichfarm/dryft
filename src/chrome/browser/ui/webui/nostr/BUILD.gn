@@ -1,0 +1,74 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/chromeos/ui_mode.gni")
+
+source_set("nostr") {
+  sources = [
+    "nostr_settings_ui.cc",
+    "nostr_settings_ui.h",
+    "nostr_settings_ui_config.h",
+  ]
+
+  deps = [
+    "//base",
+    "//chrome/browser:browser_public_dependencies",
+    "//chrome/browser/nostr",
+    "//chrome/browser/nostr:nostr_permission_manager",
+    "//chrome/browser/nostr/local_relay",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/resources/nostr_settings:resources",
+    "//chrome/browser/ui/webui",
+    "//chrome/common",
+    "//components/prefs",
+    "//content/public/browser",
+    "//services/network/public/mojom",
+    "//ui/base",
+    "//url",
+  ]
+  
+  if (enable_nostr) {
+    defines = [ "ENABLE_NOSTR=1" ]
+  }
+}
+
+source_set("unit_tests") {
+  testonly = true
+  sources = [ "nostr_settings_ui_unittest.cc" ]
+  
+  deps = [
+    ":nostr",
+    "//base",
+    "//base/test:test_support",
+    "//chrome/browser/nostr",
+    "//chrome/browser/nostr:nostr_permission_manager",
+    "//chrome/browser/profiles:profile",
+    "//chrome/common",
+    "//chrome/test:test_support",
+    "//content/test:test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+    "//url",
+  ]
+}
+
+source_set("browser_tests") {
+  testonly = true
+  sources = [ "nostr_settings_ui_browsertest.cc" ]
+  
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  
+  deps = [
+    ":nostr",
+    "//base",
+    "//base/test:test_support",
+    "//chrome/browser",
+    "//chrome/browser/ui",
+    "//chrome/common",
+    "//chrome/test:test_support",
+    "//content/test:test_support",
+    "//testing/gtest",
+    "//url",
+  ]
+}

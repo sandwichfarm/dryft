@@ -192,6 +192,7 @@
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/webid/identity_dialog_controller.h"
 #include "chrome/browser/ui/webui/chrome_web_ui_controller_factory.h"
+#include "chrome/browser/ui/webui/chrome_webui_configs.h"
 #include "chrome/browser/ui/webui/log_web_ui_url.h"
 #include "chrome/browser/ui/webui/top_chrome/webui_url_utils.h"
 #include "chrome/browser/universal_web_contents_observers.h"
@@ -5909,6 +5910,9 @@ bool ChromeContentBrowserClient::IsPluginAllowedToUseDevChannelAPIs(
 
 void ChromeContentBrowserClient::InitOnUIThread() {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+
+  // Register WebUI configs early in initialization
+  RegisterChromeWebUIConfigs();
 
   safe_browsing_service_ = g_browser_process->safe_browsing_service();
 
