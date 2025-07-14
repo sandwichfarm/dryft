@@ -97,8 +97,15 @@ window.nostr = {
   },
   libs: {
     ndk: "chrome://resources/js/nostr/ndk.js",
-    nostrTools: "chrome://resources/js/nostr/nostr-tools.js",
-    // ... more pre-bundled libraries
+    'nostr-tools': "chrome://resources/js/nostr/nostr-tools.js",
+    'applesauce-core': "chrome://resources/js/nostr/applesauce-core.js",
+    'alby-sdk': "chrome://resources/js/nostr/alby-sdk.js",
+    // ... more libraries
+    versions: {
+      ndk: "2.0.0",
+      'nostr-tools': "1.17.0",
+      // ... version info
+    }
   }
 }
 
