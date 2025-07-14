@@ -1,0 +1,42 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/chromeos/ui_mode.gni")
+import("//chrome/common/features.gni")
+import("//tools/grit/grit_rule.gni")
+import("//tools/typescript/ts_library.gni")
+import("//ui/webui/resources/tools/generate_grd.gni")
+
+# Generate the GRD file for Nostr settings resources
+generate_grd("build_grd") {
+  grd_prefix = "nostr_settings"
+  out_grd = "$target_gen_dir/resources.grd"
+  
+  input_files = [
+    "index.html",
+    "nostr_settings.css",
+    "nostr_settings.js",
+  ]
+  
+  input_files_base_dir = rebase_path(".", "//")
+  
+  # Resource IDs must be unique across all of Chrome
+  resource_path_prefix = "nostr_settings"
+}
+
+# Generate the resources
+grit("resources") {
+  source = "$target_gen_dir/resources.grd"
+  
+  deps = [ ":build_grd" ]
+  
+  outputs = [
+    "grit/nostr_settings_resources.h",
+    "grit/nostr_settings_resources_map.cc",
+    "grit/nostr_settings_resources_map.h",
+    "nostr_settings_resources.pak",
+  ]
+  
+  output_dir = "$root_gen_dir/chrome"
+}
