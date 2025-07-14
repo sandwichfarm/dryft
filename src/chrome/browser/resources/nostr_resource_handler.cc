@@ -81,10 +81,12 @@ int NostrResourceHandler::GetResourceIdForPath(const std::string& path) const {
     return IDR_NOSTR_NDK_JS;
   } else if (path == "/nostr-tools.js" || path == "nostr-tools.js") {
     return IDR_NOSTR_TOOLS_JS;
-  } else if (path == "/applesauce.js" || path == "applesauce.js") {
-    return IDR_NOSTR_APPLESAUCE_JS;
-  } else if (path == "/nostrify.js" || path == "nostrify.js") {
-    return IDR_NOSTR_NOSTRIFY_JS;
+  } else if (path == "/applesauce-core.js" || path == "applesauce-core.js") {
+    return IDR_NOSTR_APPLESAUCE_CORE_JS;
+  } else if (path == "/applesauce-content.js" || path == "applesauce-content.js") {
+    return IDR_NOSTR_APPLESAUCE_CONTENT_JS;
+  } else if (path == "/applesauce-lists.js" || path == "applesauce-lists.js") {
+    return IDR_NOSTR_APPLESAUCE_LISTS_JS;
   } else if (path == "/alby-sdk.js" || path == "alby-sdk.js") {
     return IDR_NOSTR_ALBY_SDK_JS;
   }

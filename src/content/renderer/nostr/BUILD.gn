@@ -14,6 +14,8 @@ if (enable_nostr) {
       "nostr_injection.h",
       "nostr_relay_bindings.cc",
       "nostr_relay_bindings.h",
+      "nostr_libs_bindings.cc",
+      "nostr_libs_bindings.h",
     ]
 
     deps = [

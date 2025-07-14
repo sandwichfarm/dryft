@@ -31,8 +31,9 @@ def main():
     library_map = {
         'ndk-2.0.0.js': 'ndk.js',
         'nostr-tools-1.17.0.js': 'nostr-tools.js',
-        'applesauce-0.5.0.js': 'applesauce.js',
-        'nostrify-1.2.0.js': 'nostrify.js',
+        'applesauce-core-0.3.4.js': 'applesauce-core.js',
+        'applesauce-content-0.3.4.js': 'applesauce-content.js',
+        'applesauce-lists-0.3.4.js': 'applesauce-lists.js',
         'alby-sdk-3.0.0.js': 'alby-sdk.js'
     }
     

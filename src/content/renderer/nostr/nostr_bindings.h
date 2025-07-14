@@ -56,6 +56,9 @@ class NostrBindings : public gin::Wrappable<NostrBindings>,
 
   // Local relay property
   v8::Local<v8::Object> GetRelayObject(v8::Isolate* isolate);
+  
+  // Library paths property
+  v8::Local<v8::Object> GetLibsObject(v8::Isolate* isolate);
 
  private:
   explicit NostrBindings(content::RenderFrame* render_frame);

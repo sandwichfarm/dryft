@@ -47,6 +47,11 @@ NostrRelayBindings::NostrRelayBindings(content::RenderFrame* render_frame)
       cached_connected_(false),
       cached_event_count_(0),
       cached_storage_used_(0) {
+  // TODO: The relay URL should be obtained from the browser process
+  // which knows the actual port the LocalRelayService is listening on.
+  // For now, use the default port from LocalRelayConfig
+  cached_url_ = "ws://127.0.0.1:8081";
+  
   // Request initial status update
   SendRelayGetStatus(GetNextRequestId());
 }
@@ -60,6 +65,9 @@ gin::ObjectTemplateBuilder NostrRelayBindings::GetObjectTemplateBuilder(
       .SetProperty("connected", &NostrRelayBindings::GetConnected)
       .SetProperty("eventCount", &NostrRelayBindings::GetEventCount)
       .SetProperty("storageUsed", &NostrRelayBindings::GetStorageUsed)
+      .SetMethod("getLocalRelayURL", &NostrRelayBindings::GetLocalRelayURL)
+      .SetMethod("getLocalRelaySocket", &NostrRelayBindings::GetLocalRelaySocket)
+      .SetMethod("getPubkeyRelayURL", &NostrRelayBindings::GetPubkeyRelayURL)
       .SetMethod("query", &NostrRelayBindings::Query)
       .SetMethod("count", &NostrRelayBindings::Count)
       .SetMethod("deleteEvents", &NostrRelayBindings::DeleteEvents);
@@ -96,6 +104,48 @@ int64_t NostrRelayBindings::GetStorageUsed() const {
         const_cast<NostrRelayBindings*>(this)->GetNextRequestId());
   }
   return cached_storage_used_;
+}
+
+std::string NostrRelayBindings::GetLocalRelayURL() const {
+  // Return the cached URL which is the local relay URL
+  return cached_url_;
+}
+
+v8::Local<v8::Promise> NostrRelayBindings::GetLocalRelaySocket(
+    v8::Isolate* isolate) {
+  // Create a promise that resolves to a WebSocket connected to the local relay
+  v8::Local<v8::Promise::Resolver> resolver =
+      v8::Promise::Resolver::New(isolate->GetCurrentContext()).ToLocalChecked();
+  
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  
+  // Create WebSocket in JavaScript context
+  std::string script = "new WebSocket('" + cached_url_ + "')";
+  v8::Local<v8::String> source = gin::StringToV8(isolate, script);
+  
+  v8::MaybeLocal<v8::Script> maybe_script = v8::Script::Compile(context, source);
+  if (!maybe_script.IsEmpty()) {
+    v8::Local<v8::Script> compiled_script = maybe_script.ToLocalChecked();
+    v8::MaybeLocal<v8::Value> maybe_result = compiled_script->Run(context);
+    
+    if (!maybe_result.IsEmpty()) {
+      resolver->Resolve(context, maybe_result.ToLocalChecked()).ToChecked();
+    } else {
+      resolver->Reject(context,
+          gin::StringToV8(isolate, "Failed to create WebSocket")).ToChecked();
+    }
+  } else {
+    resolver->Reject(context,
+        gin::StringToV8(isolate, "Failed to compile WebSocket script")).ToChecked();
+  }
+  
+  return resolver->GetPromise();
+}
+
+std::string NostrRelayBindings::GetPubkeyRelayURL(const std::string& pubkey) const {
+  // For now, return the same URL for all pubkeys
+  // In the future, this could return pubkey-specific relay endpoints
+  return cached_url_;
 }
 
 v8::Local<v8::Promise> NostrRelayBindings::Query(
@@ -301,11 +351,10 @@ void NostrRelayBindings::OnRelayStatusResponse(
   cached_event_count_ = event_count;
   cached_storage_used_ = storage_used;
   
-  // Construct the URL based on connection status
-  if (connected) {
-    // Default local relay URL
-    cached_url_ = "ws://127.0.0.1:8081";
-  } else {
+  // Update connection status
+  // Note: The actual URL will need to be obtained separately from the browser process
+  // For now, we'll keep the URL if connected
+  if (!connected) {
     cached_url_ = "";
   }
   
