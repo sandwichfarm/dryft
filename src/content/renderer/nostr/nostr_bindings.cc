@@ -11,6 +11,7 @@
 #include "ipc/ipc_message_macros.h"
 #include "content/public/renderer/render_frame.h"
 #include "content/public/renderer/render_frame_observer.h"
+#include "content/renderer/nostr/nostr_relay_bindings.h"
 #include "gin/arguments.h"
 #include "gin/converter.h"
 #include "gin/dictionary.h"
@@ -100,6 +101,7 @@ gin::ObjectTemplateBuilder NostrBindings::GetObjectTemplateBuilder(
       .SetMethod("signEvent", &NostrBindings::SignEvent)
       .SetMethod("getRelays", &NostrBindings::GetRelays)
       .SetLazyDataProperty("nip04", &NostrBindings::GetNip04Object)
+      .SetLazyDataProperty("relay", &NostrBindings::GetRelayObject)
       // Account management methods (non-standard but useful)
       .SetMethod("listAccounts", &NostrBindings::ListAccounts)
       .SetMethod("getCurrentAccount", &NostrBindings::GetCurrentAccount)
@@ -403,6 +405,17 @@ v8::Local<v8::Promise> NostrBindings::SwitchAccount(v8::Isolate* isolate,
   SendSwitchAccount(request_id, pubkey);
   
   return resolver->GetPromise();
+}
+
+v8::Local<v8::Object> NostrBindings::GetRelayObject(v8::Isolate* isolate) {
+  // Create the relay bindings object
+  v8::Local<v8::Value> relay_value = NostrRelayBindings::Create(isolate, render_frame_);
+  if (relay_value.IsEmpty()) {
+    LOG(ERROR) << "Failed to create window.nostr.relay object";
+    return v8::Object::New(isolate);
+  }
+  
+  return relay_value.As<v8::Object>();
 }
 
 // IPC Message Sending Methods
