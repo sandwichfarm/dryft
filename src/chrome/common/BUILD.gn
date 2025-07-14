@@ -45,6 +45,7 @@ if (enable_nostr) {
       "nostr_messages.h",
       "nostr_message_router.cc",
       "nostr_message_router.h",
+      "nostr_message_router_relay.cc",
     ]
 
     deps = [

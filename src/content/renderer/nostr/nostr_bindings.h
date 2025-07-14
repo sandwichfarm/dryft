@@ -54,6 +54,9 @@ class NostrBindings : public gin::Wrappable<NostrBindings>,
   v8::Local<v8::Promise> SwitchAccount(v8::Isolate* isolate,
                                        const std::string& pubkey);
 
+  // Local relay property
+  v8::Local<v8::Object> GetRelayObject(v8::Isolate* isolate);
+
  private:
   explicit NostrBindings(content::RenderFrame* render_frame);
   ~NostrBindings() override;
