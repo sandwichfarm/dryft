@@ -8,6 +8,7 @@
 #include "base/feature_list.h"
 #include "base/logging.h"
 #include "content/public/renderer/render_frame.h"
+#include "content/renderer/nostr/blossom_bindings.h"
 #include "content/renderer/nostr/nostr_bindings.h"
 #include "third_party/blink/public/common/features.h"
 #include "third_party/blink/public/web/web_local_frame.h"
@@ -17,6 +18,9 @@
 
 // Feature flag for Nostr support
 BASE_FEATURE(kNostrSupport, "NostrSupport", base::FEATURE_ENABLED_BY_DEFAULT);
+
+// Feature flag for Blossom support
+BASE_FEATURE(kBlossomSupport, "BlossomSupport", base::FEATURE_ENABLED_BY_DEFAULT);
 
 namespace tungsten {
 
@@ -63,7 +67,13 @@ void NostrInjection::DidCreateScriptContext(content::RenderFrame* render_frame,
   // Install window.nostr
   NostrBindings::Install(global, render_frame);
   
-  VLOG(1) << "Nostr injection completed for frame";
+  // Install window.blossom if enabled
+  if (base::FeatureList::IsEnabled(kBlossomSupport)) {
+    BlossomBindings::Install(global, render_frame);
+    VLOG(1) << "Nostr and Blossom injection completed for frame";
+  } else {
+    VLOG(1) << "Nostr injection completed for frame (Blossom disabled)";
+  }
 }
 
 // static
