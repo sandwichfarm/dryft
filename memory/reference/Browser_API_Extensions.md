@@ -32,11 +32,22 @@ interface WindowNostr {
   
   // Pre-loaded Nostr libraries (returns importable URLs)
   libs: {
-    ndk: string;           // e.g., "chrome://resources/js/nostr/ndk.js"
-    nostrTools: string;    // e.g., "chrome://resources/js/nostr/nostr-tools.js"
-    applesauce: string;    // e.g., "chrome://resources/js/nostr/applesauce.js"
-    nostrify: string;      // e.g., "chrome://resources/js/nostr/nostrify.js"
-    alby: string;          // e.g., "chrome://resources/js/nostr/alby-sdk.js"
+    ndk: string;                      // e.g., "chrome://resources/js/nostr/ndk.js"
+    'nostr-tools': string;            // e.g., "chrome://resources/js/nostr/nostr-tools.js"
+    'applesauce-core': string;        // e.g., "chrome://resources/js/nostr/applesauce-core.js"
+    'applesauce-content': string;     // e.g., "chrome://resources/js/nostr/applesauce-content.js"
+    'applesauce-lists': string;       // e.g., "chrome://resources/js/nostr/applesauce-lists.js"
+    'alby-sdk': string;               // e.g., "chrome://resources/js/nostr/alby-sdk.js"
+    
+    // Version information
+    versions: {
+      ndk: string;                    // e.g., "2.0.0"
+      'nostr-tools': string;          // e.g., "1.17.0"
+      'applesauce-core': string;      // e.g., "0.3.4"
+      'applesauce-content': string;   // e.g., "0.3.4"
+      'applesauce-lists': string;     // e.g., "0.3.4"
+      'alby-sdk': string;             // e.g., "3.0.0"
+    };
   };
   
   // Extended capabilities
@@ -800,5 +811,49 @@ This comprehensive system provides:
 3. **Granular Permissions**: Per-origin, per-method, per-kind control
 4. **Advanced Configuration**: Deep settings for power users
 5. **Import/Export**: Settings portability between devices
+
+### 6. Usage Examples
+
+#### Using Pre-loaded Libraries
+
+```javascript
+// Dynamic import of NDK library
+const NDK = await import(window.nostr.libs.ndk);
+const ndk = new NDK.NDK();
+
+// Import nostr-tools
+const NostrTools = await import(window.nostr.libs['nostr-tools']);
+const { generatePrivateKey, getPublicKey } = NostrTools;
+
+// Import multiple libraries
+const [{ NDK }, { generatePrivateKey }] = await Promise.all([
+  import(window.nostr.libs.ndk),
+  import(window.nostr.libs['nostr-tools'])
+]);
+
+// Check library versions
+console.log('NDK version:', window.nostr.libs.versions.ndk); // "2.0.0"
+console.log('nostr-tools version:', window.nostr.libs.versions['nostr-tools']); // "1.17.0"
+
+// Use applesauce components
+const ApplesauceCore = await import(window.nostr.libs['applesauce-core']);
+const ApplesauceContent = await import(window.nostr.libs['applesauce-content']);
+
+// Import Alby SDK
+const AlbySDK = await import(window.nostr.libs['alby-sdk']);
+```
+
+#### Error Handling
+
+```javascript
+try {
+  const NDK = await import(window.nostr.libs.ndk);
+  // Use NDK...
+} catch (error) {
+  console.error('Failed to load NDK:', error);
+  // Fallback to CDN or handle error
+}
+```
+
 6. **Performance Controls**: Rate limiting, storage quotas, connection limits
 7. **Developer Tools**: Debug modes, logging, testing utilities
