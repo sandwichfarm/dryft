@@ -25,31 +25,40 @@ if (enable_nostr) {
     ]
   }
 
-  # Bundle the Nostr libraries
-  action("bundle_nostr_libraries") {
-    script = "nostr/bundle_libraries.py"
-    
-    sources = [
-      "nostr/third_party/ndk-2.0.0.js",
-      "nostr/third_party/nostr-tools-1.17.0.js",
-      "nostr/third_party/applesauce-0.5.0.js",
-      "nostr/third_party/nostrify-1.2.0.js",
-      "nostr/third_party/alby-sdk-3.0.0.js",
-    ]
-    
-    outputs = [
-      "$target_gen_dir/nostr/ndk.js",
-      "$target_gen_dir/nostr/nostr-tools.js",
-      "$target_gen_dir/nostr/applesauce.js",
-      "$target_gen_dir/nostr/nostrify.js",
-      "$target_gen_dir/nostr/alby-sdk.js",
-    ]
-    
-    args = [
-      "--optimize",
-      "--source-map",
-      "--input-dir", rebase_path("nostr/third_party", root_build_dir),
-      "--output-dir", rebase_path("$target_gen_dir/nostr", root_build_dir),
+  # Copy Nostr libraries from third_party
+  copy("ndk_lib") {
+    sources = [ "//third_party/nostr/ndk-2.0.0.min.js" ]
+    outputs = [ "$target_gen_dir/nostr/ndk.js" ]
+  }
+  
+  copy("nostr_tools_lib") {
+    sources = [ "//third_party/nostr/nostr-tools-1.17.0.min.js" ]
+    outputs = [ "$target_gen_dir/nostr/nostr-tools.js" ]
+  }
+  
+  copy("applesauce_lib") {
+    sources = [ "//third_party/nostr/applesauce-0.5.0.min.js" ]
+    outputs = [ "$target_gen_dir/nostr/applesauce.js" ]
+  }
+  
+  copy("nostrify_lib") {
+    sources = [ "//third_party/nostr/nostrify-1.2.0.min.js" ]
+    outputs = [ "$target_gen_dir/nostr/nostrify.js" ]
+  }
+  
+  copy("alby_sdk_lib") {
+    sources = [ "//third_party/nostr/alby-sdk-3.0.0.min.js" ]
+    outputs = [ "$target_gen_dir/nostr/alby-sdk.js" ]
+  }
+  
+  # Group all library copies
+  group("bundle_nostr_libraries") {
+    deps = [
+      ":ndk_lib",
+      ":nostr_tools_lib",
+      ":applesauce_lib",
+      ":nostrify_lib",
+      ":alby_sdk_lib",
     ]
   }
 
@@ -76,5 +85,24 @@ if (enable_nostr) {
       "//testing/gtest",
       "//url",
     ]
+  }
+  
+  source_set("nostr_libraries_browsertests") {
+    testonly = true
+    sources = [ "nostr_libraries_browsertest.cc" ]
+    
+    deps = [
+      ":nostr_resource_handler",
+      "//base",
+      "//chrome/browser/ui",
+      "//chrome/grit:nostr_resources_grit",
+      "//chrome/test:test_support",
+      "//content/test:test_support",
+      "//net/test:test_support",
+      "//testing/gtest",
+      "//url",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
   }
 }
