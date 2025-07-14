@@ -146,6 +146,10 @@ TEST_F(NostrSettingsUITest, GetLocalRelayConfig) {
   EXPECT_TRUE(config.contains("enabled"));
   EXPECT_TRUE(config.contains("port"));
   EXPECT_TRUE(config.contains("interface"));
+  EXPECT_TRUE(config.contains("externalAccess"));
+  EXPECT_TRUE(config.contains("maxStorageGB"));
+  EXPECT_TRUE(config.contains("maxEvents"));
+  EXPECT_TRUE(config.contains("retentionDays"));
 }
 
 TEST_F(NostrSettingsUITest, SetLocalRelayConfig) {
