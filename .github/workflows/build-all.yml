@@ -23,6 +23,15 @@ on:
         description: 'Platforms to build (comma-separated)'
         required: false
         default: 'all'
+      skip_cache_check:
+        description: 'Skip Chromium cache check (for testing)'
+        required: false
+        type: boolean
+        default: false
+  workflow_run:
+    workflows: ["Cache Chromium Source"]
+    types:
+      - completed
 
 env:
   DEPOT_TOOLS_UPDATE: 0
@@ -35,6 +44,10 @@ jobs:
   prepare:
     name: Prepare Build Matrix
     runs-on: ubuntu-latest
+    # Only run if triggered manually, by schedule, or if cache workflow succeeded
+    if: |
+      github.event_name != 'workflow_run' || 
+      github.event.workflow_run.conclusion == 'success'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       version: ${{ steps.version.outputs.version }}
@@ -80,12 +93,23 @@ jobs:
         with:
           fetch-depth: 0
           
+      - name: Restore Chromium Source Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            chromium/src
+            chromium/.gclient
+            chromium/.gclient_entries
+          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-week-${{ format('{0:yyyy-ww}', github.event.repository.updated_at) }}
+          restore-keys: |
+            chromium-source-
+            
       - name: Setup Build Cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/ccache
-            src/out/*/obj
+            chromium/src/out/*/obj
           key: ${{ runner.os }}-${{ matrix.arch }}-build-${{ hashFiles('**/*.gn*') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-build-
@@ -115,10 +139,33 @@ jobs:
         run: |
           export PATH="${GITHUB_WORKSPACE}/depot_tools:$PATH"
           
-          # For CI demonstration, we'll create a minimal structure
-          # In production, this would fetch actual Chromium source
-          echo "Creating minimal build structure for CI demonstration"
-          mkdir -p src/out
+          # Check if we have cached Chromium source
+          if [ -d "chromium/src" ]; then
+            echo "Found cached Chromium source"
+            cd chromium
+            # Update gclient config
+            gclient sync --nohooks --no-history --revision src@HEAD
+            cd src
+            
+            # Apply Tungsten patches if available
+            if [ -d "${GITHUB_WORKSPACE}/patches" ]; then
+              echo "Applying Tungsten patches..."
+              for patch in ${GITHUB_WORKSPACE}/patches/*.patch; do
+                if [ -f "$patch" ]; then
+                  git apply "$patch" || echo "Failed to apply $patch"
+                fi
+              done
+            fi
+            
+            # Run hooks for current platform
+            echo "Running platform-specific hooks..."
+            python3 build/util/lastchange.py -o build/util/LASTCHANGE || true
+            gclient runhooks || true
+          else
+            echo "ERROR: No cached Chromium source found!"
+            echo "Please run the 'Cache Chromium Source' workflow first"
+            exit 1
+          fi
           
       - name: Build
         run: |
@@ -127,6 +174,7 @@ jobs:
           export CC="ccache gcc"
           export CXX="ccache g++"
           
+          # We're in the repository root, build.py will find chromium/src
           BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
           if [[ "$BUILD_TYPE" == "release" ]]; then
             ./build.py --release --platform=linux --arch=${{ matrix.arch }}
@@ -136,9 +184,9 @@ jobs:
           
       - name: Run Tests
         run: |
-          cd src
-          ./out/Release-linux-${{ matrix.arch }}/unit_tests --gtest_filter="Nostr*"
-          ./out/Release-linux-${{ matrix.arch }}/browser_tests --gtest_filter="Nostr*" || true
+          cd chromium/src
+          ./out/Release-linux-${{ matrix.arch }}/unit_tests --gtest_filter="Tungsten*:Nostr*" || true
+          ./out/Release-linux-${{ matrix.arch }}/browser_tests --gtest_filter="Tungsten*:Nostr*" || true
           
       - name: Package
         run: |
@@ -199,9 +247,34 @@ jobs:
         run: |
           $env:Path = "$env:GITHUB_WORKSPACE\depot_tools;$env:Path"
           
-          # For CI demonstration, we'll create a minimal structure
-          echo "Creating minimal build structure for CI demonstration"
-          New-Item -ItemType Directory -Force -Path "src\out"
+          # Check if we have cached Chromium source
+          if (Test-Path "chromium\src") {
+            Write-Host "Found cached Chromium source"
+            Set-Location chromium
+            # Update gclient config
+            gclient sync --nohooks --no-history --revision src@HEAD
+            Set-Location src
+            
+            # Apply Tungsten patches if available
+            if (Test-Path "$env:GITHUB_WORKSPACE\patches") {
+              Write-Host "Applying Tungsten patches..."
+              Get-ChildItem "$env:GITHUB_WORKSPACE\patches\*.patch" | ForEach-Object {
+                git apply $_.FullName
+                if ($LASTEXITCODE -ne 0) {
+                  Write-Host "Failed to apply $($_.Name)"
+                }
+              }
+            }
+            
+            # Run hooks for Windows
+            Write-Host "Running platform-specific hooks..."
+            python build/util/lastchange.py -o build/util/LASTCHANGE
+            gclient runhooks
+          } else {
+            Write-Host "ERROR: No cached Chromium source found!"
+            Write-Host "Please run the 'Cache Chromium Source' workflow first"
+            exit 1
+          }
           
       - name: Build
         shell: cmd
@@ -255,12 +328,23 @@ jobs:
         with:
           fetch-depth: 0
           
+      - name: Restore Chromium Source Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            chromium/src
+            chromium/.gclient
+            chromium/.gclient_entries
+          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-week-${{ format('{0:yyyy-ww}', github.event.repository.updated_at) }}
+          restore-keys: |
+            chromium-source-
+            
       - name: Setup Build Cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/ccache
-            src/out/*/obj
+            chromium/src/out/*/obj
           key: ${{ runner.os }}-${{ matrix.arch }}-build-${{ hashFiles('**/*.gn*') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-build-
@@ -285,10 +369,33 @@ jobs:
         run: |
           export PATH="${GITHUB_WORKSPACE}/depot_tools:$PATH"
           
-          # For CI demonstration, we'll create a minimal structure
-          # In production, this would fetch actual Chromium source
-          echo "Creating minimal build structure for CI demonstration"
-          mkdir -p src/out
+          # Check if we have cached Chromium source
+          if [ -d "chromium/src" ]; then
+            echo "Found cached Chromium source"
+            cd chromium
+            # Update gclient config
+            gclient sync --nohooks --no-history --revision src@HEAD
+            cd src
+            
+            # Apply Tungsten patches if available
+            if [ -d "${GITHUB_WORKSPACE}/patches" ]; then
+              echo "Applying Tungsten patches..."
+              for patch in ${GITHUB_WORKSPACE}/patches/*.patch; do
+                if [ -f "$patch" ]; then
+                  git apply "$patch" || echo "Failed to apply $patch"
+                fi
+              done
+            fi
+            
+            # Run hooks for current platform
+            echo "Running platform-specific hooks..."
+            python3 build/util/lastchange.py -o build/util/LASTCHANGE || true
+            gclient runhooks || true
+          else
+            echo "ERROR: No cached Chromium source found!"
+            echo "Please run the 'Cache Chromium Source' workflow first"
+            exit 1
+          fi
           
       - name: Build
         run: |
@@ -382,10 +489,33 @@ jobs:
         run: |
           export PATH="${GITHUB_WORKSPACE}/depot_tools:$PATH"
           
-          # For CI demonstration, we'll create a minimal structure
-          # In production, this would fetch actual Chromium source
-          echo "Creating minimal build structure for CI demonstration"
-          mkdir -p src/out
+          # Check if we have cached Chromium source
+          if [ -d "chromium/src" ]; then
+            echo "Found cached Chromium source"
+            cd chromium
+            # Update gclient config
+            gclient sync --nohooks --no-history --revision src@HEAD
+            cd src
+            
+            # Apply Tungsten patches if available
+            if [ -d "${GITHUB_WORKSPACE}/patches" ]; then
+              echo "Applying Tungsten patches..."
+              for patch in ${GITHUB_WORKSPACE}/patches/*.patch; do
+                if [ -f "$patch" ]; then
+                  git apply "$patch" || echo "Failed to apply $patch"
+                fi
+              done
+            fi
+            
+            # Run hooks for current platform
+            echo "Running platform-specific hooks..."
+            python3 build/util/lastchange.py -o build/util/LASTCHANGE || true
+            gclient runhooks || true
+          else
+            echo "ERROR: No cached Chromium source found!"
+            echo "Please run the 'Cache Chromium Source' workflow first"
+            exit 1
+          fi
           
       - name: Build
         run: |
@@ -452,10 +582,33 @@ jobs:
         run: |
           export PATH="${GITHUB_WORKSPACE}/depot_tools:$PATH"
           
-          # For CI demonstration, we'll create a minimal structure
-          # In production, this would fetch actual Chromium source
-          echo "Creating minimal build structure for CI demonstration"
-          mkdir -p src/out
+          # Check if we have cached Chromium source
+          if [ -d "chromium/src" ]; then
+            echo "Found cached Chromium source"
+            cd chromium
+            # Update gclient config
+            gclient sync --nohooks --no-history --revision src@HEAD
+            cd src
+            
+            # Apply Tungsten patches if available
+            if [ -d "${GITHUB_WORKSPACE}/patches" ]; then
+              echo "Applying Tungsten patches..."
+              for patch in ${GITHUB_WORKSPACE}/patches/*.patch; do
+                if [ -f "$patch" ]; then
+                  git apply "$patch" || echo "Failed to apply $patch"
+                fi
+              done
+            fi
+            
+            # Run hooks for current platform
+            echo "Running platform-specific hooks..."
+            python3 build/util/lastchange.py -o build/util/LASTCHANGE || true
+            gclient runhooks || true
+          else
+            echo "ERROR: No cached Chromium source found!"
+            echo "Please run the 'Cache Chromium Source' workflow first"
+            exit 1
+          fi
           
       - name: Build
         run: |

@@ -1,0 +1,177 @@
+name: Cache Chromium Source
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if cache exists'
+        required: false
+        type: boolean
+        default: false
+      chromium_branch:
+        description: 'Chromium branch/tag to checkout (e.g., main, 120.0.6099.109)'
+        required: false
+        type: string
+        default: 'main'
+      shallow_clone:
+        description: 'Use shallow clone to save space'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  cache-chromium:
+    name: Fetch and Cache Chromium Source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+          
+      - name: Free Disk Space
+        run: |
+          # Free up disk space for Chromium source
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+          
+      - name: Check Existing Cache
+        id: cache-check
+        uses: actions/cache@v4
+        with:
+          path: |
+            chromium/src
+            chromium/.gclient
+            chromium/.gclient_entries
+          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-week-${{ format('{0:yyyy-ww}', github.event.repository.updated_at) }}
+          restore-keys: |
+            chromium-source-
+            
+      - name: Fetch Chromium Source
+        if: steps.cache-check.outputs.cache-hit != 'true' || github.event.inputs.force_update == 'true'
+        run: |
+          export PATH="$PWD/depot_tools:$PATH"
+          mkdir -p chromium
+          cd chromium
+          
+          # Create .gclient file for Tungsten
+          cat > .gclient << 'EOF'
+          solutions = [
+            {
+              "name": "src",
+              "url": "https://chromium.googlesource.com/chromium/src.git",
+              "managed": False,
+              "custom_deps": {},
+              "custom_vars": {
+                "checkout_nacl": False,
+                "checkout_src_internal": False,
+              },
+            },
+          ]
+          target_os = ['linux', 'win', 'mac', 'android']
+          EOF
+          
+          # Fetch Chromium source
+          echo "Fetching Chromium source..."
+          SYNC_ARGS="--nohooks"
+          if [[ "${{ github.event.inputs.shallow_clone }}" == "true" ]]; then
+            SYNC_ARGS="$SYNC_ARGS --no-history --shallow"
+          fi
+          
+          # Sync to specific branch/tag if specified
+          if [[ -n "${{ github.event.inputs.chromium_branch }}" && "${{ github.event.inputs.chromium_branch }}" != "main" ]]; then
+            echo "Syncing to branch/tag: ${{ github.event.inputs.chromium_branch }}"
+            gclient sync $SYNC_ARGS --revision=src@${{ github.event.inputs.chromium_branch }}
+          else
+            gclient sync $SYNC_ARGS
+          fi
+          
+          # Run essential hooks only
+          cd src
+          echo "Running essential hooks..."
+          python3 build/util/lastchange.py -o build/util/LASTCHANGE
+          python3 build/util/lastchange.py -s third_party/dawn -o build/util/LASTCHANGE.dawn
+          
+          # Apply any Tungsten-specific patches here
+          # if [ -d "${GITHUB_WORKSPACE}/patches" ]; then
+          #   for patch in ${GITHUB_WORKSPACE}/patches/*.patch; do
+          #     git apply "$patch"
+          #   done
+          # fi
+          
+      - name: Create Source Archive
+        if: steps.cache-check.outputs.cache-hit != 'true' || github.event.inputs.force_update == 'true'
+        run: |
+          cd chromium
+          # Create a tarball excluding some large test directories
+          tar --exclude='src/out' \
+              --exclude='src/third_party/blink/web_tests' \
+              --exclude='src/chrome/test/data' \
+              --exclude='src/content/test/data' \
+              --exclude='src/media/test/data' \
+              -czf ../chromium-source.tar.gz .
+          
+      - name: Upload Source Archive
+        if: steps.cache-check.outputs.cache-hit != 'true' || github.event.inputs.force_update == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromium-source-archive
+          path: chromium-source.tar.gz
+          retention-days: 7
+          
+      - name: Cache Size Info
+        run: |
+          echo "Cache contents size:"
+          du -sh chromium/src || echo "No source directory"
+          du -sh chromium/.gclient* || echo "No gclient files"
+          df -h
+          
+  # Job to test the cache on different platforms
+  test-cache:
+    name: Test Cache - ${{ matrix.os }}
+    needs: cache-chromium
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Setup Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+          
+      - name: Restore Chromium Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            chromium/src
+            chromium/.gclient
+            chromium/.gclient_entries
+          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-week-${{ format('{0:yyyy-ww}', github.event.repository.updated_at) }}
+          restore-keys: |
+            chromium-source-
+            
+      - name: Verify Cache
+        run: |
+          if [ -d "chromium/src" ]; then
+            echo "✅ Chromium source restored from cache"
+            ls -la chromium/
+            echo "Source size:"
+            du -sh chromium/src || true
+          else
+            echo "❌ Chromium source not found in cache"
+            exit 1
+          fi
+        shell: bash

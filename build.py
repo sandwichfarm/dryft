@@ -24,7 +24,11 @@ class BuildConfig:
         self.platform = self._detect_platform()
         self.arch = self._detect_arch()
         self.script_dir = Path(__file__).parent
-        self.src_dir = self.script_dir / "src"
+        # Check if we're in CI with cached Chromium
+        if os.environ.get("CI") and (self.script_dir / "chromium" / "src").exists():
+            self.src_dir = self.script_dir / "chromium" / "src"
+        else:
+            self.src_dir = self.script_dir / "src"
         self.out_dir = self.src_dir / "out"
         self.depot_tools_path = None
         
@@ -275,15 +279,6 @@ class TungstenBuilder:
         """Run GN generation"""
         print(f"Generating build files in {build_dir}")
         
-        # Check if we're in CI without full source
-        if os.environ.get("CI") and not (self.config.src_dir / "BUILD.gn").exists():
-            print("WARNING: Running in CI without full Chromium source.")
-            print("This is a demonstration build that won't produce actual binaries.")
-            # Create mock build directory
-            build_dir.mkdir(parents=True, exist_ok=True)
-            (build_dir / "args.gn").write_text("# Mock args.gn for CI demonstration")
-            return True
-        
         # Create args.gn content
         args_content = "\n".join([f'{k} = {v}' for k, v in gn_args.items()])
         
@@ -306,20 +301,6 @@ class TungstenBuilder:
             jobs = multiprocessing.cpu_count()
             
         print(f"Building targets: {', '.join(targets)} with {jobs} jobs")
-        
-        # Check if we're in CI without full source
-        if os.environ.get("CI") and not (self.config.src_dir / "BUILD.gn").exists():
-            print("INFO: Running in CI demonstration mode.")
-            print("In production, this would build actual Chromium binaries.")
-            # Create mock output files
-            for target in targets:
-                output_file = build_dir / target
-                output_file.parent.mkdir(parents=True, exist_ok=True)
-                output_file.write_text(f"Mock {target} binary for CI demonstration")
-                if target == "chrome":
-                    # Make it executable on Unix
-                    output_file.chmod(0o755)
-            return True
         
         cmd = ["autoninja", "-C", str(build_dir), f"-j{jobs}"] + targets
         
