@@ -50,7 +50,6 @@ setup_sccache() {
             brew install sccache
         elif [[ "$PLATFORM" == "linux" ]]; then
             # Download sccache binary
-            SCCACHE_VERSION="0.7.4"
             SCCACHE_URL="https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz"
             
             curl -L "$SCCACHE_URL" | tar xz
