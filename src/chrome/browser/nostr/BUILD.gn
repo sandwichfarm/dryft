@@ -262,4 +262,10 @@ if (enable_nostr) {
   source_set("extension_migration_service") {
     public_deps = [ ":nostr" ]
   }
+
+  # Performance testing suite
+  source_set("performance_tests") {
+    testonly = true
+    public_deps = [ "performance:performance_tests" ]
+  }
 }

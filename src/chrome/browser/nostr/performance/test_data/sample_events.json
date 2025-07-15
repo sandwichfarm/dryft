@@ -1,0 +1,43 @@
+[
+  {
+    "id": "42dd87b2c0ec47d8c79a4575740c3e060bd875e1f8b9f1f6894d386e2c017c09",
+    "pubkey": "dadbec1864f407d2b28b4ae28f523da208003eaa234e1765ed13a4f3431d2205",
+    "created_at": 1752566074,
+    "kind": 1,
+    "tags": [],
+    "content": "This is a sample text note event for performance testing purposes.",
+    "sig": "2084d382bca08f0dc3fe43e01a1a3275c5d37b8582dea446b6393faa110ae040e2a513a05e58a8ce4d6d5bc01494261834250925af39b127ad66c10603390281"
+  },
+  {
+    "id": "acf5caef86aeb07879db652954216ebf0c95c9ad8e4601d1d5ac4e196035a3e2",
+    "pubkey": "f38b5f220705e686897ca204b054637662b96c8858f31ac5b9efc6d47106acf7",
+    "created_at": 1752566079,
+    "kind": 0,
+    "tags": [],
+    "content": "{\"name\": \"Test User\", \"about\": \"Performance testing user\", \"picture\": \"https://example.com/avatar.jpg\"}",
+    "sig": "f5074c0a12b85ecc61bc475e22d5ee3b9b07681cdfd9b8f28400b13a4debbb649bcd22321ba477b002e8433f47cc587b17fbd42410c2a8db8764525f9fb47141"
+  },
+  {
+    "id": "3bd348736d73738bf65a02af6aef01211536f464021791cf24f9986afe11fb4e",
+    "pubkey": "4bc454fdeeb4e040cdeb78e9e77cdf0e58970ba1d302fa75950379d7a917f743",
+    "created_at": 1752566085,
+    "kind": 1,
+    "tags": [
+      ["e", "42dd87b2c0ec47d8c79a4575740c3e060bd875e1f8b9f1f6894d386e2c017c09"],
+      ["p", "dadbec1864f407d2b28b4ae28f523da208003eaa234e1765ed13a4f3431d2205"]
+    ],
+    "content": "Reply to performance testing event",
+    "sig": "be4648457b1da64bd3deba7f5240a2c19d538ebd3f3a8c4c3e9a4c5cd7bb55cf857994d3e54a53da7eb5cddebdbe05be84d96d72c5dd87c519882f367d8b31fd"
+  },
+  {
+    "id": "d8876375a24d080ef2f7b0ed44a84dce6ebe649f6a6ba0370138d0a7d8360fab",
+    "pubkey": "dadbec1864f407d2b28b4ae28f523da208003eaa234e1765ed13a4f3431d2205",
+    "created_at": 1752566091,
+    "kind": 5,
+    "tags": [
+      ["e", "42dd87b2c0ec47d8c79a4575740c3e060bd875e1f8b9f1f6894d386e2c017c09"]
+    ],
+    "content": "",
+    "sig": "cc8f004b5c489398c2d3865c42d42eed0f112cdc0364ddb0c58c5059dc02fbdda68ed4af1348d0d17bbe0f914d5861aed3deaab14624a20aa28bb48823cef413"
+  }
+]

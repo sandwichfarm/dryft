@@ -1,0 +1,46 @@
+{
+  "test_keys": [
+    {
+      "name": "Test Key 1",
+      "private_key": "649fcb6f976cc45e809ef8918bd0ffda8808892c433653efe1e7f599c3575a40",
+      "public_key": "dadbec1864f407d2b28b4ae28f523da208003eaa234e1765ed13a4f3431d2205",
+      "is_default": true
+    },
+    {
+      "name": "Test Key 2", 
+      "private_key": "54b1bc80247a9ef19c62a597667568c3fc232f40afdd18469074cd40b81a8f96",
+      "public_key": "f38b5f220705e686897ca204b054637662b96c8858f31ac5b9efc6d47106acf7",
+      "is_default": false
+    },
+    {
+      "name": "Test Key 3",
+      "private_key": "4c4a24920a3ac9574851d5452e2f34996bf0812a22d062d227b096a6f0d62d1a",
+      "public_key": "4bc454fdeeb4e040cdeb78e9e77cdf0e58970ba1d302fa75950379d7a917f743", 
+      "is_default": false
+    }
+  ],
+  "relay_urls": [
+    "wss://relay.nostr.band",
+    "wss://nostr-pub.wellorder.net",
+    "wss://relay.damus.io",
+    "wss://nos.lol",
+    "wss://relay.snort.social"
+  ],
+  "permissions": [
+    {
+      "origin": "https://example.com",
+      "allowed_methods": ["getPublicKey", "signEvent"],
+      "granted_at": 1642680000
+    },
+    {
+      "origin": "https://test.com",
+      "allowed_methods": ["getPublicKey", "signEvent", "getRelays"],
+      "granted_at": 1642680100
+    },
+    {
+      "origin": "https://demo.com",
+      "allowed_methods": ["getPublicKey"],
+      "granted_at": 1642680200
+    }
+  ]
+}

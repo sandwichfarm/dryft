@@ -1,0 +1,76 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+
+if (enable_nostr) {
+  source_set("performance_metrics") {
+    sources = [
+      "tungsten_performance_metrics.cc",
+      "tungsten_performance_metrics.h",
+    ]
+    
+    deps = [
+      "//base",
+      "//base/test:test_support",
+      "//testing/perf",
+    ]
+    
+    public_deps = [
+      "//base",
+      "//base/test:test_support",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
+  }
+  
+  source_set("performance_tests") {
+    testonly = true
+    
+    sources = [
+      "tungsten_performance_test.cc",
+      "nip07_performance_test.cc",
+      "local_relay_performance_test.cc",
+      "library_loading_performance_test.cc",
+    ]
+    
+    deps = [
+      ":performance_metrics",
+      "//base",
+      "//base/test:test_support",
+      "//chrome/browser/nostr",
+      "//chrome/browser/nostr/local_relay",
+      "//chrome/browser/profiles:profile",
+      "//chrome/browser/resources:nostr_resource_handler",
+      "//chrome/common",
+      "//chrome/test:test_support",
+      "//components/nostr",
+      "//content/public/browser",
+      "//content/test:test_support",
+      "//testing/gtest",
+      "//testing/perf",
+    ]
+    
+    data_deps = [
+      ":performance_test_data",
+    ]
+    
+    defines = [ "ENABLE_NOSTR=1" ]
+  }
+  
+  # Test data files
+  copy("performance_test_data") {
+    testonly = true
+    
+    sources = [
+      "test_data/sample_events.json",
+      "test_data/test_keys.json",
+      "test_data/benchmark_data.json",
+    ]
+    
+    outputs = [
+      "$root_out_dir/test_data/tungsten_performance/{{source_file_part}}",
+    ]
+  }
+}
