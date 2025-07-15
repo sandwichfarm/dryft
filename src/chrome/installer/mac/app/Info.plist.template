@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>CFBundleExecutable</key>
+  <string>@@EXECUTABLE_NAME@@</string>
+  <key>CFBundleIdentifier</key>
+  <string>@@BUNDLE_ID@@</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>@@PRODUCT_NAME@@</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>@@SHORT_VERSION@@</string>
+  <key>CFBundleVersion</key>
+  <string>@@VERSION@@</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>@@MIN_OS_VERSION@@</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  
+  <!-- URL Types for protocol handlers -->
+  <key>CFBundleURLTypes</key>
+  <array>
+    <!-- HTTP/HTTPS handlers -->
+    <dict>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>http</string>
+        <string>https</string>
+      </array>
+      <key>CFBundleURLName</key>
+      <string>Web site URL</string>
+    </dict>
+    <!-- FTP handler -->
+    <dict>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>ftp</string>
+      </array>
+      <key>CFBundleURLName</key>
+      <string>FTP site URL</string>
+    </dict>
+    <!-- Nostr protocol handler -->
+    <dict>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>nostr</string>
+      </array>
+      <key>CFBundleURLName</key>
+      <string>Nostr URL</string>
+      <key>CFBundleURLIconFile</key>
+      <string>app.icns</string>
+    </dict>
+  </array>
+  
+  <!-- Document Types -->
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <!-- HTML documents -->
+    <dict>
+      <key>CFBundleTypeExtensions</key>
+      <array>
+        <string>html</string>
+        <string>htm</string>
+      </array>
+      <key>CFBundleTypeIconFile</key>
+      <string>document.icns</string>
+      <key>CFBundleTypeMIMETypes</key>
+      <array>
+        <string>text/html</string>
+      </array>
+      <key>CFBundleTypeName</key>
+      <string>HTML Document</string>
+      <key>CFBundleTypeOSTypes</key>
+      <array>
+        <string>HTML</string>
+      </array>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+    </dict>
+    <!-- Nsite files -->
+    <dict>
+      <key>CFBundleTypeExtensions</key>
+      <array>
+        <string>nsite</string>
+      </array>
+      <key>CFBundleTypeIconFile</key>
+      <string>nsite.icns</string>
+      <key>CFBundleTypeMIMETypes</key>
+      <array>
+        <string>application/x-nsite</string>
+      </array>
+      <key>CFBundleTypeName</key>
+      <string>Nostr Site Archive</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>Owner</string>
+    </dict>
+    <!-- Other supported formats -->
+    <dict>
+      <key>CFBundleTypeExtensions</key>
+      <array>
+        <string>xhtml</string>
+        <string>xml</string>
+        <string>mhtml</string>
+        <string>mht</string>
+      </array>
+      <key>CFBundleTypeIconFile</key>
+      <string>document.icns</string>
+      <key>CFBundleTypeMIMETypes</key>
+      <array>
+        <string>application/xhtml+xml</string>
+        <string>application/xml</string>
+        <string>text/xml</string>
+        <string>multipart/related</string>
+        <string>application/x-mimearchive</string>
+      </array>
+      <key>CFBundleTypeName</key>
+      <string>Web Archive</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+    </dict>
+    <!-- PDF documents -->
+    <dict>
+      <key>CFBundleTypeExtensions</key>
+      <array>
+        <string>pdf</string>
+      </array>
+      <key>CFBundleTypeIconFile</key>
+      <string>pdf.icns</string>
+      <key>CFBundleTypeMIMETypes</key>
+      <array>
+        <string>application/pdf</string>
+      </array>
+      <key>CFBundleTypeName</key>
+      <string>PDF Document</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+    </dict>
+  </array>
+  
+  <!-- Services -->
+  <key>NSServices</key>
+  <array>
+    <dict>
+      <key>NSMenuItem</key>
+      <dict>
+        <string>default</string>
+        <string>Open URL in @@PRODUCT_NAME@@</string>
+      </dict>
+      <key>NSMessage</key>
+      <string>openURL</string>
+      <key>NSPortName</key>
+      <string>@@PRODUCT_NAME@@</string>
+      <key>NSSendTypes</key>
+      <array>
+        <string>NSURLPboardType</string>
+        <string>NSStringPboardType</string>
+      </array>
+    </dict>
+  </array>
+  
+  <!-- Other required keys -->
+  <key>NSPrincipalClass</key>
+  <string>NSApplication</string>
+  <key>NSSupportsAutomaticGraphicsSwitching</key>
+  <true/>
+</dict>
+</plist>

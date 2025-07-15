@@ -1,0 +1,48 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/chrome_build.gni")
+
+# Windows installer components
+if (is_win) {
+  source_set("windows_installer_nostr") {
+    sources = [
+      "windows/nostr_protocol_associations.cc",
+      "windows/nostr_protocol_associations.h",
+    ]
+    
+    deps = [
+      "//base",
+      "//chrome/installer/util",
+    ]
+  }
+}
+
+# Install test utilities
+group("installer_tests") {
+  testonly = true
+  
+  deps = []
+  
+  if (is_win) {
+    deps += [ ":windows_installer_nostr_tests" ]
+  }
+}
+
+if (is_win) {
+  source_set("windows_installer_nostr_tests") {
+    testonly = true
+    
+    sources = [
+      "windows/nostr_protocol_associations_unittest.cc",
+    ]
+    
+    deps = [
+      ":windows_installer_nostr",
+      "//base",
+      "//base/test:test_support",
+      "//testing/gtest",
+    ]
+  }
+}

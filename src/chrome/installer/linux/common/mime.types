@@ -1,0 +1,5 @@
+# MIME type definitions for Tungsten Browser
+# This file defines custom MIME types for the browser
+
+# Nostr Site Archive
+application/x-nsite                                     nsite
