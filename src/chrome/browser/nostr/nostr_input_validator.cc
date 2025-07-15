@@ -20,6 +20,9 @@ namespace nostr {
 
 namespace {
 
+// Bech32 character set: all alphanumeric except 1, b, i, o (to avoid confusion)
+constexpr char kValidBech32Chars[] = "023456789acdefghjklmnpqrstuvwxyz";
+
 // Allowed URL schemes for relays
 constexpr const char* kAllowedRelaySchemes[] = {
     url::kWsScheme,
@@ -60,10 +63,11 @@ bool NostrInputValidator::IsValidNpub(const std::string& npub) {
     return false;
   }
   
-  // Validate Bech32 characters (alphanumeric except 1, b, i, o)
+  // Validate Bech32 characters using the defined character set
+  std::string valid_chars(kValidBech32Chars);
   for (size_t i = 5; i < npub.length(); ++i) {
-    char c = npub[i];
-    if (!std::isalnum(c) || (c == '1' || c == 'b' || c == 'i' || c == 'o')) {
+    char c = std::tolower(npub[i]);
+    if (valid_chars.find(c) == std::string::npos) {
       return false;
     }
   }
