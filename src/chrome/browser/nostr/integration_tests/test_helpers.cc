@@ -93,11 +93,11 @@ std::string CreateTestFilter(const std::vector<int>& kinds,
   }
   
   if (since > 0) {
-    filter.Set("since", static_cast<int>(since));
+    filter.Set("since", since);
   }
   
   if (until > 0) {
-    filter.Set("until", static_cast<int>(until));
+    filter.Set("until", until);
   }
   
   if (limit > 0) {
@@ -293,11 +293,11 @@ std::string CreateTestNsiteContent(const std::string& title,
                                   const std::string& content,
                                   const std::string& theme) {
   base::Value::Dict nsite;
+  nsite.Set("id", GenerateRandomHex(32));
+  nsite.Set("pubkey", GenerateRandomHex(32));
+  nsite.Set("created_at", static_cast<int>(base::Time::Now().ToDoubleT()));
   nsite.Set("kind", 34128);  // Correct Nsite kind
-  nsite.Set("title", title);
-  nsite.Set("summary", "Test Nsite");
   nsite.Set("content", content);
-  nsite.Set("theme", theme);
   
   base::Value::List tags;
   base::Value::List title_tag;
@@ -305,12 +305,18 @@ std::string CreateTestNsiteContent(const std::string& title,
   title_tag.Append(title);
   tags.Append(std::move(title_tag));
   
+  base::Value::List summary_tag;
+  summary_tag.Append("summary");
+  summary_tag.Append("Test Nsite");
+  tags.Append(std::move(summary_tag));
+  
   base::Value::List theme_tag;
   theme_tag.Append("theme");
   theme_tag.Append(theme);
   tags.Append(std::move(theme_tag));
   
   nsite.Set("tags", std::move(tags));
+  nsite.Set("sig", GenerateRandomHex(64));  // Add mock signature
   
   std::string json;
   base::JSONWriter::Write(nsite, &json);
