@@ -21,7 +21,10 @@ namespace nostr {
 namespace {
 
 // Bech32 character set: all alphanumeric except 1, b, i, o (to avoid confusion)
-constexpr char kValidBech32Chars[] = "023456789acdefghjklmnpqrstuvwxyz";
+constexpr std::array<char, 32> kValidBech32Chars = {'0', '2', '3', '4', '5', '6', '7', '8', '9', 
+                                                    'a', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 
+                                                    'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 
+                                                    'v', 'w', 'x', 'y', 'z'};
 
 // Allowed URL schemes for relays
 constexpr const char* kAllowedRelaySchemes[] = {
