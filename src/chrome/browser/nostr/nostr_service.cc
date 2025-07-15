@@ -49,6 +49,35 @@ void SecureClearString(std::string& str) {
   }
 }
 
+// RAII helper for secure passphrase lifecycle management
+// Automatically clears passphrase on destruction to prevent
+// sensitive data from lingering in memory
+class ScopedPassphrase {
+ public:
+  explicit ScopedPassphrase(std::string&& passphrase) 
+      : passphrase_(std::move(passphrase)) {}
+  
+  ~ScopedPassphrase() {
+    SecureClearString(passphrase_);
+  }
+  
+  // Delete copy operations to prevent accidental copies
+  ScopedPassphrase(const ScopedPassphrase&) = delete;
+  ScopedPassphrase& operator=(const ScopedPassphrase&) = delete;
+  
+  // Allow move operations
+  ScopedPassphrase(ScopedPassphrase&& other) noexcept
+      : passphrase_(std::move(other.passphrase_)) {
+    other.passphrase_.clear();
+  }
+  
+  const std::string& value() const { return passphrase_; }
+  bool empty() const { return passphrase_.empty(); }
+  
+ private:
+  std::string passphrase_;
+};
+
 // Convert hex string to bytes
 std::vector<uint8_t> HexToBytes(const std::string& hex) {
   std::vector<uint8_t> bytes;
@@ -393,18 +422,15 @@ std::string NostrService::GenerateNewKey(const std::string& name) {
     key_id.last_used_at = base::Time::Now();
     key_id.is_default = false;
     
-    // Request passphrase from user
-    std::string passphrase = RetrieveAndValidatePassphrase(
-        "Enter passphrase to encrypt your new Nostr key");
+    // Request passphrase from user with automatic secure cleanup
+    ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+        "Enter passphrase to encrypt your new Nostr key"));
     if (passphrase.empty()) {
       return "";
     }
     
     KeyEncryption key_encryption;
-    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase);
-    
-    // Securely clear the passphrase
-    SecureClearString(passphrase);
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase.value());
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt private key";
       return "";
@@ -463,18 +489,15 @@ std::string NostrService::ImportKey(const std::string& private_key_hex,
     // Encrypt the private key with user passphrase
     auto private_key_bytes = HexToBytes(private_key_hex);
     
-    // Request passphrase from user
-    std::string passphrase = RetrieveAndValidatePassphrase(
-        "Enter passphrase to encrypt your imported Nostr key");
+    // Request passphrase from user with automatic secure cleanup
+    ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+        "Enter passphrase to encrypt your imported Nostr key"));
     if (passphrase.empty()) {
       return "";
     }
     
     KeyEncryption key_encryption;
-    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase);
-    
-    // Securely clear the passphrase
-    SecureClearString(passphrase);
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase.value());
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt imported private key";
       return "";
@@ -805,18 +828,15 @@ std::vector<uint8_t> NostrService::ComputeSharedSecret(const std::string& pubkey
     return {};
   }
   
-  // Request passphrase from user to decrypt private key
-  std::string passphrase = RetrieveAndValidatePassphrase(
-      "Enter passphrase to decrypt your Nostr key for encryption");
+  // Request passphrase from user to decrypt private key with automatic secure cleanup
+  ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+      "Enter passphrase to decrypt your Nostr key for encryption"));
   if (passphrase.empty()) {
     return {};
   }
   
   KeyEncryption key_encryption;
-  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase);
-  
-  // Securely clear the passphrase
-  SecureClearString(passphrase);
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase.value());
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for ECDH";
     return {};
@@ -969,18 +989,15 @@ std::string NostrService::SignWithSchnorr(const std::string& message_hex) {
     return "";
   }
   
-  // Request passphrase from user to decrypt private key
-  std::string passphrase = RetrieveAndValidatePassphrase(
-      "Enter passphrase to decrypt your Nostr key for signing");
+  // Request passphrase from user to decrypt private key with automatic secure cleanup
+  ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+      "Enter passphrase to decrypt your Nostr key for signing"));
   if (passphrase.empty()) {
     return "";
   }
   
   KeyEncryption key_encryption;
-  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase);
-  
-  // Securely clear the passphrase
-  SecureClearString(passphrase);
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase.value());
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for signing";
     return "";
@@ -1255,7 +1272,7 @@ std::string NostrService::RetrieveAndValidatePassphrase(const std::string& promp
   }
   
   if (passphrase.empty()) {
-    LOG(ERROR) << "Failed to get passphrase for key operation";
+    LOG(WARNING) << "Passphrase is empty; this may indicate user cancellation or no input provided";
   }
   
   return passphrase;
