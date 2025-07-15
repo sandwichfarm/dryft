@@ -22,6 +22,8 @@
 #include "base/task/thread_pool.h"
 #include "chrome/browser/nostr/key_storage_factory.h"
 #include "chrome/browser/nostr/key_encryption.h"
+#include "chrome/browser/nostr/nostr_passphrase_manager.h"
+#include "chrome/browser/nostr/nostr_passphrase_manager_factory.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/nostr_messages.h"
@@ -95,6 +97,9 @@ NostrService::NostrService(Profile* profile) : profile_(profile) {
   // Get permission manager
   permission_manager_ = NostrPermissionManagerFactory::GetForProfile(profile_);
   
+  // Get passphrase manager
+  passphrase_manager_ = NostrPassphraseManagerFactory::GetForProfile(profile_);
+  
   // Initialize key storage
   key_storage_ = KeyStorageFactory::CreateKeyStorage(profile_);
   
@@ -109,7 +114,7 @@ void NostrService::InitializeCrypto() {
   if (key_storage_) {
     auto default_key = key_storage_->GetDefaultKey();
     if (default_key) {
-      default_public_key_ = default_key->npub;
+      default_public_key_ = default_key->public_key;
       LOG(INFO) << "Loaded default Nostr key: " << default_public_key_;
       return;
     }
@@ -379,11 +384,20 @@ std::string NostrService::GenerateNewKey(const std::string& name) {
     key_id.last_used_at = base::Time::Now();
     key_id.is_default = false;
     
-    // Encrypt the private key with a temporary passphrase
-    // TODO: Implement proper user passphrase handling
-    std::string temp_passphrase = "temp_passphrase_for_testing";
+    // Request passphrase from user
+    std::string passphrase;
+    if (passphrase_manager_) {
+      passphrase = passphrase_manager_->RequestPassphraseSync(
+          "Enter passphrase to encrypt your new Nostr key");
+    }
+    
+    if (passphrase.empty()) {
+      LOG(ERROR) << "Failed to get passphrase for key encryption";
+      return "";
+    }
+    
     KeyEncryption key_encryption;
-    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, temp_passphrase);
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase);
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt private key";
       return "";
@@ -439,12 +453,23 @@ std::string NostrService::ImportKey(const std::string& private_key_hex,
     key_id.last_used_at = base::Time::Now();
     key_id.is_default = false;
     
-    // Encrypt the private key with a temporary passphrase
-    // TODO: Implement proper user passphrase handling
+    // Encrypt the private key with user passphrase
     auto private_key_bytes = HexToBytes(private_key_hex);
-    std::string temp_passphrase = "temp_passphrase_for_testing";
+    
+    // Request passphrase from user
+    std::string passphrase;
+    if (passphrase_manager_) {
+      passphrase = passphrase_manager_->RequestPassphraseSync(
+          "Enter passphrase to encrypt your imported Nostr key");
+    }
+    
+    if (passphrase.empty()) {
+      LOG(ERROR) << "Failed to get passphrase for key encryption";
+      return "";
+    }
+    
     KeyEncryption key_encryption;
-    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, temp_passphrase);
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase);
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt imported private key";
       return "";
@@ -775,12 +800,20 @@ std::vector<uint8_t> NostrService::ComputeSharedSecret(const std::string& pubkey
     return {};
   }
   
-  // For now, use a simple passphrase (TODO: implement proper user passphrase handling)
-  // This is a placeholder - in production, the user would enter their passphrase
-  std::string temp_passphrase = "temp_passphrase_for_testing";
+  // Request passphrase from user to decrypt private key
+  std::string passphrase;
+  if (passphrase_manager_) {
+    passphrase = passphrase_manager_->RequestPassphraseSync(
+        "Enter passphrase to decrypt your Nostr key for encryption");
+  }
+  
+  if (passphrase.empty()) {
+    LOG(ERROR) << "Failed to get passphrase for key decryption";
+    return {};
+  }
   
   KeyEncryption key_encryption;
-  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, temp_passphrase);
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase);
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for ECDH";
     return {};
@@ -933,11 +966,20 @@ std::string NostrService::SignWithSchnorr(const std::string& message_hex) {
     return "";
   }
   
-  // For now, use a simple passphrase (TODO: implement proper user passphrase handling)
-  std::string temp_passphrase = "temp_passphrase_for_testing";
+  // Request passphrase from user to decrypt private key
+  std::string passphrase;
+  if (passphrase_manager_) {
+    passphrase = passphrase_manager_->RequestPassphraseSync(
+        "Enter passphrase to decrypt your Nostr key for signing");
+  }
+  
+  if (passphrase.empty()) {
+    LOG(ERROR) << "Failed to get passphrase for key decryption";
+    return "";
+  }
   
   KeyEncryption key_encryption;
-  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, temp_passphrase);
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase);
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for signing";
     return "";

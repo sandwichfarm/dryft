@@ -27,6 +27,7 @@ namespace nostr {
 
 class KeyStorage;
 class NostrPermissionManager;
+class NostrPassphraseManager;
 
 namespace local_relay {
 class LocalRelayService;
@@ -285,6 +286,9 @@ class NostrService : public KeyedService {
   
   // Permission manager
   NostrPermissionManager* permission_manager_;
+  
+  // Passphrase manager
+  NostrPassphraseManager* passphrase_manager_;
   
   // Preference service
   PrefService* pref_service_;
