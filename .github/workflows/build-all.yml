@@ -105,17 +105,20 @@ jobs:
       - name: Setup ccache
         run: |
           sudo apt-get install -y ccache
+          mkdir -p ~/.config/ccache
           ccache --set-config=max_size=10G
           ccache --set-config=compression=true
           ccache --set-config=compression_level=6
           
       - name: Sync Source
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           cd src
           gclient sync --no-history --shallow
           
       - name: Build
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           export CCACHE_DIR=~/.cache/ccache
           export CC="ccache gcc"
           export CXX="ccache g++"
@@ -135,6 +138,7 @@ jobs:
           
       - name: Package
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           ./build.py --platform=linux --arch=${{ matrix.arch }} --package
           
       - name: Upload Artifacts
@@ -189,12 +193,14 @@ jobs:
           
       - name: Sync Source
         run: |
+          $env:Path = "$PWD\depot_tools;$env:Path"
           cd src
           gclient sync --no-history --shallow
           
       - name: Build
         shell: cmd
         run: |
+          set PATH=%CD%\depot_tools;%PATH%
           set SCCACHE_DIR=%USERPROFILE%\AppData\Local\Mozilla\sccache
           set CC=sccache cl
           set CXX=sccache cl
@@ -271,11 +277,13 @@ jobs:
           
       - name: Sync Source
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           cd src
           gclient sync --no-history --shallow
           
       - name: Build
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           export CCACHE_DIR=~/.cache/ccache
           export CC="ccache clang"
           export CXX="ccache clang++"
@@ -303,6 +311,7 @@ jobs:
           
       - name: Package
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           ./build.py --platform=macos --arch=${{ matrix.arch }} --package
           
       - name: Upload Artifacts
@@ -362,11 +371,13 @@ jobs:
           
       - name: Sync Source
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           cd src
           gclient sync --no-history --shallow
           
       - name: Build
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           
           BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
@@ -378,6 +389,7 @@ jobs:
           
       - name: Package
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           ./build.py --platform=android --android-arch=${{ matrix.arch }} --package
           
       - name: Upload Artifacts
@@ -426,11 +438,13 @@ jobs:
           
       - name: Sync Source
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           cd src
           gclient sync --no-history --shallow
           
       - name: Build
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
           if [[ "$BUILD_TYPE" == "release" ]]; then
             ./build.py --release --platform=raspi
@@ -440,6 +454,7 @@ jobs:
           
       - name: Package
         run: |
+          export PATH="$PWD/depot_tools:$PATH"
           ./build.py --platform=raspi --package
           
       - name: Upload Artifacts
