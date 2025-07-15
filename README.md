@@ -2,80 +2,62 @@
 
 A fork of [Thorium browser](https://github.com/Alex313031/thorium) with native Nostr protocol support built directly into the browser core.
 
-## NIP Compatibility Overview
+## 📚 Documentation
 
+- **[User Guide](docs/user-guide/README.md)** - Getting started, account management, and features
+- **[Developer Docs](docs/developer/README.md)** - API reference and integration guide  
+- **[Configuration](docs/configuration/README.md)** - Settings for users and enterprises
+- **[Troubleshooting](docs/troubleshooting/README.md)** - Common issues and solutions
+
+## ✨ Key Features
+
+- **Native NIP-07**: Built-in `window.nostr` API, no extension needed
+- **Local Relay**: Personal relay with SQLite backend on `ws://localhost:8081`
+- **Blossom Storage**: Content-addressed file storage on `http://localhost:8080`
+- **Nsite Support**: Browse static websites hosted on Nostr (kind 34128)
+- **Multi-Account**: Manage multiple Nostr identities with secure key storage
+- **Pre-loaded Libraries**: NDK, nostr-tools, and more available instantly
+
+## 🚀 Quick Start
+
+1. **[Download](https://github.com/sandwichfarm/tungsten/releases)** the latest release for your platform
+2. **Install** and launch Tungsten Browser
+3. **Create or import** your Nostr account
+4. **Browse** any website - `window.nostr` is automatically available
+
+Test it works:
+```javascript
+// Open Developer Tools on any https:// website
+console.log('Nostr available:', !!window.nostr);
+await window.nostr.getPublicKey(); // Your public key
+```
+
+## 🔧 Protocol Support
+
+### NIPs (Nostr Implementation Possibilities)
 - **NIP-01**: Basic protocol (via local relay)
-- **NIP-04**: Encrypted direct messages  
-- **NIP-07**: `window.nostr` capability
+- **NIP-04**: Legacy encrypted direct messages  
+- **NIP-07**: `window.nostr` capability (native implementation)
 - **NIP-44**: Modern encryption standard
-- **NIP-XX (34128)**: Nsite static website hosting
+- **NIP-65**: Relay list management
+- **Kind 34128**: Nsite static website hosting
 
-## BUD Compatibility Overview
-
+### BUDs (Blossom Protocol)
 - **BUD-00**: Core Blossom protocol
 - **BUD-01**: Server endpoints with kind 24242 auth events
 - **BUD-03**: User server list integration
 
-## Nsite Overview
+## 🏗️ Architecture
 
-Tungsten supports hosting static websites directly from Nostr events (kind 34128). Access sites via:
-- `nostr://npub.../` URLs
-- Subdomain routing: `npub123...456.domain.com`
+Tungsten integrates Nostr support directly into the browser core with these key components:
 
-## Authentication
+- **Browser Process**: Manages services, key storage, and permissions
+- **Local Relay**: SQLite-backed WebSocket relay (`ws://localhost:8081`)
+- **Blossom Server**: File storage service (`http://localhost:8080`) 
+- **Secure Keys**: Platform-native storage (Keychain/Credential Manager)
+- **Enhanced APIs**: Extended `window.nostr` and `window.blossom` objects
 
-- Multi-account support with profile switching
-- Granular permissions per origin, method, and event kind
-- Secure key storage using platform-specific APIs
-- Built-in key generation and import/export
-
-## Local Relay
-
-Built-in WebSocket relay (port 8081):
-- SQLite backend with WAL mode
-- Full NIP-01 protocol implementation  
-- Complex query support with indexing
-- Automatic sync with external relays
-
-## Local Blossom
-
-Content-addressed storage server (port 8080):
-- Direct file system storage
-- SHA256 content addressing
-- LRU cache management
-- Integration with remote Blossom servers
-
-## Technical Overview
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Tungsten Browser                      │
-├─────────────────────────────────────────────────────────┤
-│                    Browser Process                       │
-│  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │   Renderer  │  │  window.nostr │  │window.blossom │  │
-│  │   Process   │  │     API       │  │     API       │  │
-│  └──────┬──────┘  └──────┬───────┘  └───────┬───────┘  │
-│         │                 │                   │          │
-│  ┌──────┴─────────────────┴───────────────────┴──────┐  │
-│  │              IPC Message Router                    │  │
-│  └──────┬─────────────────┬───────────────────┬──────┘  │
-│         │                 │                   │          │
-├─────────┼─────────────────┼───────────────────┼─────────┤
-│  ┌──────┴──────┐  ┌──────┴───────┐  ┌───────┴───────┐  │
-│  │ Key Service │  │ Local Relay  │  │Local Blossom  │  │
-│  │  (Isolated) │  │   Service    │  │    Service    │  │
-│  └──────┬──────┘  └──────┬───────┘  └───────┬───────┘  │
-│         │                 │                   │          │
-├─────────┼─────────────────┼───────────────────┼─────────┤
-│  ┌──────┴──────┐  ┌──────┴───────┐  ┌───────┴───────┐  │
-│  │  Platform   │  │    SQLite    │  │  File System  │  │
-│  │  Key Store  │  │   Database   │  │    Storage    │  │
-│  └─────────────┘  └──────────────┘  └───────────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
+For complete technical details, see the [Browser Integration Guide](memory/reference/Browser_Integration_Details.md).
 
 ### Browser API Extensions
 
@@ -127,28 +109,40 @@ window.blossom = {
 | Keys | Platform Store | Secure credential storage |
 | Preferences | JSON | User settings |
 
-### Performance Targets
+## 🔧 Building from Source
 
-- Startup overhead: <50ms
-- Memory overhead: <50MB base
-- NIP-07 operations: <20ms  
-- Local relay queries: <10ms
-- CPU usage idle: <0.1%
+See the [Building Guide](docs/BUILDING.md) for complete instructions, or follow these steps:
 
-## Building
+### Prerequisites
+- Follow [Chromium build requirements](https://chromium.googlesource.com/chromium/src/+/main/docs/get_the_code.md) for your platform
+- Python 3.8+, Git, and platform build tools
 
-See [Thorium's build instructions](https://github.com/Alex313031/thorium/blob/main/docs/BUILDING.md) with these additional flags:
-
+### Quick Build
 ```bash
+# 1. Clone and setup
+git clone https://github.com/sandwichfarm/tungsten.git
+cd tungsten
+./setup.sh
+
+# 2. Configure with Nostr features
+cd src
 gn gen out/Release --args="
   is_official_build=true 
   enable_nostr=true 
   enable_local_relay=true 
   enable_blossom_server=true
 "
+
+# 3. Build
 autoninja -C out/Release chrome
 ```
 
-## License
+## 🤝 Contributing
 
-Same as Thorium/Chromium - see LICENSE file.
+- **[Development Guide](CLAUDE.md)** - Development workflow and standards
+- **[GitHub Issues](https://github.com/sandwichfarm/tungsten/issues)** - Bug reports and feature requests
+- **[Pull Requests](https://github.com/sandwichfarm/tungsten/pulls)** - Code contributions welcome
+
+## 📄 License
+
+BSD-style license, same as Chromium/Thorium. See [LICENSE.md](LICENSE.md) for details.
