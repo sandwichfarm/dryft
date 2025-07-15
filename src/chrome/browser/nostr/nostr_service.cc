@@ -795,7 +795,7 @@ void NostrService::Shutdown() {
 
 bool NostrService::ValidateEvent(const base::Value::Dict& event) {
   std::string error_message;
-  bool valid = NostrInputValidator::ValidateUnsignedEvent(event, &error_message);
+  bool valid = NostrInputValidator::ValidateEvent(event, &error_message);
   
   if (!valid) {
     LOG(ERROR) << "Event validation failed: " << error_message;
