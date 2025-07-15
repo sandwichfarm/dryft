@@ -504,8 +504,18 @@ const PermissionManager = {
         origin: this.currentEditingOrigin
       });
       
-      // Remove from local data
-      this.permissions.delete(this.currentEditingOrigin);
+      // Update local data to show as reset to default (ask)
+      const resetPermission = {
+        default: 'ask',
+        methods: {},
+        kindPermissions: {},
+        rateLimits: {
+          requestsPerMinute: 60,
+          signsPerHour: 20
+        },
+        lastUsed: new Date().toISOString()
+      };
+      this.permissions.set(this.currentEditingOrigin, resetPermission);
       this.updatePermissionsList();
       this.updatePermissionsSummary();
       

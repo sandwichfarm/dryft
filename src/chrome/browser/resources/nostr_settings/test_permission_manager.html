@@ -371,6 +371,64 @@
         }
       });
       
+      tests.push({
+        name: 'Rate limit inputs exist and have correct defaults',
+        test: () => {
+          const requestsInput = document.getElementById('requests-per-minute');
+          const signsInput = document.getElementById('signs-per-hour');
+          return requestsInput && signsInput &&
+                 requestsInput.value === '60' &&
+                 signsInput.value === '20';
+        }
+      });
+      
+      tests.push({
+        name: 'Kind matrix is populated with checkboxes',
+        test: () => {
+          // Trigger kind matrix population
+          if (PermissionManager.populateKindMatrix) {
+            PermissionManager.populateKindMatrix({});
+          }
+          const kindMatrix = document.getElementById('kind-matrix');
+          const checkboxes = kindMatrix.querySelectorAll('input[type="checkbox"]');
+          return checkboxes.length > 0;
+        }
+      });
+      
+      tests.push({
+        name: 'Kind presets exist and function',
+        test: () => {
+          const presetButtons = document.querySelectorAll('.preset-button');
+          return presetButtons.length >= 3; // social, messaging, custom
+        }
+      });
+      
+      tests.push({
+        name: 'Permission edit dialog can be opened',
+        test: () => {
+          // Test that the first permission item has an edit button
+          const permissionItems = document.querySelectorAll('.permission-item');
+          if (permissionItems.length > 0) {
+            const editButton = permissionItems[0].querySelector('button[data-action="edit"]');
+            return editButton !== null;
+          }
+          return false;
+        }
+      });
+      
+      tests.push({
+        name: 'Expiration settings are properly configured',
+        test: () => {
+          const expirationRadios = document.querySelectorAll('input[name="expiration"]');
+          const customExpiration = document.getElementById('custom-expiration');
+          const expirationDays = document.getElementById('expiration-days');
+          return expirationRadios.length >= 3 &&
+                 customExpiration &&
+                 expirationDays &&
+                 expirationDays.value === '30';
+        }
+      });
+      
       tests.forEach(test => {
         const result = document.createElement('div');
         result.className = test.test() ? 'test-result test-pass' : 'test-result test-fail';

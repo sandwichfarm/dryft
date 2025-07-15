@@ -636,10 +636,17 @@ void NostrSettingsHandler::HandleResetPermission(const base::Value::List& args) 
   
   auto origin = url::Origin::Create(GURL(*origin_str));
   
-  // Remove the permission (resets to default)
-  bool success = permission_manager->RevokePermission(origin);
+  // Reset to default permission policy (keep the permission entry but reset to ASK)
+  nostr::NIP07Permission permission;
+  permission.origin = origin;
+  permission.default_policy = nostr::NIP07Permission::Policy::ASK;
+  // Clear all method-specific policies to use default
+  permission.method_policies.clear();
   
-  ResolveJavascriptCallback(callback_id, base::Value(success));
+  auto result = permission_manager->GrantPermission(origin, permission);
+  
+  ResolveJavascriptCallback(callback_id, 
+                           base::Value(result == nostr::NostrPermissionManager::GrantResult::SUCCESS));
 }
 
 void NostrSettingsHandler::HandleDeletePermission(const base::Value::List& args) {
