@@ -28,6 +28,7 @@ namespace nostr {
 class KeyStorage;
 class NostrPermissionManager;
 class NostrPassphraseManager;
+class NostrOperationRateLimiter;
 
 namespace local_relay {
 class LocalRelayService;
@@ -231,6 +232,25 @@ class NostrService : public KeyedService {
    */
   bool IsLocalRelayEnabled();
 
+  // Rate limiting
+  
+  /**
+   * Check if an operation is allowed based on rate limits.
+   * @param origin The origin making the request
+   * @param operation The type of operation
+   * @return true if the operation is allowed
+   */
+  bool CheckRateLimit(const GURL& origin, 
+                     NostrOperationRateLimiter::OperationType operation);
+  
+  /**
+   * Record that an operation was performed.
+   * @param origin The origin that performed the operation
+   * @param operation The type of operation
+   */
+  void RecordOperation(const GURL& origin,
+                      NostrOperationRateLimiter::OperationType operation);
+
   // KeyedService implementation
   void Shutdown() override;
 
@@ -302,6 +322,9 @@ class NostrService : public KeyedService {
   
   // Current default key (cached)
   std::string default_public_key_;
+  
+  // Rate limiter for operations
+  std::unique_ptr<NostrOperationRateLimiter> rate_limiter_;
   
   // Weak pointer factory for async callbacks
   base::WeakPtrFactory<NostrService> weak_factory_{this};

@@ -29,6 +29,8 @@ if (enable_nostr) {
       "nostr_passphrase_manager.h",
       "nostr_passphrase_manager_factory.cc",
       "nostr_passphrase_manager_factory.h",
+      "nostr_operation_rate_limiter.cc",
+      "nostr_operation_rate_limiter.h",
       "nostr_service.cc",
       "nostr_service.h",
       "nostr_service_factory.cc",
