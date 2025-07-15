@@ -79,8 +79,16 @@ void NostrMigrationHandler::HandlePerformMigration(const base::Value::List& args
   const base::Value::Dict* data_dict = migration_dict.FindDict("data");
   
   if (!extension_dict || !data_dict) {
+    std::string error_message = "Invalid migration data: ";
+    if (!extension_dict) {
+      error_message += "missing 'extension' field";
+    }
+    if (!data_dict) {
+      if (!extension_dict) error_message += ", ";
+      error_message += "missing 'data' field";
+    }
     RejectJavascriptCallback(base::Value(callback_id), 
-                           base::Value("Invalid migration data"));
+                           base::Value(error_message));
     return;
   }
   
