@@ -1,0 +1,90 @@
+{
+  "performance_benchmarks": {
+    "startup_targets": {
+      "browser_startup_ms": 50,
+      "nostr_service_init_ms": 30,
+      "local_relay_startup_ms": 40,
+      "blossom_server_startup_ms": 35
+    },
+    "nip07_operation_targets": {
+      "get_public_key_ms": 20,
+      "sign_event_ms": 20,
+      "encryption_ms": 20,
+      "decryption_ms": 20,
+      "get_relays_ms": 15
+    },
+    "local_relay_targets": {
+      "event_query_ms": 10,
+      "event_insert_ms": 15,
+      "subscription_ms": 12,
+      "queries_per_second": 1000
+    },
+    "memory_targets": {
+      "base_memory_mb": 50,
+      "nostr_service_mb": 20,
+      "local_relay_mb": 15,
+      "blossom_server_mb": 10,
+      "memory_per_event_kb": 1
+    },
+    "library_loading_targets": {
+      "ndk_load_ms": 100,
+      "nostr_tools_load_ms": 80,
+      "secp256k1_load_ms": 60,
+      "applesauce_load_ms": 90
+    },
+    "network_targets": {
+      "relay_connection_ms": 200,
+      "event_publish_ms": 150,
+      "event_fetch_ms": 100
+    },
+    "cache_targets": {
+      "cache_hit_ms": 5,
+      "cache_miss_ms": 50,
+      "cache_size_mb": 100
+    }
+  },
+  "test_scenarios": [
+    {
+      "name": "startup_performance",
+      "description": "Tests browser startup impact of Nostr features",
+      "iterations": 5,
+      "warmup_iterations": 2
+    },
+    {
+      "name": "nip07_operations",
+      "description": "Tests NIP-07 API operation performance",
+      "iterations": 10,
+      "warmup_iterations": 3
+    },
+    {
+      "name": "local_relay_operations",
+      "description": "Tests local relay database operations",
+      "iterations": 10,
+      "warmup_iterations": 2
+    },
+    {
+      "name": "memory_usage",
+      "description": "Tests memory usage under various loads",
+      "iterations": 5,
+      "warmup_iterations": 1
+    },
+    {
+      "name": "library_loading",
+      "description": "Tests JavaScript library loading performance",
+      "iterations": 8,
+      "warmup_iterations": 2
+    },
+    {
+      "name": "concurrent_load",
+      "description": "Tests performance under concurrent operations",
+      "iterations": 3,
+      "warmup_iterations": 1,
+      "concurrent_operations": 100
+    }
+  ],
+  "regression_thresholds": {
+    "warning_threshold_percent": 10,
+    "error_threshold_percent": 20,
+    "memory_threshold_percent": 15
+  }
+}
