@@ -41,7 +41,7 @@ bool CreateProtocolEntries(WorkItemList* list,
   std::wstring icon_key = protocol_key + L"\\" + kDefaultIcon;
   list->AddCreateRegKeyWorkItem(HKEY_CURRENT_USER, icon_key, KEY_WOW64_32KEY);
   list->AddSetRegValueWorkItem(HKEY_CURRENT_USER, icon_key, KEY_WOW64_32KEY,
-                               L"", command + L",1", true);
+                               L"", command + kDefaultIconIndex, true);
   
   // Set open command
   std::wstring command_key = protocol_key + L"\\" + kShellOpenCommand;
