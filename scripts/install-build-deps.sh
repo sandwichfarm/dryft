@@ -152,7 +152,8 @@ install_linux_deps() {
                 libavformat-dev \
                 libva-dev \
                 libpipewire-0.3-dev \
-                libre2-dev \
+                # Handle libre2-dev availability based on OS version
+                $(if [[ "$OS" == "ubuntu" && "$OS_VERSION" == "22.04" ]]; then echo ""; else echo "libre2-dev"; fi) \
                 libsnappy-dev \
                 libjsoncpp-dev \
                 libhwy-dev \
