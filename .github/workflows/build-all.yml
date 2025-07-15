@@ -97,7 +97,9 @@ jobs:
           
       - name: Setup Depot Tools
         run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          if [ ! -d "depot_tools" ]; then
+            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          fi
           echo "$PWD/depot_tools" >> $GITHUB_PATH
           
       - name: Setup ccache
@@ -175,7 +177,9 @@ jobs:
         
       - name: Setup Depot Tools
         run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          if (!(Test-Path "depot_tools")) {
+            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          }
           echo "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           
       - name: Setup sccache
@@ -255,7 +259,9 @@ jobs:
           
       - name: Setup Depot Tools
         run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          if [ ! -d "depot_tools" ]; then
+            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          fi
           echo "$PWD/depot_tools" >> $GITHUB_PATH
           
       - name: Setup ccache
@@ -349,7 +355,9 @@ jobs:
           
       - name: Setup Depot Tools
         run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          if [ ! -d "depot_tools" ]; then
+            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          fi
           echo "$PWD/depot_tools" >> $GITHUB_PATH
           
       - name: Sync Source
@@ -411,7 +419,9 @@ jobs:
           
       - name: Setup Depot Tools
         run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          if [ ! -d "depot_tools" ]; then
+            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          fi
           echo "$PWD/depot_tools" >> $GITHUB_PATH
           
       - name: Sync Source

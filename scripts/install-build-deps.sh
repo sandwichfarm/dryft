@@ -126,6 +126,7 @@ install_linux_deps() {
             apt-get install -y $COMMON_PACKAGES
             
             # Additional packages for Ubuntu/Debian
+            # Note: libjxl-dev is not available in Ubuntu 22.04, will be built from source if needed
             apt-get install -y \
                 libssl-dev \
                 libxshmfence-dev \
@@ -155,7 +156,6 @@ install_linux_deps() {
                 libsnappy-dev \
                 libjsoncpp-dev \
                 libhwy-dev \
-                libjxl-dev \
                 libusb-1.0-0-dev \
                 libopenjp2-7-dev \
                 libevent-dev
