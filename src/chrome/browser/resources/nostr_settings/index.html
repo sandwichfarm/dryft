@@ -11,6 +11,7 @@
   <script src="account_manager.js"></script>
   <script src="permission_manager.js"></script>
   <script src="relay_settings_manager.js"></script>
+  <script src="blossom_settings_manager.js"></script>
   <script src="nostr_settings.js"></script>
 </head>
 <body>
@@ -725,7 +726,7 @@
       
       <!-- Blossom Section -->
       <section id="blossom" class="settings-section" hidden>
-        <h2>Blossom Storage</h2>
+        <h2>Blossom Settings</h2>
         <div class="section-content">
           <div class="setting-item">
             <label>
@@ -735,20 +736,142 @@
           </div>
           
           <div class="blossom-settings" id="blossom-settings">
-            <div class="setting-item">
-              <label for="blossom-port">Port:</label>
-              <input type="number" id="blossom-port" min="1024" max="65535">
+            <!-- Local Server Configuration -->
+            <div class="subsection">
+              <h3>Local Server</h3>
+              <div class="setting-item">
+                <label for="blossom-port">Port:</label>
+                <input type="number" id="blossom-port" min="1024" max="65535" value="8088">
+                <button id="test-local-blossom" class="secondary-button">Test Connection</button>
+              </div>
+              
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="blossom-auto-start">
+                  <span>Start automatically with browser</span>
+                </label>
+              </div>
             </div>
             
-            <div class="setting-item">
-              <label for="blossom-storage">Max storage (GB):</label>
-              <input type="number" id="blossom-storage" min="1" max="1000">
+            <!-- Storage Configuration -->
+            <div class="subsection">
+              <h3>Storage Configuration</h3>
+              <div class="setting-item">
+                <label for="blossom-storage-quota">Storage Quota:</label>
+                <div class="slider-container">
+                  <input type="range" id="blossom-storage-slider" min="1" max="100" value="10">
+                  <input type="number" id="blossom-storage-quota" min="1" max="100" value="10">
+                  <span>GB</span>
+                </div>
+              </div>
+              
+              <div class="setting-item">
+                <div class="usage-display">
+                  <label>Current Usage:</label>
+                  <div class="progress-bar">
+                    <div class="progress-fill" id="blossom-usage-bar"></div>
+                  </div>
+                  <span id="blossom-usage-text">0 MB / 10 GB</span>
+                </div>
+              </div>
+              
+              <div class="setting-item">
+                <button id="clear-blossom-cache" class="secondary-button">Clear Cache</button>
+                <button id="export-blossom-data" class="secondary-button">Export Data</button>
+              </div>
             </div>
             
-            <div class="setting-item">
+            <!-- Upload Restrictions -->
+            <div class="subsection">
+              <h3>Upload Restrictions</h3>
+              <div class="setting-item">
+                <label for="blossom-max-file-size">Max file size (MB):</label>
+                <input type="number" id="blossom-max-file-size" min="1" max="5000" value="100">
+              </div>
+              
+              <div class="setting-item">
+                <label>Allowed MIME types:</label>
+                <div class="mime-type-grid">
+                  <label><input type="checkbox" name="mime-type" value="image/*" checked> Images</label>
+                  <label><input type="checkbox" name="mime-type" value="video/*" checked> Videos</label>
+                  <label><input type="checkbox" name="mime-type" value="audio/*" checked> Audio</label>
+                  <label><input type="checkbox" name="mime-type" value="application/pdf"> PDFs</label>
+                  <label><input type="checkbox" name="mime-type" value="text/*"> Text files</label>
+                  <label><input type="checkbox" name="mime-type" value="application/zip"> Archives</label>
+                </div>
+                <div class="custom-mime-types">
+                  <label for="custom-mime-types">Custom MIME types (one per line):</label>
+                  <textarea id="custom-mime-types" rows="3" placeholder="application/json
+model/gltf+json"></textarea>
+                </div>
+              </div>
+              
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="blossom-compress-images">
+                  <span>Compress images before upload</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Server Management -->
+            <div class="subsection">
               <h3>Blossom Servers</h3>
-              <div id="blossom-servers-list"></div>
-              <button id="add-blossom-server">Add Server</button>
+              <p class="help-text">Configure external Blossom servers for content storage and retrieval.</p>
+              
+              <div class="setting-item">
+                <label for="blossom-servers">Server list (one per line):</label>
+                <textarea id="blossom-servers" rows="5" placeholder="https://blossom.example.com
+https://cdn.example.org/blossom
+wss://relay.example.com/blossom"></textarea>
+              </div>
+              
+              <div class="setting-item">
+                <button id="test-blossom-servers" class="secondary-button">Test All Servers</button>
+                <button id="import-server-list" class="secondary-button">Import from Nostr</button>
+              </div>
+              
+              <div id="blossom-server-status" class="server-status-list"></div>
+            </div>
+            
+            <!-- Mirroring Configuration -->
+            <div class="subsection">
+              <h3>Content Mirroring</h3>
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="blossom-auto-mirror">
+                  <span>Automatically mirror uploads to external servers</span>
+                </label>
+              </div>
+              
+              <div class="mirroring-settings" id="mirroring-settings">
+                <div class="setting-item">
+                  <label for="mirror-redundancy">Redundancy level:</label>
+                  <select id="mirror-redundancy">
+                    <option value="1">1 server (no redundancy)</option>
+                    <option value="2" selected>2 servers</option>
+                    <option value="3">3 servers</option>
+                    <option value="all">All available servers</option>
+                  </select>
+                </div>
+                
+                <div class="setting-item">
+                  <label>
+                    <input type="checkbox" id="mirror-verify">
+                    <span>Verify uploads completed successfully</span>
+                  </label>
+                </div>
+                
+                <div class="setting-item">
+                  <label for="mirror-retry">Retry failed uploads:</label>
+                  <select id="mirror-retry">
+                    <option value="0">Don't retry</option>
+                    <option value="3" selected>3 attempts</option>
+                    <option value="5">5 attempts</option>
+                    <option value="10">10 attempts</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>

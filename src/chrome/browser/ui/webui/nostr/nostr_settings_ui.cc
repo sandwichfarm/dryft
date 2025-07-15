@@ -205,6 +205,40 @@ void NostrSettingsHandler::RegisterMessages() {
       "resetLocalRelayConfig",
       base::BindRepeating(&NostrSettingsHandler::HandleResetLocalRelayConfig,
                           weak_factory_.GetWeakPtr()));
+  
+  // Blossom handlers
+  web_ui()->RegisterMessageCallback(
+      "getBlossomConfig",
+      base::BindRepeating(&NostrSettingsHandler::HandleGetBlossomConfig,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "setBlossomConfig",
+      base::BindRepeating(&NostrSettingsHandler::HandleSetBlossomConfig,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "testLocalBlossom",
+      base::BindRepeating(&NostrSettingsHandler::HandleTestLocalBlossom,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "testBlossomServer",
+      base::BindRepeating(&NostrSettingsHandler::HandleTestBlossomServer,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "importBlossomServers",
+      base::BindRepeating(&NostrSettingsHandler::HandleImportBlossomServers,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "getBlossomStats",
+      base::BindRepeating(&NostrSettingsHandler::HandleGetBlossomStats,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "clearBlossomCache",
+      base::BindRepeating(&NostrSettingsHandler::HandleClearBlossomCache,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "exportBlossomData",
+      base::BindRepeating(&NostrSettingsHandler::HandleExportBlossomData,
+                          weak_factory_.GetWeakPtr()));
 }
 
 void NostrSettingsHandler::HandleGetNostrEnabled(const base::Value::List& args) {
