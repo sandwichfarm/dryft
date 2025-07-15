@@ -50,6 +50,16 @@ void SecureClearString(std::string& str) {
   }
 }
 
+// Securely clear a vector by overwriting its contents
+template<typename T>
+void SecureClearVector(std::vector<T>& vec) {
+  if (!vec.empty()) {
+    crypto::SecureZeroMemory(vec.data(), vec.size() * sizeof(T));
+    vec.clear();
+    vec.shrink_to_fit();  // Ensure memory is deallocated
+  }
+}
+
 // RAII helper for secure passphrase lifecycle management
 // Automatically clears passphrase on destruction to prevent
 // sensitive data from lingering in memory
@@ -442,6 +452,10 @@ std::string NostrService::GenerateNewKey(const std::string& name) {
     
     KeyEncryption key_encryption;
     auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase.value());
+    
+    // Securely clear private key bytes after encryption
+    SecureClearVector(private_key_bytes);
+    
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt private key";
       return "";
@@ -509,6 +523,10 @@ std::string NostrService::ImportKey(const std::string& private_key_hex,
     
     KeyEncryption key_encryption;
     auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase.value());
+    
+    // Securely clear private key bytes after encryption
+    SecureClearVector(private_key_bytes);
+    
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt imported private key";
       return "";
@@ -860,7 +878,12 @@ std::vector<uint8_t> NostrService::ComputeSharedSecret(const std::string& pubkey
     return {};
   }
   
-  return ComputeECDH(*decrypted_private_key, other_pubkey_bytes);
+  auto shared_secret = ComputeECDH(*decrypted_private_key, other_pubkey_bytes);
+  
+  // Securely clear decrypted private key after use
+  SecureClearVector(*decrypted_private_key);
+  
+  return shared_secret;
 }
 
 std::string NostrService::Nip04EncryptInternal(const std::vector<uint8_t>& shared_secret,
@@ -1029,6 +1052,10 @@ std::string NostrService::SignWithSchnorr(const std::string& message_hex) {
   }
   
   bssl::UniquePtr<BIGNUM> private_bn(BN_bin2bn(decrypted_private_key->data(), decrypted_private_key->size(), nullptr));
+  
+  // Securely clear decrypted private key after use
+  SecureClearVector(*decrypted_private_key);
+  
   if (!private_bn || !EC_KEY_set_private_key(ec_key.get(), private_bn.get())) {
     LOG(ERROR) << "Failed to set private key for signing";
     return "";
