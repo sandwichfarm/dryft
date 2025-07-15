@@ -30,6 +30,9 @@ const wchar_t kUrlProtocolValue[] = L"URL Protocol";
 // Protocol description
 const wchar_t kNostrProtocolDescription[] = L"URL:Nostr Protocol";
 
+// Default icon index in the executable
+const wchar_t kDefaultIconIndex[] = L",1";
+
 // Registers the nostr:// protocol handler
 bool RegisterNostrProtocol(const std::wstring& chrome_exe);
 

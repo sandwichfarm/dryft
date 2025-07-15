@@ -129,25 +129,17 @@ bool RegisterNsiteFileType(const std::wstring& chrome_exe) {
 }
 
 void UnregisterNostrAssociations() {
-  base::win::RegKey key;
-  
   // Remove nostr protocol
   std::wstring nostr_key = std::wstring(kClassesRoot) + L"\\" + kNostrProtocol;
-  if (key.Open(HKEY_CURRENT_USER, nostr_key.c_str(), KEY_WOW64_32KEY | DELETE) == ERROR_SUCCESS) {
-    key.DeleteKey(L"");
-  }
+  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nostr_key, KEY_WOW64_32KEY);
   
   // Remove .nsite extension
   std::wstring nsite_ext_key = std::wstring(kClassesRoot) + L"\\" + kNsiteExtension;
-  if (key.Open(HKEY_CURRENT_USER, nsite_ext_key.c_str(), KEY_WOW64_32KEY | DELETE) == ERROR_SUCCESS) {
-    key.DeleteKey(L"");
-  }
+  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nsite_ext_key, KEY_WOW64_32KEY);
   
   // Remove Nsite ProgID
   std::wstring nsite_prog_key = std::wstring(kClassesRoot) + L"\\" + kNsiteProgId;
-  if (key.Open(HKEY_CURRENT_USER, nsite_prog_key.c_str(), KEY_WOW64_32KEY | DELETE) == ERROR_SUCCESS) {
-    key.DeleteKey(L"");
-  }
+  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nsite_prog_key, KEY_WOW64_32KEY);
   
   // Notify shell of changes
   SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
