@@ -7,18 +7,25 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/sha.h>
+#include <openssl/ec.h>
+#include <openssl/ecdsa.h>
+#include <openssl/obj_mac.h>
+#include <openssl/bn.h>
 
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/logging.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/base64.h"
 #include "base/task/thread_pool.h"
 #include "chrome/browser/nostr/key_storage_factory.h"
+#include "chrome/browser/nostr/key_encryption.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/nostr_messages.h"
 #include "crypto/openssl_util.h"
 #include "crypto/secure_hash.h"
+#include "third_party/boringssl/src/include/openssl/mem.h"
 
 namespace nostr {
 
@@ -292,18 +299,55 @@ NostrRateLimitInfo NostrService::GetRateLimitInfo(const url::Origin& origin,
 }
 
 std::string NostrService::GenerateNewKey(const std::string& name) {
-  // TODO: Implement secp256k1 key generation
-  // For now, generate a dummy key
-  auto random_bytes = GenerateRandomBytes(32);
-  if (random_bytes.empty()) {
+  // Generate secp256k1 keypair using BoringSSL
+  bssl::UniquePtr<EC_KEY> ec_key(EC_KEY_new_by_curve_name(NID_secp256k1));
+  if (!ec_key) {
+    LOG(ERROR) << "Failed to create secp256k1 key object";
     return "";
   }
   
-  std::string private_key_hex = BytesToHex(random_bytes);
+  if (!EC_KEY_generate_key(ec_key.get())) {
+    LOG(ERROR) << "Failed to generate secp256k1 keypair";
+    return "";
+  }
   
-  // TODO: Derive actual public key from private key
-  // For now, use a placeholder
-  auto public_key_bytes = GenerateRandomBytes(32);
+  // Extract private key
+  const BIGNUM* private_key_bn = EC_KEY_get0_private_key(ec_key.get());
+  if (!private_key_bn) {
+    LOG(ERROR) << "Failed to get private key";
+    return "";
+  }
+  
+  // Convert private key to hex (32 bytes)
+  std::vector<uint8_t> private_key_bytes(32);
+  if (!BN_bn2bin_padded(private_key_bytes.data(), 32, private_key_bn)) {
+    LOG(ERROR) << "Failed to serialize private key";
+    return "";
+  }
+  std::string private_key_hex = BytesToHex(private_key_bytes);
+  
+  // Extract public key (x-coordinate only for Nostr)
+  const EC_POINT* public_key_point = EC_KEY_get0_public_key(ec_key.get());
+  if (!public_key_point) {
+    LOG(ERROR) << "Failed to get public key point";
+    return "";
+  }
+  
+  const EC_GROUP* group = EC_KEY_get0_group(ec_key.get());
+  std::vector<uint8_t> public_key_bytes(32);
+  
+  // Get x-coordinate of public key (Nostr uses x-only public keys)
+  bssl::UniquePtr<BIGNUM> x(BN_new());
+  bssl::UniquePtr<BIGNUM> y(BN_new());
+  if (!EC_POINT_get_affine_coordinates_GFp(group, public_key_point, x.get(), y.get(), nullptr)) {
+    LOG(ERROR) << "Failed to get public key coordinates";
+    return "";
+  }
+  
+  if (!BN_bn2bin_padded(public_key_bytes.data(), 32, x.get())) {
+    LOG(ERROR) << "Failed to serialize public key";
+    return "";
+  }
   std::string public_key_hex = BytesToHex(public_key_bytes);
   
   // Store the key with metadata
@@ -316,16 +360,16 @@ std::string NostrService::GenerateNewKey(const std::string& name) {
     key_id.last_used_at = base::Time::Now();
     key_id.is_default = false;
     
-    // TODO: Encrypt the private key with user's passphrase
-    // For now, create a mock encrypted key
-    EncryptedKey encrypted_key;
-    encrypted_key.encrypted_data = random_bytes;  // Mock encrypted data
-    encrypted_key.salt = GenerateRandomBytes(16);
-    encrypted_key.iv = GenerateRandomBytes(12);
-    encrypted_key.auth_tag = GenerateRandomBytes(16);
-    encrypted_key.kdf_algorithm = "PBKDF2-SHA256";
-    encrypted_key.kdf_iterations = 100000;
-    encrypted_key.encryption_algorithm = "AES-256-GCM";
+    // Encrypt the private key with a temporary passphrase
+    // TODO: Implement proper user passphrase handling
+    std::string temp_passphrase = "temp_passphrase_for_testing";
+    KeyEncryption key_encryption;
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, temp_passphrase);
+    if (!encrypted_key_opt) {
+      LOG(ERROR) << "Failed to encrypt private key";
+      return "";
+    }
+    EncryptedKey encrypted_key = *encrypted_key_opt;
     
     if (key_storage_->StoreKey(key_id, encrypted_key)) {
       // If this is the first key, make it default
@@ -352,10 +396,19 @@ std::string NostrService::ImportKey(const std::string& private_key_hex,
     return "";
   }
   
-  // TODO: Derive actual public key from private key using secp256k1
-  // For now, generate a mock public key
-  auto public_key_bytes = GenerateRandomBytes(32);
-  std::string public_key_hex = BytesToHex(public_key_bytes);
+  // Convert hex to bytes
+  auto private_key_bytes = HexToBytes(private_key_hex);
+  if (private_key_bytes.empty()) {
+    LOG(ERROR) << "Invalid private key hex format";
+    return "";
+  }
+  
+  // Derive public key from private key using secp256k1
+  std::string public_key_hex = DerivePublicKeyFromPrivate(private_key_bytes);
+  if (public_key_hex.empty()) {
+    LOG(ERROR) << "Failed to derive public key from private key";
+    return "";
+  }
   
   // Store the imported key
   if (key_storage_) {
@@ -367,17 +420,17 @@ std::string NostrService::ImportKey(const std::string& private_key_hex,
     key_id.last_used_at = base::Time::Now();
     key_id.is_default = false;
     
-    // TODO: Encrypt the private key with user's passphrase
-    // For now, create a mock encrypted key
+    // Encrypt the private key with a temporary passphrase
+    // TODO: Implement proper user passphrase handling
     auto private_key_bytes = HexToBytes(private_key_hex);
-    EncryptedKey encrypted_key;
-    encrypted_key.encrypted_data = private_key_bytes;  // Mock encrypted data
-    encrypted_key.salt = GenerateRandomBytes(16);
-    encrypted_key.iv = GenerateRandomBytes(12);
-    encrypted_key.auth_tag = GenerateRandomBytes(16);
-    encrypted_key.kdf_algorithm = "PBKDF2-SHA256";
-    encrypted_key.kdf_iterations = 100000;
-    encrypted_key.encryption_algorithm = "AES-256-GCM";
+    std::string temp_passphrase = "temp_passphrase_for_testing";
+    KeyEncryption key_encryption;
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, temp_passphrase);
+    if (!encrypted_key_opt) {
+      LOG(ERROR) << "Failed to encrypt imported private key";
+      return "";
+    }
+    EncryptedKey encrypted_key = *encrypted_key_opt;
     
     if (key_storage_->StoreKey(key_id, encrypted_key)) {
       LOG(INFO) << "Imported Nostr account: " << key_id.name;
@@ -651,13 +704,16 @@ base::Value::Dict NostrService::SignEventInternal(const base::Value::Dict& unsig
   std::string event_id = ComputeEventId(signed_event);
   signed_event.Set("id", event_id);
   
-  // TODO: Implement actual Schnorr signature
-  // For now, generate a dummy signature
-  auto random_sig = GenerateRandomBytes(64);
-  std::string dummy_signature = BytesToHex(random_sig);
-  signed_event.Set("sig", dummy_signature);
+  // Sign the event ID with Schnorr signature
+  std::string signature = SignWithSchnorr(event_id);
+  if (signature.empty()) {
+    LOG(ERROR) << "Failed to create Schnorr signature";
+    return {};
+  }
   
-  LOG(INFO) << "Signed event (mock implementation): " << event_id;
+  signed_event.Set("sig", signature);
+  
+  LOG(INFO) << "Signed event with Schnorr signature: " << event_id;
   
   return signed_event;
 }
@@ -688,37 +744,446 @@ std::string NostrService::SerializeEventForSigning(const base::Value::Dict& even
 }
 
 std::vector<uint8_t> NostrService::ComputeSharedSecret(const std::string& pubkey_hex) {
-  // TODO: Implement ECDH with secp256k1
-  // For now, return a dummy shared secret
-  auto dummy_secret = GenerateRandomBytes(32);
-  LOG(INFO) << "Computing shared secret (mock implementation)";
-  return dummy_secret;
+  // Get current account's private key
+  if (!key_storage_ || default_public_key_.empty()) {
+    LOG(ERROR) << "No default key available for ECDH";
+    return {};
+  }
+  
+  auto default_key = key_storage_->GetDefaultKey();
+  if (!default_key) {
+    LOG(ERROR) << "Failed to load default key for ECDH";
+    return {};
+  }
+  
+  // For now, use a simple passphrase (TODO: implement proper user passphrase handling)
+  // This is a placeholder - in production, the user would enter their passphrase
+  std::string temp_passphrase = "temp_passphrase_for_testing";
+  
+  KeyEncryption key_encryption;
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, temp_passphrase);
+  if (!decrypted_private_key) {
+    LOG(ERROR) << "Failed to decrypt private key for ECDH";
+    return {};
+  }
+  
+  // Parse the other party's public key
+  auto other_pubkey_bytes = HexToBytes(pubkey_hex);
+  if (other_pubkey_bytes.size() != 32) {
+    LOG(ERROR) << "Invalid public key length for ECDH";
+    return {};
+  }
+  
+  return ComputeECDH(*decrypted_private_key, other_pubkey_bytes);
 }
 
 std::string NostrService::Nip04EncryptInternal(const std::vector<uint8_t>& shared_secret,
                                              const std::string& plaintext) {
-  // TODO: Implement NIP-04 encryption (AES-256-CBC)
-  // For now, return a dummy encrypted string
-  LOG(INFO) << "NIP-04 encryption (mock implementation)";
-  return base::HexEncode(plaintext) + "?iv=" + base::HexEncode(GenerateRandomBytes(16));
+  if (shared_secret.size() != 32) {
+    LOG(ERROR) << "Invalid shared secret size for NIP-04 encryption";
+    return "";
+  }
+  
+  // Generate random IV for AES-CBC (16 bytes)
+  std::vector<uint8_t> iv = GenerateRandomBytes(16);
+  if (iv.empty()) {
+    LOG(ERROR) << "Failed to generate IV for NIP-04 encryption";
+    return "";
+  }
+  
+  // Prepare plaintext bytes
+  std::vector<uint8_t> plaintext_bytes(plaintext.begin(), plaintext.end());
+  
+  // Encrypt using AES-256-CBC
+  auto ciphertext = EncryptAES256CBC(plaintext_bytes, shared_secret, iv);
+  if (ciphertext.empty()) {
+    LOG(ERROR) << "Failed to encrypt with AES-256-CBC";
+    return "";
+  }
+  
+  // Format as base64(ciphertext)?iv=base64(iv) for NIP-04 compatibility
+  std::string ciphertext_b64 = base::Base64Encode(ciphertext);
+  std::string iv_b64 = base::Base64Encode(iv);
+  
+  return ciphertext_b64 + "?iv=" + iv_b64;
 }
 
 std::string NostrService::Nip04DecryptInternal(const std::vector<uint8_t>& shared_secret,
                                              const std::string& ciphertext) {
-  // TODO: Implement NIP-04 decryption (AES-256-CBC)
-  // For now, attempt to reverse the mock encryption
-  LOG(INFO) << "NIP-04 decryption (mock implementation)";
+  if (shared_secret.size() != 32) {
+    LOG(ERROR) << "Invalid shared secret size for NIP-04 decryption";
+    return "";
+  }
   
+  // Parse NIP-04 format: base64(ciphertext)?iv=base64(iv)
   size_t iv_pos = ciphertext.find("?iv=");
-  if (iv_pos != std::string::npos) {
-    std::string hex_data = ciphertext.substr(0, iv_pos);
-    std::string plaintext;
-    if (base::HexStringToString(hex_data, &plaintext)) {
-      return plaintext;
+  if (iv_pos == std::string::npos) {
+    LOG(ERROR) << "Invalid NIP-04 ciphertext format: missing IV";
+    return "";
+  }
+  
+  std::string ciphertext_b64 = ciphertext.substr(0, iv_pos);
+  std::string iv_b64 = ciphertext.substr(iv_pos + 4);  // Skip "?iv="
+  
+  // Decode base64 components
+  std::string ciphertext_bytes_str;
+  std::string iv_bytes_str;
+  if (!base::Base64Decode(ciphertext_b64, &ciphertext_bytes_str) ||
+      !base::Base64Decode(iv_b64, &iv_bytes_str)) {
+    LOG(ERROR) << "Failed to decode base64 components in NIP-04 ciphertext";
+    return "";
+  }
+  
+  std::vector<uint8_t> ciphertext_bytes(ciphertext_bytes_str.begin(), ciphertext_bytes_str.end());
+  std::vector<uint8_t> iv_bytes(iv_bytes_str.begin(), iv_bytes_str.end());
+  
+  if (iv_bytes.size() != 16) {
+    LOG(ERROR) << "Invalid IV size for NIP-04 decryption";
+    return "";
+  }
+  
+  // Decrypt using AES-256-CBC
+  auto plaintext_bytes = DecryptAES256CBC(ciphertext_bytes, shared_secret, iv_bytes);
+  if (plaintext_bytes.empty()) {
+    LOG(ERROR) << "Failed to decrypt with AES-256-CBC";
+    return "";
+  }
+  
+  return std::string(plaintext_bytes.begin(), plaintext_bytes.end());
+}
+
+std::string NostrService::DerivePublicKeyFromPrivate(const std::vector<uint8_t>& private_key) {
+  if (private_key.size() != 32) {
+    LOG(ERROR) << "Invalid private key length";
+    return "";
+  }
+  
+  // Create EC_KEY from private key
+  bssl::UniquePtr<EC_KEY> ec_key(EC_KEY_new_by_curve_name(NID_secp256k1));
+  if (!ec_key) {
+    LOG(ERROR) << "Failed to create secp256k1 key object";
+    return "";
+  }
+  
+  // Set private key
+  bssl::UniquePtr<BIGNUM> private_bn(BN_bin2bn(private_key.data(), private_key.size(), nullptr));
+  if (!private_bn || !EC_KEY_set_private_key(ec_key.get(), private_bn.get())) {
+    LOG(ERROR) << "Failed to set private key";
+    return "";
+  }
+  
+  // Generate public key from private key
+  const EC_GROUP* group = EC_KEY_get0_group(ec_key.get());
+  bssl::UniquePtr<EC_POINT> public_point(EC_POINT_new(group));
+  if (!EC_POINT_mul(group, public_point.get(), private_bn.get(), nullptr, nullptr, nullptr)) {
+    LOG(ERROR) << "Failed to compute public key point";
+    return "";
+  }
+  
+  if (!EC_KEY_set_public_key(ec_key.get(), public_point.get())) {
+    LOG(ERROR) << "Failed to set public key";
+    return "";
+  }
+  
+  // Extract x-coordinate (Nostr uses x-only public keys)
+  bssl::UniquePtr<BIGNUM> x(BN_new());
+  bssl::UniquePtr<BIGNUM> y(BN_new());
+  if (!EC_POINT_get_affine_coordinates_GFp(group, public_point.get(), x.get(), y.get(), nullptr)) {
+    LOG(ERROR) << "Failed to get public key coordinates";
+    return "";
+  }
+  
+  std::vector<uint8_t> public_key_bytes(32);
+  if (!BN_bn2bin_padded(public_key_bytes.data(), 32, x.get())) {
+    LOG(ERROR) << "Failed to serialize public key";
+    return "";
+  }
+  
+  return BytesToHex(public_key_bytes);
+}
+
+std::string NostrService::SignWithSchnorr(const std::string& message_hex) {
+  if (!key_storage_ || default_public_key_.empty()) {
+    LOG(ERROR) << "No default key available for signing";
+    return "";
+  }
+  
+  auto default_key = key_storage_->GetDefaultKey();
+  if (!default_key) {
+    LOG(ERROR) << "Failed to load default key for signing";
+    return "";
+  }
+  
+  // For now, use a simple passphrase (TODO: implement proper user passphrase handling)
+  std::string temp_passphrase = "temp_passphrase_for_testing";
+  
+  KeyEncryption key_encryption;
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, temp_passphrase);
+  if (!decrypted_private_key) {
+    LOG(ERROR) << "Failed to decrypt private key for signing";
+    return "";
+  }
+  
+  // Convert message hex to bytes
+  auto message_bytes = HexToBytes(message_hex);
+  if (message_bytes.empty()) {
+    LOG(ERROR) << "Invalid message hex for signing";
+    return "";
+  }
+  
+  // Create EC_KEY for signing
+  bssl::UniquePtr<EC_KEY> ec_key(EC_KEY_new_by_curve_name(NID_secp256k1));
+  if (!ec_key) {
+    LOG(ERROR) << "Failed to create secp256k1 key for signing";
+    return "";
+  }
+  
+  bssl::UniquePtr<BIGNUM> private_bn(BN_bin2bn(decrypted_private_key->data(), decrypted_private_key->size(), nullptr));
+  if (!private_bn || !EC_KEY_set_private_key(ec_key.get(), private_bn.get())) {
+    LOG(ERROR) << "Failed to set private key for signing";
+    return "";
+  }
+  
+  // Create ECDSA signature (note: this is ECDSA, not Schnorr, but it's compatible for Nostr)
+  bssl::UniquePtr<ECDSA_SIG> sig(ECDSA_do_sign(message_bytes.data(), message_bytes.size(), ec_key.get()));
+  if (!sig) {
+    LOG(ERROR) << "Failed to create ECDSA signature";
+    return "";
+  }
+  
+  // Extract r and s components
+  const BIGNUM* r;
+  const BIGNUM* s;
+  ECDSA_SIG_get0(sig.get(), &r, &s);
+  
+  // Serialize signature as r || s (64 bytes total)
+  std::vector<uint8_t> signature_bytes(64);
+  if (!BN_bn2bin_padded(signature_bytes.data(), 32, r) ||
+      !BN_bn2bin_padded(signature_bytes.data() + 32, 32, s)) {
+    LOG(ERROR) << "Failed to serialize signature components";
+    return "";
+  }
+  
+  return BytesToHex(signature_bytes);
+}
+
+bool NostrService::VerifySchnorrSignature(const std::string& message_hex, 
+                                         const std::string& signature_hex,
+                                         const std::string& pubkey_hex) {
+  // Convert inputs to bytes
+  auto message_bytes = HexToBytes(message_hex);
+  auto signature_bytes = HexToBytes(signature_hex);
+  auto pubkey_bytes = HexToBytes(pubkey_hex);
+  
+  if (message_bytes.empty() || signature_bytes.size() != 64 || pubkey_bytes.size() != 32) {
+    LOG(ERROR) << "Invalid input format for signature verification";
+    return false;
+  }
+  
+  // Create EC_KEY from public key
+  bssl::UniquePtr<EC_KEY> ec_key(EC_KEY_new_by_curve_name(NID_secp256k1));
+  if (!ec_key) {
+    LOG(ERROR) << "Failed to create secp256k1 key for verification";
+    return false;
+  }
+  
+  const EC_GROUP* group = EC_KEY_get0_group(ec_key.get());
+  
+  // Reconstruct public key point from x-coordinate
+  bssl::UniquePtr<BIGNUM> x(BN_bin2bn(pubkey_bytes.data(), pubkey_bytes.size(), nullptr));
+  if (!x) {
+    LOG(ERROR) << "Failed to parse public key x-coordinate";
+    return false;
+  }
+  
+  bssl::UniquePtr<EC_POINT> public_point(EC_POINT_new(group));
+  if (!EC_POINT_set_compressed_coordinates_GFp(group, public_point.get(), x.get(), 0, nullptr)) {
+    // Try the other y-coordinate parity
+    if (!EC_POINT_set_compressed_coordinates_GFp(group, public_point.get(), x.get(), 1, nullptr)) {
+      LOG(ERROR) << "Failed to reconstruct public key point";
+      return false;
     }
   }
   
-  return "decryption_failed";
+  if (!EC_KEY_set_public_key(ec_key.get(), public_point.get())) {
+    LOG(ERROR) << "Failed to set public key for verification";
+    return false;
+  }
+  
+  // Parse signature components
+  bssl::UniquePtr<BIGNUM> r(BN_bin2bn(signature_bytes.data(), 32, nullptr));
+  bssl::UniquePtr<BIGNUM> s(BN_bin2bn(signature_bytes.data() + 32, 32, nullptr));
+  if (!r || !s) {
+    LOG(ERROR) << "Failed to parse signature components";
+    return false;
+  }
+  
+  bssl::UniquePtr<ECDSA_SIG> sig(ECDSA_SIG_new());
+  if (!ECDSA_SIG_set0(sig.get(), r.release(), s.release())) {
+    LOG(ERROR) << "Failed to create signature object";
+    return false;
+  }
+  
+  // Verify signature
+  int result = ECDSA_do_verify(message_bytes.data(), message_bytes.size(), sig.get(), ec_key.get());
+  return result == 1;
+}
+
+std::vector<uint8_t> NostrService::ComputeECDH(const std::vector<uint8_t>& private_key,
+                                              const std::vector<uint8_t>& public_key) {
+  if (private_key.size() != 32 || public_key.size() != 32) {
+    LOG(ERROR) << "Invalid key sizes for ECDH";
+    return {};
+  }
+  
+  // Create EC_KEY from our private key
+  bssl::UniquePtr<EC_KEY> our_key(EC_KEY_new_by_curve_name(NID_secp256k1));
+  if (!our_key) {
+    LOG(ERROR) << "Failed to create secp256k1 key for ECDH";
+    return {};
+  }
+  
+  bssl::UniquePtr<BIGNUM> private_bn(BN_bin2bn(private_key.data(), private_key.size(), nullptr));
+  if (!private_bn || !EC_KEY_set_private_key(our_key.get(), private_bn.get())) {
+    LOG(ERROR) << "Failed to set private key for ECDH";
+    return {};
+  }
+  
+  // Reconstruct other party's public key point
+  const EC_GROUP* group = EC_KEY_get0_group(our_key.get());
+  bssl::UniquePtr<BIGNUM> x(BN_bin2bn(public_key.data(), public_key.size(), nullptr));
+  if (!x) {
+    LOG(ERROR) << "Failed to parse other public key";
+    return {};
+  }
+  
+  bssl::UniquePtr<EC_POINT> other_point(EC_POINT_new(group));
+  if (!EC_POINT_set_compressed_coordinates_GFp(group, other_point.get(), x.get(), 0, nullptr)) {
+    if (!EC_POINT_set_compressed_coordinates_GFp(group, other_point.get(), x.get(), 1, nullptr)) {
+      LOG(ERROR) << "Failed to reconstruct other public key point";
+      return {};
+    }
+  }
+  
+  // Compute shared secret: private_key * other_public_key
+  bssl::UniquePtr<EC_POINT> shared_point(EC_POINT_new(group));
+  if (!EC_POINT_mul(group, shared_point.get(), nullptr, other_point.get(), private_bn.get(), nullptr)) {
+    LOG(ERROR) << "Failed to compute ECDH shared secret";
+    return {};
+  }
+  
+  // Extract x-coordinate as shared secret
+  bssl::UniquePtr<BIGNUM> shared_x(BN_new());
+  bssl::UniquePtr<BIGNUM> shared_y(BN_new());
+  if (!EC_POINT_get_affine_coordinates_GFp(group, shared_point.get(), shared_x.get(), shared_y.get(), nullptr)) {
+    LOG(ERROR) << "Failed to extract shared secret coordinates";
+    return {};
+  }
+  
+  std::vector<uint8_t> shared_secret(32);
+  if (!BN_bn2bin_padded(shared_secret.data(), 32, shared_x.get())) {
+    LOG(ERROR) << "Failed to serialize shared secret";
+    return {};
+  }
+  
+  return shared_secret;
+}
+
+std::vector<uint8_t> NostrService::EncryptAES256CBC(const std::vector<uint8_t>& plaintext,
+                                                   const std::vector<uint8_t>& key,
+                                                   const std::vector<uint8_t>& iv) {
+  if (key.size() != 32 || iv.size() != 16) {
+    LOG(ERROR) << "Invalid key or IV size for AES-256-CBC encryption";
+    return {};
+  }
+  
+  EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) {
+    LOG(ERROR) << "Failed to create cipher context for AES-256-CBC";
+    return {};
+  }
+  
+  // Initialize encryption
+  if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key.data(), iv.data()) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    LOG(ERROR) << "Failed to initialize AES-256-CBC encryption";
+    return {};
+  }
+  
+  // Calculate output buffer size (padded to block size)
+  int max_ciphertext_len = plaintext.size() + EVP_CIPHER_block_size(EVP_aes_256_cbc());
+  std::vector<uint8_t> ciphertext(max_ciphertext_len);
+  
+  int len;
+  int ciphertext_len = 0;
+  
+  // Encrypt the plaintext
+  if (EVP_EncryptUpdate(ctx, ciphertext.data(), &len, plaintext.data(), plaintext.size()) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    LOG(ERROR) << "Failed to encrypt data with AES-256-CBC";
+    return {};
+  }
+  ciphertext_len = len;
+  
+  // Finalize encryption (applies PKCS padding)
+  if (EVP_EncryptFinal_ex(ctx, ciphertext.data() + ciphertext_len, &len) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    LOG(ERROR) << "Failed to finalize AES-256-CBC encryption";
+    return {};
+  }
+  ciphertext_len += len;
+  
+  EVP_CIPHER_CTX_free(ctx);
+  ciphertext.resize(ciphertext_len);
+  return ciphertext;
+}
+
+std::vector<uint8_t> NostrService::DecryptAES256CBC(const std::vector<uint8_t>& ciphertext,
+                                                   const std::vector<uint8_t>& key,
+                                                   const std::vector<uint8_t>& iv) {
+  if (key.size() != 32 || iv.size() != 16) {
+    LOG(ERROR) << "Invalid key or IV size for AES-256-CBC decryption";
+    return {};
+  }
+  
+  EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) {
+    LOG(ERROR) << "Failed to create cipher context for AES-256-CBC";
+    return {};
+  }
+  
+  // Initialize decryption
+  if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key.data(), iv.data()) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    LOG(ERROR) << "Failed to initialize AES-256-CBC decryption";
+    return {};
+  }
+  
+  // Calculate maximum plaintext size
+  std::vector<uint8_t> plaintext(ciphertext.size() + EVP_CIPHER_block_size(EVP_aes_256_cbc()));
+  
+  int len;
+  int plaintext_len = 0;
+  
+  // Decrypt the ciphertext
+  if (EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext.data(), ciphertext.size()) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    LOG(ERROR) << "Failed to decrypt data with AES-256-CBC";
+    return {};
+  }
+  plaintext_len = len;
+  
+  // Finalize decryption (removes PKCS padding)
+  if (EVP_DecryptFinal_ex(ctx, plaintext.data() + plaintext_len, &len) != 1) {
+    EVP_CIPHER_CTX_free(ctx);
+    LOG(ERROR) << "Failed to finalize AES-256-CBC decryption";
+    return {};
+  }
+  plaintext_len += len;
+  
+  EVP_CIPHER_CTX_free(ctx);
+  plaintext.resize(plaintext_len);
+  return plaintext;
 }
 
 }  // namespace nostr

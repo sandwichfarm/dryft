@@ -14,6 +14,7 @@
 #include "base/values.h"
 #include "components/keyed_service/core/keyed_service.h"
 #include "url/origin.h"
+#include "third_party/boringssl/src/include/openssl/base.h"
 
 class Profile;
 class PrefService;
@@ -258,6 +259,23 @@ class NostrService : public KeyedService {
                                   const std::string& plaintext);
   std::string Nip04DecryptInternal(const std::vector<uint8_t>& shared_secret,
                                   const std::string& ciphertext);
+
+  // Cryptographic helper methods
+  std::string DerivePublicKeyFromPrivate(const std::vector<uint8_t>& private_key);
+  std::string SignWithSchnorr(const std::string& message_hex);
+  bool VerifySchnorrSignature(const std::string& message_hex, 
+                             const std::string& signature_hex,
+                             const std::string& pubkey_hex);
+  std::vector<uint8_t> ComputeECDH(const std::vector<uint8_t>& private_key,
+                                  const std::vector<uint8_t>& public_key);
+  
+  // AES-256-CBC encryption for NIP-04
+  std::vector<uint8_t> EncryptAES256CBC(const std::vector<uint8_t>& plaintext,
+                                       const std::vector<uint8_t>& key,
+                                       const std::vector<uint8_t>& iv);
+  std::vector<uint8_t> DecryptAES256CBC(const std::vector<uint8_t>& ciphertext,
+                                       const std::vector<uint8_t>& key,
+                                       const std::vector<uint8_t>& iv);
 
   // Profile for service isolation
   Profile* profile_;
