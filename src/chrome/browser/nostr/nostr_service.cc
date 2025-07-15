@@ -4,6 +4,8 @@
 
 #include "chrome/browser/nostr/nostr_service.h"
 
+#include "chrome/browser/ui/views/nostr/nostr_permission_dialog.h"
+
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/sha.h>
@@ -263,9 +265,26 @@ bool NostrService::HasPermission(const url::Origin& origin,
 
 void NostrService::RequestPermission(const NostrPermissionRequest& request,
                                     PermissionCallback callback) {
-  // TODO: Implement permission dialog UI
-  // For now, auto-grant for testing
-  std::move(callback).Run(true, request.remember_decision);
+  // Show permission dialog to user
+  // This will be called from the UI thread
+  NostrPermissionDialog::Show(
+      nullptr,  // TODO: Get proper anchor view from browser window
+      request,
+      base::BindOnce(
+          [](NostrService* service, const NostrPermissionRequest& req,
+             PermissionCallback cb, bool granted, bool remember) {
+            if (granted && remember) {
+              // Store the permission for future use
+              service->permission_manager_->GrantPermission(
+                  req.origin, req.method, req.remember_decision);
+            } else if (!granted && remember) {
+              // Store the denial for future use
+              service->permission_manager_->DenyPermission(
+                  req.origin, req.method);
+            }
+            std::move(cb).Run(granted, remember);
+          },
+          base::Unretained(this), request, std::move(callback)));
 }
 
 NostrRateLimitInfo NostrService::GetRateLimitInfo(const url::Origin& origin,
