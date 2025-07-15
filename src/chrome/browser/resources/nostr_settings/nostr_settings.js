@@ -157,6 +157,19 @@ const NostrSettings = {
    * Set up local relay section
    */
   setupLocalRelaySection() {
+    // Initialize enhanced RelaySettingsManager for advanced features
+    if (window.RelaySettingsManager) {
+      RelaySettingsManager.initialize();
+    } else {
+      // Fallback to basic setup
+      this.setupBasicRelaySection();
+    }
+  },
+
+  /**
+   * Fallback basic relay section setup
+   */
+  setupBasicRelaySection() {
     const enabledCheckbox = document.getElementById('relay-enabled');
     const settingsDiv = document.getElementById('relay-settings');
     

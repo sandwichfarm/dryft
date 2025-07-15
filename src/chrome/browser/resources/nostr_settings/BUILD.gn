@@ -19,6 +19,7 @@ generate_grd("build_grd") {
     "nostr_settings.js",
     "account_manager.js",
     "permission_manager.js",
+    "relay_settings_manager.js",
   ]
   
   input_files_base_dir = rebase_path(".", "//")

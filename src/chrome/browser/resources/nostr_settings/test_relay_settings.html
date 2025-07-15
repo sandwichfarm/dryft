@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Relay Settings Test</title>
+  <link rel="stylesheet" href="nostr_settings.css">
+  <style>
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .test-pass {
+      background: #d4edda;
+      color: #155724;
+    }
+    .test-fail {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <h1>Relay Settings Test Suite</h1>
+  
+  <div class="test-section">
+    <h2>Basic Functionality Test</h2>
+    <div id="basic-test-results"></div>
+    <button id="run-basic-tests">Run Basic Tests</button>
+  </div>
+  
+  <div class="test-section">
+    <h2>UI Components Test</h2>
+    <div id="ui-test-container">
+      <!-- Test relay settings UI -->
+      <div class="relay-header">
+        <div class="relay-enable-controls">
+          <label>
+            <input type="checkbox" id="relay-enabled">
+            <span>Enable local relay</span>
+          </label>
+          <div class="relay-status" id="relay-status">
+            <span class="status-indicator" id="relay-status-indicator">●</span>
+            <span class="status-text" id="relay-status-text">Stopped</span>
+          </div>
+        </div>
+        <div class="relay-address" id="relay-address" hidden>
+          <span class="address-label">Address:</span>
+          <span class="address-value" id="relay-address-value">ws://127.0.0.1:8081</span>
+          <button class="copy-button" id="copy-relay-address">Copy</button>
+        </div>
+      </div>
+      
+      <!-- Network Configuration -->
+      <div class="settings-group">
+        <h3>Network Configuration</h3>
+        <div class="setting-item">
+          <label for="relay-port">Port</label>
+          <div class="input-with-validation">
+            <input type="number" id="relay-port" min="1024" max="65535" value="8081">
+            <div class="validation-message" id="port-validation"></div>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <label for="relay-interface">Interface</label>
+          <div class="input-with-validation">
+            <select id="relay-interface">
+              <option value="127.0.0.1">Localhost only (127.0.0.1)</option>
+              <option value="0.0.0.0">All interfaces (0.0.0.0)</option>
+            </select>
+            <div class="validation-message" id="interface-validation"></div>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <label for="relay-max-connections">Max Connections</label>
+          <div class="slider-input">
+            <input type="range" id="relay-max-connections" min="10" max="1000" value="100" class="slider">
+            <input type="number" id="relay-max-connections-value" min="10" max="1000" value="100" class="slider-value">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Storage Configuration -->
+      <div class="settings-group">
+        <h3>Storage Configuration</h3>
+        <div class="setting-item">
+          <label for="relay-storage">Storage Limit</label>
+          <div class="slider-input">
+            <input type="range" id="relay-storage" min="0.1" max="50" step="0.1" value="1" class="slider">
+            <input type="number" id="relay-storage-value" min="0.1" max="50" step="0.1" value="1" class="slider-value">
+            <span class="unit-label">GB</span>
+          </div>
+          <div class="storage-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="storage-progress-fill"></div>
+            </div>
+            <span class="progress-text" id="storage-progress-text">0 MB used</span>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <label for="relay-events">Event Limit</label>
+          <div class="slider-input">
+            <input type="range" id="relay-events" min="1000" max="10000000" step="1000" value="100000" class="slider">
+            <input type="number" id="relay-events-value" min="1000" max="10000000" step="1000" value="100000" class="slider-value">
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <label for="relay-retention">Retention Period</label>
+          <div class="slider-input">
+            <input type="range" id="relay-retention" min="1" max="365" value="30" class="slider">
+            <input type="number" id="relay-retention-value" min="1" max="365" value="30" class="slider-value">
+            <span class="unit-label">days</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Performance Settings -->
+      <div class="settings-group collapsible">
+        <h3 class="collapsible-header" data-target="performance-settings">
+          <span>Performance Settings</span>
+          <span class="collapse-indicator">▼</span>
+        </h3>
+        <div class="collapsible-content" id="performance-settings">
+          <div class="setting-item">
+            <label for="relay-max-subs">Max Subscriptions per Connection</label>
+            <div class="slider-input">
+              <input type="range" id="relay-max-subs" min="5" max="100" value="20" class="slider">
+              <input type="number" id="relay-max-subs-value" min="5" max="100" value="20" class="slider-value">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Access Control -->
+      <div class="settings-group collapsible">
+        <h3 class="collapsible-header" data-target="access-control-settings">
+          <span>Access Control</span>
+          <span class="collapse-indicator">▼</span>
+        </h3>
+        <div class="collapsible-content" id="access-control-settings">
+          <div class="setting-item">
+            <label>Allowed Event Kinds</label>
+            <div class="event-kinds-selector">
+              <div class="kinds-presets">
+                <button type="button" class="preset-btn" data-preset="standard">Standard</button>
+                <button type="button" class="preset-btn" data-preset="social">Social</button>
+                <button type="button" class="preset-btn" data-preset="messaging">Messaging</button>
+                <button type="button" class="preset-btn" data-preset="all">All</button>
+                <button type="button" class="preset-btn" data-preset="custom">Custom</button>
+              </div>
+              <div class="kinds-grid" id="event-kinds-grid">
+                <!-- Populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Configuration Management -->
+      <div class="settings-group">
+        <h3>Configuration</h3>
+        <div class="setting-item">
+          <div class="config-actions">
+            <button type="button" id="relay-restart" class="secondary-button">Restart Relay</button>
+            <button type="button" id="relay-reset-config" class="secondary-button">Reset to Defaults</button>
+            <button type="button" id="relay-export-config" class="secondary-button">Export Config</button>
+            <button type="button" id="relay-import-config" class="secondary-button">Import Config</button>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    <div id="ui-test-results"></div>
+    <button id="run-ui-tests">Run UI Tests</button>
+  </div>
+  
+  <div class="test-section">
+    <h2>Functionality Test</h2>
+    <div id="functionality-test-results"></div>
+    <button id="run-functionality-tests">Run Functionality Tests</button>
+  </div>
+  
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container"></div>
+  
+  <script>
+    // Mock NostrSettings object for testing
+    const NostrSettings = {
+      sendMessage: async (method, ...args) => {
+        console.log('Mock sendMessage:', method, args);
+        
+        // Mock responses based on method
+        switch (method) {
+          case 'getLocalRelayConfig':
+            return {
+              enabled: false,
+              port: 8081,
+              interface: '127.0.0.1',
+              externalAccess: false,
+              maxStorageGB: 1,
+              maxEvents: 100000,
+              retentionDays: 30,
+              maxConnections: 100,
+              maxSubsPerConn: 20,
+              maxMessageSize: 512,
+              maxEventSize: 256,
+              maxEventsPerMinute: 100,
+              maxReqPerMinute: 60,
+              requireAuth: false,
+              allowedOrigins: [],
+              blockedPubkeys: [],
+              allowedKinds: []
+            };
+          case 'getLocalRelayStatus':
+            return {
+              state: 'stopped',
+              stats: {
+                connections: 0,
+                totalEvents: 0,
+                storageUsed: 0,
+                uptime: 0
+              }
+            };
+          case 'setLocalRelayConfig':
+          case 'startLocalRelay':
+          case 'stopLocalRelay':
+          case 'resetLocalRelayConfig':
+            return true;
+          default:
+            return Promise.resolve(true);
+        }
+      },
+      showSuccess: (message) => console.log('Success:', message),
+      showError: (message) => console.log('Error:', message),
+      showInfo: (message) => console.log('Info:', message)
+    };
+  </script>
+  <script src="relay_settings_manager.js"></script>
+  
+  <script>
+    // Test Suite
+    function runBasicTests() {
+      const results = document.getElementById('basic-test-results');
+      results.innerHTML = '';
+      
+      const tests = [
+        {
+          name: 'RelaySettingsManager object exists',
+          test: () => typeof RelaySettingsManager === 'object'
+        },
+        {
+          name: 'RelaySettingsManager has initialize method',
+          test: () => typeof RelaySettingsManager.initialize === 'function'
+        },
+        {
+          name: 'RelaySettingsManager has loadConfig method',
+          test: () => typeof RelaySettingsManager.loadConfig === 'function'
+        },
+        {
+          name: 'RelaySettingsManager has eventKinds array',
+          test: () => Array.isArray(RelaySettingsManager.eventKinds)
+        },
+        {
+          name: 'EventKinds contain expected properties',
+          test: () => {
+            const firstKind = RelaySettingsManager.eventKinds[0];
+            return firstKind && 
+                   typeof firstKind.kind === 'number' &&
+                   typeof firstKind.name === 'string' &&
+                   typeof firstKind.category === 'string';
+          }
+        },
+        {
+          name: 'Utility methods exist',
+          test: () => {
+            return typeof RelaySettingsManager.formatBytes === 'function' &&
+                   typeof RelaySettingsManager.formatUptime === 'function';
+          }
+        }
+      ];
+      
+      tests.forEach(test => {
+        const result = document.createElement('div');
+        result.className = test.test() ? 'test-result test-pass' : 'test-result test-fail';
+        result.textContent = `${test.name}: ${test.test() ? 'PASS' : 'FAIL'}`;
+        results.appendChild(result);
+      });
+    }
+    
+    function runUITests() {
+      const results = document.getElementById('ui-test-results');
+      results.innerHTML = '';
+      
+      const tests = [
+        {
+          name: 'Relay enable checkbox exists',
+          test: () => document.getElementById('relay-enabled') !== null
+        },
+        {
+          name: 'Status indicator exists',
+          test: () => document.getElementById('relay-status-indicator') !== null
+        },
+        {
+          name: 'Port input exists with correct attributes',
+          test: () => {
+            const port = document.getElementById('relay-port');
+            return port && port.type === 'number' && port.min === '1024' && port.max === '65535';
+          }
+        },
+        {
+          name: 'Interface select exists',
+          test: () => document.getElementById('relay-interface') !== null
+        },
+        {
+          name: 'Storage slider exists',
+          test: () => {
+            const slider = document.getElementById('relay-storage');
+            return slider && slider.type === 'range';
+          }
+        },
+        {
+          name: 'Storage progress bar exists',
+          test: () => document.getElementById('storage-progress-fill') !== null
+        },
+        {
+          name: 'Collapsible sections exist',
+          test: () => document.querySelectorAll('.collapsible-header').length > 0
+        },
+        {
+          name: 'Event kinds grid exists',
+          test: () => document.getElementById('event-kinds-grid') !== null
+        },
+        {
+          name: 'Preset buttons exist',
+          test: () => document.querySelectorAll('.preset-btn').length >= 5
+        },
+        {
+          name: 'Configuration action buttons exist',
+          test: () => {
+            return document.getElementById('relay-restart') &&
+                   document.getElementById('relay-reset-config') &&
+                   document.getElementById('relay-export-config') &&
+                   document.getElementById('relay-import-config');
+          }
+        }
+      ];
+      
+      tests.forEach(test => {
+        const result = document.createElement('div');
+        result.className = test.test() ? 'test-result test-pass' : 'test-result test-fail';
+        result.textContent = `${test.name}: ${test.test() ? 'PASS' : 'FAIL'}`;
+        results.appendChild(result);
+      });
+    }
+    
+    function runFunctionalityTests() {
+      const results = document.getElementById('functionality-test-results');
+      results.innerHTML = '';
+      
+      // Initialize RelaySettingsManager
+      RelaySettingsManager.initialize();
+      
+      const tests = [
+        {
+          name: 'Event kinds grid is populated',
+          test: () => {
+            const grid = document.getElementById('event-kinds-grid');
+            return grid.children.length > 0;
+          }
+        },
+        {
+          name: 'Slider synchronization works',
+          test: () => {
+            const slider = document.getElementById('relay-storage');
+            const valueInput = document.getElementById('relay-storage-value');
+            
+            slider.value = '5';
+            slider.dispatchEvent(new Event('input'));
+            
+            return valueInput.value === '5';
+          }
+        },
+        {
+          name: 'Port validation works',
+          test: () => {
+            const portInput = document.getElementById('relay-port');
+            portInput.value = '9999';
+            
+            RelaySettingsManager.validatePort();
+            
+            const validation = document.getElementById('port-validation');
+            return validation.textContent.length > 0;
+          }
+        },
+        {
+          name: 'Relay address updates correctly',
+          test: () => {
+            const addressValue = document.getElementById('relay-address-value');
+            const originalAddress = addressValue.textContent;
+            
+            document.getElementById('relay-port').value = '9000';
+            RelaySettingsManager.updateRelayAddress();
+            
+            return addressValue.textContent !== originalAddress && 
+                   addressValue.textContent.includes('9000');
+          }
+        },
+        {
+          name: 'Event kind preset selection works',
+          test: () => {
+            RelaySettingsManager.selectEventKindPreset('social');
+            
+            const socialKinds = RelaySettingsManager.eventKinds.filter(k => k.category === 'social');
+            const checkedSocialKinds = socialKinds.filter(kind => {
+              const checkbox = document.getElementById(`kind-${kind.kind}`);
+              return checkbox && checkbox.checked;
+            });
+            
+            return checkedSocialKinds.length > 0;
+          }
+        },
+        {
+          name: 'Configuration gathering works',
+          test: () => {
+            const config = RelaySettingsManager.gatherConfig();
+            return typeof config === 'object' &&
+                   typeof config.port === 'number' &&
+                   typeof config.enabled === 'boolean' &&
+                   Array.isArray(config.allowedKinds);
+          }
+        },
+        {
+          name: 'Format utilities work correctly',
+          test: () => {
+            const bytes = RelaySettingsManager.formatBytes(1024);
+            const uptime = RelaySettingsManager.formatUptime(3661);
+            
+            return bytes.includes('KB') && uptime.includes('h');
+          }
+        },
+        {
+          name: 'Storage progress updates correctly',
+          test: () => {
+            RelaySettingsManager.updateStorageProgressWithUsage(500 * 1024 * 1024); // 500MB
+            
+            const progressText = document.getElementById('storage-progress-text');
+            return progressText.textContent.includes('MB');
+          }
+        }
+      ];
+      
+      tests.forEach(test => {
+        const result = document.createElement('div');
+        try {
+          const passed = test.test();
+          result.className = passed ? 'test-result test-pass' : 'test-result test-fail';
+          result.textContent = `${test.name}: ${passed ? 'PASS' : 'FAIL'}`;
+        } catch (error) {
+          result.className = 'test-result test-fail';
+          result.textContent = `${test.name}: FAIL (${error.message})`;
+        }
+        results.appendChild(result);
+      });
+    }
+    
+    // Event listeners for test buttons
+    document.getElementById('run-basic-tests').addEventListener('click', runBasicTests);
+    document.getElementById('run-ui-tests').addEventListener('click', runUITests);
+    document.getElementById('run-functionality-tests').addEventListener('click', runFunctionalityTests);
+    
+    // Run tests automatically
+    document.addEventListener('DOMContentLoaded', () => {
+      runBasicTests();
+      runUITests();
+      runFunctionalityTests();
+    });
+  </script>
+</body>
+</html>

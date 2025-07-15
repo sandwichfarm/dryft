@@ -187,6 +187,24 @@ void NostrSettingsHandler::RegisterMessages() {
       "bulkPermissionAction",
       base::BindRepeating(&NostrSettingsHandler::HandleBulkPermissionAction,
                           weak_factory_.GetWeakPtr()));
+  
+  // Enhanced relay handlers
+  web_ui()->RegisterMessageCallback(
+      "getLocalRelayStatus",
+      base::BindRepeating(&NostrSettingsHandler::HandleGetLocalRelayStatus,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "startLocalRelay",
+      base::BindRepeating(&NostrSettingsHandler::HandleStartLocalRelay,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "stopLocalRelay",
+      base::BindRepeating(&NostrSettingsHandler::HandleStopLocalRelay,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "resetLocalRelayConfig",
+      base::BindRepeating(&NostrSettingsHandler::HandleResetLocalRelayConfig,
+                          weak_factory_.GetWeakPtr()));
 }
 
 void NostrSettingsHandler::HandleGetNostrEnabled(const base::Value::List& args) {
@@ -726,6 +744,88 @@ void NostrSettingsHandler::HandleBulkPermissionAction(const base::Value::List& a
   }
   
   ResolveJavascriptCallback(callback_id, base::Value(success));
+}
+
+void NostrSettingsHandler::HandleGetLocalRelayStatus(const base::Value::List& args) {
+  CHECK_EQ(1U, args.size());
+  const base::Value& callback_id = args[0];
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value(base::Value::Dict()));
+    return;
+  }
+  
+  // Get relay status from NostrService
+  base::Value::Dict status = nostr_service->GetLocalRelayStatus();
+  
+  ResolveJavascriptCallback(callback_id, base::Value(std::move(status)));
+}
+
+void NostrSettingsHandler::HandleStartLocalRelay(const base::Value::List& args) {
+  CHECK_EQ(1U, args.size());
+  const base::Value& callback_id = args[0];
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  // Start the local relay
+  nostr_service->StartLocalRelay(base::BindOnce(
+    [](base::WeakPtr<NostrSettingsHandler> handler, const base::Value& callback_id, bool success) {
+      if (handler) {
+        handler->ResolveJavascriptCallback(callback_id, base::Value(success));
+      }
+    }, weak_factory_.GetWeakPtr(), callback_id));
+}
+
+void NostrSettingsHandler::HandleStopLocalRelay(const base::Value::List& args) {
+  CHECK_EQ(1U, args.size());
+  const base::Value& callback_id = args[0];
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  // Stop the local relay
+  nostr_service->StopLocalRelay(base::BindOnce(
+    [](base::WeakPtr<NostrSettingsHandler> handler, const base::Value& callback_id, bool success) {
+      if (handler) {
+        handler->ResolveJavascriptCallback(callback_id, base::Value(success));
+      }
+    }, weak_factory_.GetWeakPtr(), callback_id));
+}
+
+void NostrSettingsHandler::HandleResetLocalRelayConfig(const base::Value::List& args) {
+  CHECK_EQ(1U, args.size());
+  const base::Value& callback_id = args[0];
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  PrefService* prefs = profile->GetPrefs();
+  
+  // Reset all relay preferences to defaults
+  prefs->ClearPref(nostr::local_relay::kRelayEnabledPref);
+  prefs->ClearPref(nostr::local_relay::kRelayPortPref);
+  prefs->ClearPref(nostr::local_relay::kRelayInterfacePref);
+  prefs->ClearPref(nostr::local_relay::kRelayExternalAccessPref);
+  prefs->ClearPref(nostr::local_relay::kMaxStorageGBPref);
+  prefs->ClearPref(nostr::local_relay::kMaxEventsPref);
+  prefs->ClearPref(nostr::local_relay::kRetentionDaysPref);
+  
+  // Note: Additional preferences would be cleared here if they exist
+  // For now, we'll clear the main ones that are currently implemented
+  
+  ResolveJavascriptCallback(callback_id, base::Value(true));
 }
 
 // NostrSettingsUI implementation
