@@ -71,6 +71,16 @@ class ScopedPassphrase {
     other.passphrase_.clear();
   }
   
+  ScopedPassphrase& operator=(ScopedPassphrase&& other) noexcept {
+    if (this != &other) {
+      // Clear existing passphrase before move
+      SecureClearString(passphrase_);
+      passphrase_ = std::move(other.passphrase_);
+      other.passphrase_.clear();
+    }
+    return *this;
+  }
+  
   const std::string& value() const { return passphrase_; }
   bool empty() const { return passphrase_.empty(); }
   

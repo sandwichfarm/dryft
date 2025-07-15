@@ -4,6 +4,8 @@
 
 #include "chrome/browser/nostr/nostr_passphrase_manager.h"
 
+#include <algorithm>
+
 #include "base/strings/string_util.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_dialogs.h"
