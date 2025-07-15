@@ -1,0 +1,20 @@
+# Tungsten Build Configuration
+# Copy this to .build.conf and customize for your system
+
+# Platform settings
+PLATFORM=auto
+ARCH=auto
+
+# Build settings
+BUILD_TYPE=release
+JOBS=auto
+
+# Custom GN arguments (space-separated)
+# GN_ARGS=use_vaapi=true use_pulseaudio=true
+
+# Paths (usually auto-detected)
+# DEPOT_TOOLS_DIR=$(HOME)/depot_tools
+
+# Cache settings
+# CCACHE_DIR=$(HOME)/.cache/ccache
+# CCACHE_MAXSIZE=20G
