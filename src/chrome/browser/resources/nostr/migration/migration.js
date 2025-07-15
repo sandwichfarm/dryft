@@ -243,10 +243,8 @@ class MigrationPage {
       });
       
       // Update progress as we receive updates
-      chrome.runtime.onMessage.addListener((message) => {
-        if (message.type === 'migrationProgress') {
-          this.updateProgress(message.completed, message.total, message.current);
-        }
+      addWebUIListener('migration-progress', (completed, total, current) => {
+        this.updateProgress(completed, total, current);
       });
       
       if (result.success) {
