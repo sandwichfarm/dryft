@@ -93,7 +93,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          ./scripts/install-build-deps.sh --no-prompt
+          sudo ./scripts/install-build-deps.sh --no-prompt
           
       - name: Setup Depot Tools
         run: |
@@ -336,7 +336,7 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           
       - name: Setup Android SDK
@@ -345,7 +345,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          ./scripts/install-build-deps.sh --android --no-prompt
+          sudo ./scripts/install-build-deps.sh --android --no-prompt
           
       - name: Setup Depot Tools
         run: |
@@ -407,7 +407,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-          ./scripts/install-build-deps.sh --arm --no-prompt
+          sudo ./scripts/install-build-deps.sh --arm --no-prompt
           
       - name: Setup Depot Tools
         run: |
