@@ -1,0 +1,81 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/features.gni")
+import("//chrome/common/features.gni")
+import("//components/nostr/BUILD.gn")
+
+if (enable_nostr) {
+  source_set("integration_tests") {
+    testonly = true
+    sources = [
+      "nostr_integration_test_base.cc",
+      "nostr_integration_test_base.h",
+      "nostr_ui_to_backend_integration_test.cc",
+      "nostr_ipc_integration_test.cc",
+      "nostr_protocol_handler_integration_test.cc",
+      "nostr_api_integration_test.cc",
+      "test_helpers.cc",
+      "test_helpers.h",
+      "mock_nostr_service.cc",
+      "mock_nostr_service.h",
+      "mock_local_relay_service.cc",
+      "mock_local_relay_service.h",
+    ]
+
+    deps = [
+      "//base",
+      "//base/test:test_support",
+      "//chrome/browser",
+      "//chrome/browser/nostr:nostr",
+      "//chrome/browser/nostr/local_relay",
+      "//chrome/browser/nostr/protocol",
+      "//chrome/browser/nostr/nsite",
+      "//chrome/browser/profiles:profile",
+      "//chrome/browser/ui",
+      "//chrome/common",
+      "//chrome/test:test_support",
+      "//components/keyed_service/content",
+      "//components/nostr",
+      "//content/public/browser",
+      "//content/public/test",
+      "//content/test:test_support",
+      "//net:test_support",
+      "//testing/gmock",
+      "//testing/gtest",
+      "//ui/views",
+    ]
+
+    if (enable_local_relay) {
+      deps += [ "//chrome/browser/nostr/local_relay:local_relay" ]
+    }
+
+    if (enable_blossom_server) {
+      deps += [ "//chrome/browser/blossom:blossom" ]
+    }
+  }
+
+  # Browser tests that require full browser setup
+  source_set("browser_tests") {
+    testonly = true
+    sources = [
+      "nostr_e2e_browsertest.cc",
+      "nostr_permission_flow_browsertest.cc",
+      "nostr_key_management_browsertest.cc",
+      "nsite_navigation_browsertest.cc",
+      "blossom_integration_browsertest.cc",
+    ]
+
+    deps = [
+      ":integration_tests",
+      "//base",
+      "//chrome/browser",
+      "//chrome/browser/ui",
+      "//chrome/test:test_support",
+      "//chrome/test:test_support_ui",
+      "//content/public/test",
+      "//testing/gtest",
+    ]
+  }
+}
