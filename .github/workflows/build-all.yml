@@ -100,8 +100,9 @@ jobs:
             chromium/src
             chromium/.gclient
             chromium/.gclient_entries
-          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-week-${{ format('{0:yyyy-ww}', github.event.repository.updated_at) }}
+          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-${{ github.run_id }}
           restore-keys: |
+            chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-
             chromium-source-
             
       - name: Setup Build Cache
@@ -335,8 +336,9 @@ jobs:
             chromium/src
             chromium/.gclient
             chromium/.gclient_entries
-          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-week-${{ format('{0:yyyy-ww}', github.event.repository.updated_at) }}
+          key: chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-${{ github.run_id }}
           restore-keys: |
+            chromium-source-${{ hashFiles('.github/workflows/cache-chromium-source.yml') }}-
             chromium-source-
             
       - name: Setup Build Cache
