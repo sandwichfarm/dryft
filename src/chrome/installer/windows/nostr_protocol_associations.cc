@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <shlobj.h>
 
+#include "base/logging.h"
 #include "base/strings/string_util.h"
 #include "base/win/registry.h"
 #include "chrome/installer/util/work_item.h"
@@ -129,17 +130,26 @@ bool RegisterNsiteFileType(const std::wstring& chrome_exe) {
 }
 
 void UnregisterNostrAssociations() {
-  // Remove nostr protocol
+  // Remove nostr protocol (use DeleteTree to remove all subkeys)
   std::wstring nostr_key = std::wstring(kClassesRoot) + L"\\" + kNostrProtocol;
-  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nostr_key, KEY_WOW64_32KEY);
+  LONG result = base::win::RegKey::DeleteTree(HKEY_CURRENT_USER, nostr_key, KEY_WOW64_32KEY | KEY_WRITE);
+  if (result != ERROR_SUCCESS && result != ERROR_FILE_NOT_FOUND) {
+    LOG(WARNING) << "Failed to delete nostr protocol registry key, error: " << result;
+  }
   
   // Remove .nsite extension
   std::wstring nsite_ext_key = std::wstring(kClassesRoot) + L"\\" + kNsiteExtension;
-  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nsite_ext_key, KEY_WOW64_32KEY);
+  result = base::win::RegKey::DeleteTree(HKEY_CURRENT_USER, nsite_ext_key, KEY_WOW64_32KEY | KEY_WRITE);
+  if (result != ERROR_SUCCESS && result != ERROR_FILE_NOT_FOUND) {
+    LOG(WARNING) << "Failed to delete .nsite extension registry key, error: " << result;
+  }
   
   // Remove Nsite ProgID
   std::wstring nsite_prog_key = std::wstring(kClassesRoot) + L"\\" + kNsiteProgId;
-  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nsite_prog_key, KEY_WOW64_32KEY);
+  result = base::win::RegKey::DeleteTree(HKEY_CURRENT_USER, nsite_prog_key, KEY_WOW64_32KEY | KEY_WRITE);
+  if (result != ERROR_SUCCESS && result != ERROR_FILE_NOT_FOUND) {
+    LOG(WARNING) << "Failed to delete Nsite ProgID registry key, error: " << result;
+  }
   
   // Notify shell of changes
   SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);

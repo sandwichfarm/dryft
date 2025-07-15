@@ -27,6 +27,7 @@ namespace nostr {
 
 class KeyStorage;
 class NostrPermissionManager;
+class NostrPassphraseManager;
 
 namespace local_relay {
 class LocalRelayService;
@@ -277,6 +278,9 @@ class NostrService : public KeyedService {
                                        const std::vector<uint8_t>& key,
                                        const std::vector<uint8_t>& iv);
 
+  // Helper method to retrieve and validate passphrase
+  std::string RetrieveAndValidatePassphrase(const std::string& prompt_message);
+
   // Profile for service isolation
   Profile* profile_;
   
@@ -285,6 +289,9 @@ class NostrService : public KeyedService {
   
   // Permission manager
   NostrPermissionManager* permission_manager_;
+  
+  // Passphrase manager
+  NostrPassphraseManager* passphrase_manager_;
   
   // Preference service
   PrefService* pref_service_;

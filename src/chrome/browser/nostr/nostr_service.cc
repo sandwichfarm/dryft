@@ -22,11 +22,14 @@
 #include "base/task/thread_pool.h"
 #include "chrome/browser/nostr/key_storage_factory.h"
 #include "chrome/browser/nostr/key_encryption.h"
+#include "chrome/browser/nostr/nostr_passphrase_manager.h"
+#include "chrome/browser/nostr/nostr_passphrase_manager_factory.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/nostr_messages.h"
 #include "crypto/openssl_util.h"
 #include "crypto/secure_hash.h"
+#include "crypto/secure_util.h"
 #include "third_party/boringssl/src/include/openssl/mem.h"
 
 namespace nostr {
@@ -37,6 +40,64 @@ namespace {
 constexpr int kMetadataKind = 0;
 constexpr int kTextNoteKind = 1;
 constexpr int kContactListKind = 3;
+
+// Securely clear a string by overwriting its contents
+void SecureClearString(std::string& str) {
+  if (!str.empty()) {
+    crypto::SecureZeroMemory(&str[0], str.size());
+    str.clear();
+    str.shrink_to_fit();  // Ensure memory is deallocated
+  }
+}
+
+// Securely clear a vector by overwriting its contents
+template<typename T>
+void SecureClearVector(std::vector<T>& vec) {
+  if (!vec.empty()) {
+    crypto::SecureZeroMemory(vec.data(), vec.size() * sizeof(T));
+    vec.clear();
+    vec.shrink_to_fit();  // Ensure memory is deallocated
+  }
+}
+
+// RAII helper for secure passphrase lifecycle management
+// Automatically clears passphrase on destruction to prevent
+// sensitive data from lingering in memory
+class ScopedPassphrase {
+ public:
+  explicit ScopedPassphrase(std::string&& passphrase) 
+      : passphrase_(std::move(passphrase)) {}
+  
+  ~ScopedPassphrase() {
+    SecureClearString(passphrase_);
+  }
+  
+  // Delete copy operations to prevent accidental copies
+  ScopedPassphrase(const ScopedPassphrase&) = delete;
+  ScopedPassphrase& operator=(const ScopedPassphrase&) = delete;
+  
+  // Allow move operations
+  ScopedPassphrase(ScopedPassphrase&& other) noexcept
+      : passphrase_(std::move(other.passphrase_)) {
+    other.passphrase_.clear();
+  }
+  
+  ScopedPassphrase& operator=(ScopedPassphrase&& other) noexcept {
+    if (this != &other) {
+      // Clear existing passphrase before move
+      SecureClearString(passphrase_);
+      passphrase_ = std::move(other.passphrase_);
+      other.passphrase_.clear();
+    }
+    return *this;
+  }
+  
+  const std::string& value() const { return passphrase_; }
+  bool empty() const { return passphrase_.empty(); }
+  
+ private:
+  std::string passphrase_;
+};
 
 // Convert hex string to bytes
 std::vector<uint8_t> HexToBytes(const std::string& hex) {
@@ -95,6 +156,9 @@ NostrService::NostrService(Profile* profile) : profile_(profile) {
   // Get permission manager
   permission_manager_ = NostrPermissionManagerFactory::GetForProfile(profile_);
   
+  // Get passphrase manager
+  passphrase_manager_ = NostrPassphraseManagerFactory::GetForProfile(profile_);
+  
   // Initialize key storage
   key_storage_ = KeyStorageFactory::CreateKeyStorage(profile_);
   
@@ -109,7 +173,7 @@ void NostrService::InitializeCrypto() {
   if (key_storage_) {
     auto default_key = key_storage_->GetDefaultKey();
     if (default_key) {
-      default_public_key_ = default_key->npub;
+      default_public_key_ = default_key->public_key;
       LOG(INFO) << "Loaded default Nostr key: " << default_public_key_;
       return;
     }
@@ -379,11 +443,19 @@ std::string NostrService::GenerateNewKey(const std::string& name) {
     key_id.last_used_at = base::Time::Now();
     key_id.is_default = false;
     
-    // Encrypt the private key with a temporary passphrase
-    // TODO: Implement proper user passphrase handling
-    std::string temp_passphrase = "temp_passphrase_for_testing";
+    // Request passphrase from user with automatic secure cleanup
+    ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+        "Enter passphrase to encrypt your new Nostr key"));
+    if (passphrase.empty()) {
+      return "";
+    }
+    
     KeyEncryption key_encryption;
-    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, temp_passphrase);
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase.value());
+    
+    // Securely clear private key bytes after encryption
+    SecureClearVector(private_key_bytes);
+    
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt private key";
       return "";
@@ -439,12 +511,22 @@ std::string NostrService::ImportKey(const std::string& private_key_hex,
     key_id.last_used_at = base::Time::Now();
     key_id.is_default = false;
     
-    // Encrypt the private key with a temporary passphrase
-    // TODO: Implement proper user passphrase handling
+    // Encrypt the private key with user passphrase
     auto private_key_bytes = HexToBytes(private_key_hex);
-    std::string temp_passphrase = "temp_passphrase_for_testing";
+    
+    // Request passphrase from user with automatic secure cleanup
+    ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+        "Enter passphrase to encrypt your imported Nostr key"));
+    if (passphrase.empty()) {
+      return "";
+    }
+    
     KeyEncryption key_encryption;
-    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, temp_passphrase);
+    auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase.value());
+    
+    // Securely clear private key bytes after encryption
+    SecureClearVector(private_key_bytes);
+    
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt imported private key";
       return "";
@@ -775,12 +857,15 @@ std::vector<uint8_t> NostrService::ComputeSharedSecret(const std::string& pubkey
     return {};
   }
   
-  // For now, use a simple passphrase (TODO: implement proper user passphrase handling)
-  // This is a placeholder - in production, the user would enter their passphrase
-  std::string temp_passphrase = "temp_passphrase_for_testing";
+  // Request passphrase from user to decrypt private key with automatic secure cleanup
+  ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+      "Enter passphrase to decrypt your Nostr key for encryption"));
+  if (passphrase.empty()) {
+    return {};
+  }
   
   KeyEncryption key_encryption;
-  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, temp_passphrase);
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase.value());
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for ECDH";
     return {};
@@ -793,7 +878,12 @@ std::vector<uint8_t> NostrService::ComputeSharedSecret(const std::string& pubkey
     return {};
   }
   
-  return ComputeECDH(*decrypted_private_key, other_pubkey_bytes);
+  auto shared_secret = ComputeECDH(*decrypted_private_key, other_pubkey_bytes);
+  
+  // Securely clear decrypted private key after use
+  SecureClearVector(*decrypted_private_key);
+  
+  return shared_secret;
 }
 
 std::string NostrService::Nip04EncryptInternal(const std::vector<uint8_t>& shared_secret,
@@ -933,11 +1023,15 @@ std::string NostrService::SignWithSchnorr(const std::string& message_hex) {
     return "";
   }
   
-  // For now, use a simple passphrase (TODO: implement proper user passphrase handling)
-  std::string temp_passphrase = "temp_passphrase_for_testing";
+  // Request passphrase from user to decrypt private key with automatic secure cleanup
+  ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+      "Enter passphrase to decrypt your Nostr key for signing"));
+  if (passphrase.empty()) {
+    return "";
+  }
   
   KeyEncryption key_encryption;
-  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, temp_passphrase);
+  auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase.value());
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for signing";
     return "";
@@ -958,6 +1052,10 @@ std::string NostrService::SignWithSchnorr(const std::string& message_hex) {
   }
   
   bssl::UniquePtr<BIGNUM> private_bn(BN_bin2bn(decrypted_private_key->data(), decrypted_private_key->size(), nullptr));
+  
+  // Securely clear decrypted private key after use
+  SecureClearVector(*decrypted_private_key);
+  
   if (!private_bn || !EC_KEY_set_private_key(ec_key.get(), private_bn.get())) {
     LOG(ERROR) << "Failed to set private key for signing";
     return "";
@@ -1203,6 +1301,19 @@ std::vector<uint8_t> NostrService::DecryptAES256CBC(const std::vector<uint8_t>& 
   EVP_CIPHER_CTX_free(ctx);
   plaintext.resize(plaintext_len);
   return plaintext;
+}
+
+std::string NostrService::RetrieveAndValidatePassphrase(const std::string& prompt_message) {
+  std::string passphrase;
+  if (passphrase_manager_) {
+    passphrase = passphrase_manager_->RequestPassphraseSync(prompt_message);
+  }
+  
+  if (passphrase.empty()) {
+    LOG(WARNING) << "Passphrase is empty; this may indicate user cancellation or no input provided";
+  }
+  
+  return passphrase;
 }
 
 }  // namespace nostr

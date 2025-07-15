@@ -21,6 +21,10 @@ if (enable_nostr) {
       "nostr_permission_manager.h",
       "nostr_permission_manager_factory.cc",
       "nostr_permission_manager_factory.h",
+      "nostr_passphrase_manager.cc",
+      "nostr_passphrase_manager.h",
+      "nostr_passphrase_manager_factory.cc",
+      "nostr_passphrase_manager_factory.h",
       "nostr_service.cc",
       "nostr_service.h",
       "nostr_service_factory.cc",
@@ -175,6 +179,7 @@ if (enable_nostr) {
     sources = [
       "key_encryption_unittest.cc",
       "key_storage_integration_unittest.cc",
+      "nostr_passphrase_manager_unittest.cc",
       "nostr_permission_manager_unittest.cc",
       "multi_account_service_test.cc",
     ]
