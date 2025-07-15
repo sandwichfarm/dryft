@@ -31,19 +31,22 @@ TEST_F(NostrInputValidatorTest, ValidateHexKey) {
 }
 
 TEST_F(NostrInputValidatorTest, ValidateNpub) {
-  // Valid npub (simplified test)
-  std::string valid_npub = "npub1234567890abcdefghijklmnopqrstuvwxyz234567890abcdefghijklmnop";
+  // Valid npub (valid Bech32 characters only)
+  std::string valid_npub = "npub1234567890acdefghjklmnpqrstuvwxyz234567890acdefghjklmnpqrstuv";
   EXPECT_TRUE(NostrInputValidator::IsValidNpub(valid_npub));
   
   // Invalid prefix
-  EXPECT_FALSE(NostrInputValidator::IsValidNpub("nsec1234567890abcdefghijklmnopqrstuvwxyz234567890abcdefghijklmnop"));
-  EXPECT_FALSE(NostrInputValidator::IsValidNpub("1234567890abcdefghijklmnopqrstuvwxyz234567890abcdefghijklmnop"));
+  EXPECT_FALSE(NostrInputValidator::IsValidNpub("nsec1234567890acdefghjklmnpqrstuvwxyz234567890acdefghjklmnpqrstuv"));
+  EXPECT_FALSE(NostrInputValidator::IsValidNpub("1234567890acdefghjklmnpqrstuvwxyz234567890acdefghjklmnpqrstuv"));
+  
+  // Invalid Bech32 characters (contains 'b', 'i', 'o')
+  EXPECT_FALSE(NostrInputValidator::IsValidNpub("npub1234567890abcdefghijklmnopqrstuvwxyz234567890abcdefghijklmnop"));
   
   // Empty string
   EXPECT_FALSE(NostrInputValidator::IsValidNpub(""));
   
   // Too long
-  std::string too_long = "npub1234567890abcdefghijklmnopqrstuvwxyz234567890abcdefghijklmnopqrstuvwxyz";
+  std::string too_long = "npub1234567890acdefghjklmnpqrstuvwxyz234567890acdefghjklmnpqrstuvwxyz";
   EXPECT_FALSE(NostrInputValidator::IsValidNpub(too_long));
 }
 
@@ -178,6 +181,61 @@ TEST_F(NostrInputValidatorTest, ValidateJsonDepth) {
   
   // Too deep nesting would require more complex setup
   // This test verifies the basic functionality works
+}
+
+TEST_F(NostrInputValidatorTest, SanitizeEventContentWithJSON) {
+  // Valid JSON for metadata event (kind 0)
+  std::string valid_json = "{\"name\":\"test\",\"about\":\"description\"}";
+  auto result = NostrInputValidator::SanitizeEventContent(valid_json, 0);
+  EXPECT_TRUE(result.has_value());
+  EXPECT_EQ(result.value(), valid_json);
+  
+  // Invalid JSON for metadata event (kind 0)
+  std::string invalid_json = "{\"name\":\"test\",\"about\":}";
+  auto result2 = NostrInputValidator::SanitizeEventContent(invalid_json, 0);
+  EXPECT_FALSE(result2.has_value());
+  
+  // Valid JSON for contact list event (kind 3)
+  std::string valid_contacts = "[]";
+  auto result3 = NostrInputValidator::SanitizeEventContent(valid_contacts, 3);
+  EXPECT_TRUE(result3.has_value());
+  EXPECT_EQ(result3.value(), valid_contacts);
+  
+  // Non-JSON content for other kinds (should pass)
+  std::string text_note = "Hello, Nostr!";
+  auto result4 = NostrInputValidator::SanitizeEventContent(text_note, 1);
+  EXPECT_TRUE(result4.has_value());
+  EXPECT_EQ(result4.value(), text_note);
+}
+
+TEST_F(NostrInputValidatorTest, ValidateRelayUrl) {
+  // Valid relay URLs
+  EXPECT_TRUE(NostrInputValidator::IsValidRelayUrl("wss://relay.example.com"));
+  EXPECT_TRUE(NostrInputValidator::IsValidRelayUrl("ws://relay.example.com"));
+  EXPECT_TRUE(NostrInputValidator::IsValidRelayUrl("wss://relay.example.com:443"));
+  
+  // Valid localhost for local relay
+  EXPECT_TRUE(NostrInputValidator::IsValidRelayUrl("ws://127.0.0.1:8081"));
+  EXPECT_TRUE(NostrInputValidator::IsValidRelayUrl("ws://localhost:8081"));
+  
+  // Invalid localhost ports
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("ws://127.0.0.1:8080"));
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("ws://localhost:3000"));
+  
+  // Invalid schemes
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("http://relay.example.com"));
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("https://relay.example.com"));
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("ftp://relay.example.com"));
+  
+  // Invalid URLs
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl(""));
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("not-a-url"));
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("wss://"));
+  
+  // Private IP ranges (should be rejected)
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("wss://192.168.1.1"));
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("wss://10.0.0.1"));
+  EXPECT_FALSE(NostrInputValidator::IsValidRelayUrl("wss://172.16.0.1"));
 }
 
 }  // namespace nostr

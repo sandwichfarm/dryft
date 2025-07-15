@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cctype>
 
+#include "base/json/json_reader.h"
 #include "base/logging.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
@@ -62,7 +63,7 @@ bool NostrInputValidator::IsValidNpub(const std::string& npub) {
   // Validate Bech32 characters (alphanumeric except 1, b, i, o)
   for (size_t i = 5; i < npub.length(); ++i) {
     char c = npub[i];
-    if (!std::isalnum(c) || c == '1' || c == 'b' || c == 'i' || c == 'o') {
+    if (!std::isalnum(c) || (c == '1' || c == 'b' || c == 'i' || c == 'o')) {
       return false;
     }
   }
@@ -115,14 +116,16 @@ bool NostrInputValidator::IsValidRelayUrl(const std::string& url) {
   
   // Check for local/private addresses (security)
   if (net::IsLocalhost(gurl)) {
-    // Allow localhost for local relay
-    return true;
+    // Allow localhost only for local relay (ws://127.0.0.1:8081)
+    return gurl.port() == "8081";
   }
   
   // Reject private IP ranges
   if (gurl.HostIsIPAddress()) {
-    // Could add more sophisticated IP validation here
-    return true;  // For now, allow all IPs
+    net::IPAddress ip_address;
+    if (ip_address.AssignFromIPLiteral(gurl.host()) && ip_address.IsReserved()) {
+      return false;  // Reject private or reserved IP ranges
+    }
   }
   
   return true;
@@ -157,10 +160,14 @@ std::optional<std::string> NostrInputValidator::SanitizeEventContent(
   // For certain event kinds, apply additional validation
   switch (event_kind) {
     case 0:  // Metadata - should be valid JSON
-      // Could add JSON validation here
-      break;
     case 3:  // Contact list - should be valid JSON
-      // Could add JSON validation here
+      {
+        auto parsed_json = base::JSONReader::ReadAndReturnValueWithError(
+            sanitized, base::JSONParserOptions::JSON_PARSE_RFC);
+        if (!parsed_json.has_value()) {
+          return std::nullopt;  // Invalid JSON
+        }
+      }
       break;
     default:
       // For other kinds, just ensure no control characters
