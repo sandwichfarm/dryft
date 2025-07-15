@@ -26,7 +26,6 @@ struct NostrRateLimitInfo;
 namespace nostr {
 
 class KeyStorage;
-class NostrInputValidator;
 class NostrOperationRateLimiter;
 class NostrPermissionManager;
 class NostrPassphraseManager;
