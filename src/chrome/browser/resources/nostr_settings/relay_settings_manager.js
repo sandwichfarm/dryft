@@ -127,14 +127,18 @@ const RelaySettingsManager = {
       // Sync slider to input
       sliderEl.addEventListener('input', () => {
         valueEl.value = sliderEl.value;
-        this.updateStorageProgress();
+        if (slider === 'relay-storage') {
+          this.updateStorageProgress();
+        }
         this.saveConfig();
       });
       
       // Sync input to slider
       valueEl.addEventListener('input', () => {
         sliderEl.value = valueEl.value;
-        this.updateStorageProgress();
+        if (slider === 'relay-storage') {
+          this.updateStorageProgress();
+        }
         this.saveConfig();
       });
       

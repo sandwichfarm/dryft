@@ -799,9 +799,9 @@ void NostrSettingsHandler::HandleStopLocalRelay(const base::Value::List& args) {
   
   // Stop the local relay
   nostr_service->StopLocalRelay(base::BindOnce(
-    [](base::WeakPtr<NostrSettingsHandler> handler, const base::Value& callback_id) {
+    [](base::WeakPtr<NostrSettingsHandler> handler, const base::Value& callback_id, bool success) {
       if (handler) {
-        handler->ResolveJavascriptCallback(callback_id, base::Value(true));
+        handler->ResolveJavascriptCallback(callback_id, base::Value(success));
       }
     }, weak_factory_.GetWeakPtr(), callback_id));
 }
