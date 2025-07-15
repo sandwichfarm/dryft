@@ -52,7 +52,6 @@ TEST_F(NostrProtocolAssociationsTest, RegisterNostrProtocol) {
             kNostrProtocolDescription);
   
   // Check URL Protocol marker
-  EXPECT_TRUE(KeyExists(L"Software\\Classes\\nostr"));
   base::win::RegKey key;
   EXPECT_EQ(key.Open(HKEY_CURRENT_USER, L"Software\\Classes\\nostr", KEY_READ),
             ERROR_SUCCESS);
