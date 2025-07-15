@@ -141,10 +141,10 @@ class BlossomSettingsManager {
   async saveSettings() {
     const settings = {
       enabled: this.elements.enabled.checked,
-      port: parseInt(this.elements.port.value),
+      port: parseInt(this.elements.port.value, 10),
       autoStart: this.elements.autoStart.checked,
-      storageQuota: parseInt(this.elements.storageQuota.value) * 1024 * 1024 * 1024,
-      maxFileSize: parseInt(this.elements.maxFileSize.value),
+      storageQuota: parseInt(this.elements.storageQuota.value, 10) * 1024 * 1024 * 1024,
+      maxFileSize: parseInt(this.elements.maxFileSize.value, 10),
       allowedMimeTypes: this.getSelectedMimeTypes(),
       customMimeTypes: this.elements.customMimeTypes.value.split('\n').filter(Boolean),
       compressImages: this.elements.compressImages.checked,
@@ -152,7 +152,7 @@ class BlossomSettingsManager {
       autoMirror: this.elements.autoMirror.checked,
       mirrorRedundancy: this.elements.mirrorRedundancy.value,
       mirrorVerify: this.elements.mirrorVerify.checked,
-      mirrorRetry: parseInt(this.elements.mirrorRetry.value)
+      mirrorRetry: parseInt(this.elements.mirrorRetry.value, 10)
     };
     
     await this.sendMessage('setBlossomConfig', settings);
