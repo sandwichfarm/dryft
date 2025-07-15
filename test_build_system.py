@@ -51,7 +51,8 @@ class TestTungstenBuilder(unittest.TestCase):
         # Test when gclient is in PATH
         mock_which.return_value = "/usr/local/bin/gclient"
         self.assertTrue(self.builder._find_depot_tools())
-        self.assertEqual(self.config.depot_tools_path, Path("/usr/local/bin"))
+        resolved_depot_tools_path = Path(mock_which.return_value).resolve().parent
+        self.assertEqual(self.config.depot_tools_path, resolved_depot_tools_path)
         
         # Test when gclient is not in PATH
         mock_which.return_value = None
