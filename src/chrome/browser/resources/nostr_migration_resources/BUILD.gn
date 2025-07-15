@@ -1,0 +1,17 @@
+# Copyright 2024 The Tungsten Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//tools/grit/grit_rule.gni")
+
+grit("resources") {
+  defines = chrome_grit_defines
+  source = "../nostr_migration_resources.grd"
+  
+  outputs = [
+    "grit/nostr_migration_resources.h",
+    "grit/nostr_migration_resources_map.h",
+    "nostr_migration_resources.pak",
+  ]
+  output_dir = "$root_gen_dir/chrome"
+}

@@ -1,0 +1,255 @@
+/* Copyright 2024 The Tungsten Authors
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+h1 {
+  color: var(--cros-text-color-primary);
+  margin-bottom: 24px;
+}
+
+h2 {
+  color: var(--cros-text-color-primary);
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.phase {
+  margin-bottom: 24px;
+}
+
+.description {
+  color: var(--cros-text-color-secondary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primary-button {
+  background-color: var(--cros-button-primary-background-color);
+  color: var(--cros-button-primary-label-color);
+  border: none;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: var(--cros-button-primary-hover-background-color);
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  background-color: transparent;
+  color: var(--cros-button-secondary-label-color);
+  border: 1px solid var(--cros-separator-color);
+}
+
+.secondary-button:hover {
+  background-color: var(--cros-button-secondary-hover-background-color);
+}
+
+.status-message {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: var(--cros-highlight-color);
+  color: var(--cros-text-color-secondary);
+}
+
+.extension-list {
+  border: 1px solid var(--cros-separator-color);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.extension-item {
+  padding: 16px;
+  border-bottom: 1px solid var(--cros-separator-color);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.extension-item:last-child {
+  border-bottom: none;
+}
+
+.extension-item:hover {
+  background-color: var(--cros-highlight-color);
+}
+
+.extension-item.selected {
+  background-color: var(--cros-highlight-color-hover);
+}
+
+.extension-checkbox {
+  margin-right: 12px;
+}
+
+.extension-info {
+  flex: 1;
+}
+
+.extension-name {
+  font-weight: 500;
+  color: var(--cros-text-color-primary);
+}
+
+.extension-version {
+  font-size: 12px;
+  color: var(--cros-text-color-secondary);
+}
+
+.extension-status {
+  font-size: 12px;
+  color: var(--cros-text-color-alert);
+  margin-left: 8px;
+}
+
+.preview-content {
+  border: 1px solid var(--cros-separator-color);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.preview-section {
+  margin-bottom: 16px;
+}
+
+.preview-section:last-child {
+  margin-bottom: 0;
+}
+
+.preview-section h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--cros-text-color-primary);
+}
+
+.preview-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.preview-section li {
+  color: var(--cros-text-color-secondary);
+  margin-bottom: 4px;
+}
+
+.warning-box {
+  background-color: var(--cros-highlight-color);
+  border: 1px solid var(--cros-separator-color);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 16px;
+  color: var(--cros-text-color-secondary);
+}
+
+.progress-container {
+  margin: 24px 0;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: var(--cros-separator-color);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--cros-button-primary-background-color);
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.progress-status {
+  text-align: center;
+  color: var(--cros-text-color-secondary);
+  font-size: 14px;
+}
+
+.result-summary {
+  background-color: var(--cros-highlight-color);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: var(--cros-text-color-primary);
+}
+
+.result-item:last-child {
+  margin-bottom: 0;
+}
+
+.result-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  background-size: contain;
+}
+
+.result-icon.success {
+  background-image: url(chrome://resources/images/check_circle.svg);
+  filter: var(--cros-icon-color-positive);
+}
+
+.option-box {
+  background-color: var(--cros-highlight-color);
+  border: 1px solid var(--cros-separator-color);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.option-box label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--cros-text-color-primary);
+}
+
+.option-box input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.error-message {
+  background-color: var(--cros-highlight-color-error);
+  border: 1px solid var(--cros-text-color-alert);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+  color: var(--cros-text-color-alert);
+}

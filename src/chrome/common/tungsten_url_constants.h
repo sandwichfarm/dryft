@@ -9,10 +9,12 @@ namespace tungsten {
 
 // WebUI host names for Tungsten-specific features
 extern const char kChromeUINostrSettingsHost[];
+extern const char kChromeUINostrMigrationHost[];
 extern const char kChromeUINsiteInternalsHost[];
 
 // WebUI URLs
 extern const char kChromeUINostrSettingsURL[];
+extern const char kChromeUINostrMigrationURL[];
 extern const char kChromeUINsiteInternalsURL[];
 
 }  // namespace tungsten

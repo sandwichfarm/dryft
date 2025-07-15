@@ -9,16 +9,23 @@ source_set("nostr") {
     "nostr_settings_ui.cc",
     "nostr_settings_ui.h",
     "nostr_settings_ui_config.h",
+    "nostr_migration_ui.cc",
+    "nostr_migration_ui.h",
+    "nostr_migration_ui_config.h",
+    "nostr_migration_handler.cc",
+    "nostr_migration_handler.h",
   ]
 
   deps = [
     "//base",
     "//chrome/browser:browser_public_dependencies",
     "//chrome/browser/nostr",
+    "//chrome/browser/nostr:extension_migration_service",
     "//chrome/browser/nostr:nostr_permission_manager",
     "//chrome/browser/nostr/local_relay",
     "//chrome/browser/profiles:profile",
     "//chrome/browser/resources/nostr_settings:resources",
+    "//chrome/browser/resources/nostr_migration_resources:resources",
     "//chrome/browser/ui/webui",
     "//chrome/common",
     "//components/prefs",
@@ -35,13 +42,17 @@ source_set("nostr") {
 
 source_set("unit_tests") {
   testonly = true
-  sources = [ "nostr_settings_ui_unittest.cc" ]
+  sources = [ 
+    "nostr_settings_ui_unittest.cc",
+    "nostr_migration_handler_unittest.cc",
+  ]
   
   deps = [
     ":nostr",
     "//base",
     "//base/test:test_support",
     "//chrome/browser/nostr",
+    "//chrome/browser/nostr:extension_migration_service",
     "//chrome/browser/nostr:nostr_permission_manager",
     "//chrome/browser/profiles:profile",
     "//chrome/common",
