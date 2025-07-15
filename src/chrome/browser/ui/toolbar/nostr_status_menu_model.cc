@@ -33,6 +33,8 @@ void NostrStatusMenuModel::Build() {
   
   // Settings section
   AddSeparator(ui::NORMAL_SEPARATOR);
+  AddItem(IDC_NOSTR_TOGGLE_RELAY,
+          l10n_util::GetStringUTF16(IDS_NOSTR_TOGGLE_RELAY));
   AddItem(IDC_NOSTR_SETTINGS,
           l10n_util::GetStringUTF16(IDS_NOSTR_SETTINGS));
   AddItem(IDC_NOSTR_MANAGE_KEYS,

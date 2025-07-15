@@ -77,6 +77,7 @@ TEST_F(NostrStatusMenuModelTest, MenuContainsExpectedCommands) {
   bool found_settings = false;
   bool found_connection_details = false;
   bool found_account_switcher = false;
+  bool found_toggle_relay = false;
   
   for (size_t i = 0; i < menu_model()->GetItemCount(); ++i) {
     int command_id = menu_model()->GetCommandIdAt(i);
@@ -90,12 +91,16 @@ TEST_F(NostrStatusMenuModelTest, MenuContainsExpectedCommands) {
       case IDC_NOSTR_ACCOUNT_SWITCHER:
         found_account_switcher = true;
         break;
+      case IDC_NOSTR_TOGGLE_RELAY:
+        found_toggle_relay = true;
+        break;
     }
   }
   
   EXPECT_TRUE(found_settings);
   EXPECT_TRUE(found_connection_details);
   EXPECT_TRUE(found_account_switcher);
+  EXPECT_TRUE(found_toggle_relay);
 }
 
 TEST_F(NostrStatusMenuModelTest, MenuItemsAreEnabled) {
