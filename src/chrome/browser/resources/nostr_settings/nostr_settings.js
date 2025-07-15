@@ -300,8 +300,7 @@ const NostrSettings = {
    * @param {string} message
    */
   showSuccess(message) {
-    // TODO: Implement toast notification
-    console.log('Success:', message);
+    this.showToast(message, 'success');
   },
   
   /**
@@ -309,9 +308,7 @@ const NostrSettings = {
    * @param {string} message
    */
   showError(message) {
-    // TODO: Implement toast notification
-    console.error('Error:', message);
-    alert(message);
+    this.showToast(message, 'error');
   },
   
   /**
@@ -319,8 +316,58 @@ const NostrSettings = {
    * @param {string} message
    */
   showInfo(message) {
-    // TODO: Implement toast notification
-    console.info('Info:', message);
+    this.showToast(message, 'info');
+  },
+  
+  /**
+   * Show toast notification
+   * @param {string} message
+   * @param {string} type - 'success', 'error', or 'info'
+   */
+  showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) {
+      // Fallback to console for development
+      console[type === 'error' ? 'error' : 'log'](message);
+      return;
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon"></div>
+      <div class="toast-message">${message}</div>
+      <button class="toast-close">&times;</button>
+    `;
+    
+    // Add close button functionality
+    const closeButton = toast.querySelector('.toast-close');
+    closeButton.addEventListener('click', () => {
+      this.removeToast(toast);
+    });
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after 4 seconds (6 seconds for errors)
+    const timeout = type === 'error' ? 6000 : 4000;
+    setTimeout(() => {
+      this.removeToast(toast);
+    }, timeout);
+  },
+  
+  /**
+   * Remove toast with animation
+   * @param {Element} toast
+   */
+  removeToast(toast) {
+    if (!toast || !toast.parentNode) return;
+    
+    toast.style.animation = 'toastFadeOut 0.3s ease-in';
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
   },
   
   /**
