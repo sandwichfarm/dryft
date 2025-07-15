@@ -114,7 +114,7 @@ X-MultipleArgs=True
 Icon=@@PACKAGE@@
 Type=Application
 Categories=Network;WebBrowser;
-MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;
+MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/nostr;application/x-nsite;
 Actions=new-window;new-private-window;temp-profile;content-shell;safe-mode;dark-mode;
 
 [Desktop Action new-window]
