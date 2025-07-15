@@ -5,6 +5,7 @@
 #include "chrome/common/nostr_message_router.h"
 
 #include "base/logging.h"
+#include "chrome/browser/nostr/nostr_input_validator.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
 #include "chrome/browser/nostr/nostr_service_factory.h"
 #include "chrome/browser/nostr/nostr_operation_rate_limiter.h"
@@ -210,6 +211,19 @@ void NostrMessageRouter::OnNip04Encrypt(int request_id,
                                        const std::string& plaintext) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
+  // Validate inputs
+  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+    Send(new NostrMsg_Nip04EncryptResponse(
+        routing_id(), request_id, false, "Invalid public key format"));
+    return;
+  }
+  
+  if (plaintext.empty() || plaintext.length() > nostr::NostrInputValidator::kMaxContentLength) {
+    Send(new NostrMsg_Nip04EncryptResponse(
+        routing_id(), request_id, false, "Invalid plaintext length"));
+    return;
+  }
+  
   // Check permission
   if (!CheckOriginPermission(origin, "nip04.encrypt")) {
     Send(new NostrMsg_Nip04EncryptResponse(
@@ -243,6 +257,19 @@ void NostrMessageRouter::OnNip04Decrypt(int request_id,
                                        const std::string& pubkey,
                                        const std::string& ciphertext) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  
+  // Validate inputs
+  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+    Send(new NostrMsg_Nip04DecryptResponse(
+        routing_id(), request_id, false, "Invalid public key format"));
+    return;
+  }
+  
+  if (ciphertext.empty() || ciphertext.length() > nostr::NostrInputValidator::kMaxContentLength * 2) {
+    Send(new NostrMsg_Nip04DecryptResponse(
+        routing_id(), request_id, false, "Invalid ciphertext length"));
+    return;
+  }
   
   // Check permission
   if (!CheckOriginPermission(origin, "nip04.decrypt")) {
@@ -278,6 +305,19 @@ void NostrMessageRouter::OnNip44Encrypt(int request_id,
                                        const std::string& plaintext) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
+  // Validate inputs
+  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+    Send(new NostrMsg_Nip44EncryptResponse(
+        routing_id(), request_id, false, "Invalid public key format"));
+    return;
+  }
+  
+  if (plaintext.empty() || plaintext.length() > nostr::NostrInputValidator::kMaxContentLength) {
+    Send(new NostrMsg_Nip44EncryptResponse(
+        routing_id(), request_id, false, "Invalid plaintext length"));
+    return;
+  }
+  
   // Check permission
   if (!CheckOriginPermission(origin, "nip44.encrypt")) {
     Send(new NostrMsg_Nip44EncryptResponse(
@@ -311,6 +351,19 @@ void NostrMessageRouter::OnNip44Decrypt(int request_id,
                                        const std::string& pubkey,
                                        const std::string& ciphertext) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  
+  // Validate inputs
+  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+    Send(new NostrMsg_Nip44DecryptResponse(
+        routing_id(), request_id, false, "Invalid public key format"));
+    return;
+  }
+  
+  if (ciphertext.empty() || ciphertext.length() > nostr::NostrInputValidator::kMaxContentLength * 2) {
+    Send(new NostrMsg_Nip44DecryptResponse(
+        routing_id(), request_id, false, "Invalid ciphertext length"));
+    return;
+  }
   
   // Check permission
   if (!CheckOriginPermission(origin, "nip44.decrypt")) {
@@ -545,7 +598,7 @@ void NostrMessageRouter::OnSwitchAccount(int request_id,
   }
   
   // Validate pubkey format
-  if (pubkey.length() != 64) {
+  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
     LOG(ERROR) << "Invalid pubkey format for account switch";
     Send(new NostrMsg_SwitchAccountResponse(
         routing_id(), request_id, false));
