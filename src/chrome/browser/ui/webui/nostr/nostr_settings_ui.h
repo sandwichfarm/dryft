@@ -48,6 +48,12 @@ class NostrSettingsHandler : public content::WebUIMessageHandler {
   void HandleDeletePermission(const base::Value::List& args);
   void HandleBulkPermissionAction(const base::Value::List& args);
   
+  // Enhanced relay handlers
+  void HandleGetLocalRelayStatus(const base::Value::List& args);
+  void HandleStartLocalRelay(const base::Value::List& args);
+  void HandleStopLocalRelay(const base::Value::List& args);
+  void HandleResetLocalRelayConfig(const base::Value::List& args);
+  
   // Send response back to JavaScript
   void ResolveJavascriptCallback(const base::Value& callback_id,
                                  const base::Value& response);
