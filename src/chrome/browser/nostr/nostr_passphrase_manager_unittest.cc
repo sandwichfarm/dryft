@@ -55,4 +55,22 @@ TEST_F(NostrPassphraseManagerTest, CacheTimeoutSetting) {
   EXPECT_EQ(manager_->GetCacheTimeout(), base::Minutes(10));
 }
 
+TEST_F(NostrPassphraseManagerTest, CacheExpirationAfterTimeout) {
+  // This test requires implementation of the UI dialog or a test mock
+  // For now, we can only test that the cache timeout mechanism exists
+  
+  // Set a short timeout for testing
+  manager_->SetCacheTimeout(base::Seconds(1));
+  
+  // Without a working dialog, we can't actually cache a passphrase yet
+  // This test will be completed when the UI dialog is implemented
+  EXPECT_FALSE(manager_->HasCachedPassphrase());
+  
+  // TODO: Once dialog is implemented, test should:
+  // 1. Cache a passphrase successfully
+  // 2. Verify HasCachedPassphrase() returns true
+  // 3. Advance clock past timeout using task_environment_.FastForwardBy()
+  // 4. Verify HasCachedPassphrase() returns false
+}
+
 }  // namespace nostr

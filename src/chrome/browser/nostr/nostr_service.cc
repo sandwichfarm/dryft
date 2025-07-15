@@ -29,6 +29,7 @@
 #include "chrome/common/nostr_messages.h"
 #include "crypto/openssl_util.h"
 #include "crypto/secure_hash.h"
+#include "crypto/secure_util.h"
 #include "third_party/boringssl/src/include/openssl/mem.h"
 
 namespace nostr {
@@ -39,6 +40,14 @@ namespace {
 constexpr int kMetadataKind = 0;
 constexpr int kTextNoteKind = 1;
 constexpr int kContactListKind = 3;
+
+// Securely clear a string by overwriting its contents
+void SecureClearString(std::string& str) {
+  if (!str.empty()) {
+    crypto::SecureZeroMemory(&str[0], str.size());
+    str.clear();
+  }
+}
 
 // Convert hex string to bytes
 std::vector<uint8_t> HexToBytes(const std::string& hex) {
@@ -385,19 +394,17 @@ std::string NostrService::GenerateNewKey(const std::string& name) {
     key_id.is_default = false;
     
     // Request passphrase from user
-    std::string passphrase;
-    if (passphrase_manager_) {
-      passphrase = passphrase_manager_->RequestPassphraseSync(
-          "Enter passphrase to encrypt your new Nostr key");
-    }
-    
+    std::string passphrase = RetrieveAndValidatePassphrase(
+        "Enter passphrase to encrypt your new Nostr key");
     if (passphrase.empty()) {
-      LOG(ERROR) << "Failed to get passphrase for key encryption";
       return "";
     }
     
     KeyEncryption key_encryption;
     auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase);
+    
+    // Securely clear the passphrase
+    SecureClearString(passphrase);
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt private key";
       return "";
@@ -457,19 +464,17 @@ std::string NostrService::ImportKey(const std::string& private_key_hex,
     auto private_key_bytes = HexToBytes(private_key_hex);
     
     // Request passphrase from user
-    std::string passphrase;
-    if (passphrase_manager_) {
-      passphrase = passphrase_manager_->RequestPassphraseSync(
-          "Enter passphrase to encrypt your imported Nostr key");
-    }
-    
+    std::string passphrase = RetrieveAndValidatePassphrase(
+        "Enter passphrase to encrypt your imported Nostr key");
     if (passphrase.empty()) {
-      LOG(ERROR) << "Failed to get passphrase for key encryption";
       return "";
     }
     
     KeyEncryption key_encryption;
     auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase);
+    
+    // Securely clear the passphrase
+    SecureClearString(passphrase);
     if (!encrypted_key_opt) {
       LOG(ERROR) << "Failed to encrypt imported private key";
       return "";
@@ -801,19 +806,17 @@ std::vector<uint8_t> NostrService::ComputeSharedSecret(const std::string& pubkey
   }
   
   // Request passphrase from user to decrypt private key
-  std::string passphrase;
-  if (passphrase_manager_) {
-    passphrase = passphrase_manager_->RequestPassphraseSync(
-        "Enter passphrase to decrypt your Nostr key for encryption");
-  }
-  
+  std::string passphrase = RetrieveAndValidatePassphrase(
+      "Enter passphrase to decrypt your Nostr key for encryption");
   if (passphrase.empty()) {
-    LOG(ERROR) << "Failed to get passphrase for key decryption";
     return {};
   }
   
   KeyEncryption key_encryption;
   auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase);
+  
+  // Securely clear the passphrase
+  SecureClearString(passphrase);
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for ECDH";
     return {};
@@ -967,19 +970,17 @@ std::string NostrService::SignWithSchnorr(const std::string& message_hex) {
   }
   
   // Request passphrase from user to decrypt private key
-  std::string passphrase;
-  if (passphrase_manager_) {
-    passphrase = passphrase_manager_->RequestPassphraseSync(
-        "Enter passphrase to decrypt your Nostr key for signing");
-  }
-  
+  std::string passphrase = RetrieveAndValidatePassphrase(
+      "Enter passphrase to decrypt your Nostr key for signing");
   if (passphrase.empty()) {
-    LOG(ERROR) << "Failed to get passphrase for key decryption";
     return "";
   }
   
   KeyEncryption key_encryption;
   auto decrypted_private_key = key_encryption.DecryptKey(default_key->encrypted_key, passphrase);
+  
+  // Securely clear the passphrase
+  SecureClearString(passphrase);
   if (!decrypted_private_key) {
     LOG(ERROR) << "Failed to decrypt private key for signing";
     return "";
@@ -1245,6 +1246,19 @@ std::vector<uint8_t> NostrService::DecryptAES256CBC(const std::vector<uint8_t>& 
   EVP_CIPHER_CTX_free(ctx);
   plaintext.resize(plaintext_len);
   return plaintext;
+}
+
+std::string NostrService::RetrieveAndValidatePassphrase(const std::string& prompt_message) {
+  std::string passphrase;
+  if (passphrase_manager_) {
+    passphrase = passphrase_manager_->RequestPassphraseSync(prompt_message);
+  }
+  
+  if (passphrase.empty()) {
+    LOG(ERROR) << "Failed to get passphrase for key operation";
+  }
+  
+  return passphrase;
 }
 
 }  // namespace nostr

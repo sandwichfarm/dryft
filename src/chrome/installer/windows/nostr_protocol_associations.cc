@@ -129,17 +129,17 @@ bool RegisterNsiteFileType(const std::wstring& chrome_exe) {
 }
 
 void UnregisterNostrAssociations() {
-  // Remove nostr protocol
+  // Remove nostr protocol (use DeleteTree to remove all subkeys)
   std::wstring nostr_key = std::wstring(kClassesRoot) + L"\\" + kNostrProtocol;
-  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nostr_key, KEY_WOW64_32KEY);
+  base::win::RegKey::DeleteTree(HKEY_CURRENT_USER, nostr_key, KEY_WOW64_32KEY);
   
   // Remove .nsite extension
   std::wstring nsite_ext_key = std::wstring(kClassesRoot) + L"\\" + kNsiteExtension;
-  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nsite_ext_key, KEY_WOW64_32KEY);
+  base::win::RegKey::DeleteTree(HKEY_CURRENT_USER, nsite_ext_key, KEY_WOW64_32KEY);
   
   // Remove Nsite ProgID
   std::wstring nsite_prog_key = std::wstring(kClassesRoot) + L"\\" + kNsiteProgId;
-  base::win::RegKey::DeleteKey(HKEY_CURRENT_USER, nsite_prog_key, KEY_WOW64_32KEY);
+  base::win::RegKey::DeleteTree(HKEY_CURRENT_USER, nsite_prog_key, KEY_WOW64_32KEY);
   
   // Notify shell of changes
   SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);

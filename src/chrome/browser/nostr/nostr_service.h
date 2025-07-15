@@ -278,6 +278,9 @@ class NostrService : public KeyedService {
                                        const std::vector<uint8_t>& key,
                                        const std::vector<uint8_t>& iv);
 
+  // Helper method to retrieve and validate passphrase
+  std::string RetrieveAndValidatePassphrase(const std::string& prompt_message);
+
   // Profile for service isolation
   Profile* profile_;
   
