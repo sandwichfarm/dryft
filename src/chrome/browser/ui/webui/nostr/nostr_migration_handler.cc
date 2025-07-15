@@ -37,7 +37,10 @@ void NostrMigrationHandler::RegisterMessages() {
 }
 
 void NostrMigrationHandler::HandleDetectExtensions(const base::Value::List& args) {
-  CHECK_EQ(1U, args.size());
+  if (args.size() != 1U) {
+    RejectJavascriptCallback(base::Value(), base::Value("Invalid number of arguments"));
+    return;
+  }
   const std::string& callback_id = args[0].GetString();
   
   Profile* profile = Profile::FromWebUI(web_ui());
