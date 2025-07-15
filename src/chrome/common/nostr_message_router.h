@@ -118,6 +118,17 @@ class NostrMessageRouter : public content::BrowserMessageFilter {
                             const std::string& method);
   std::optional<nostr::NIP07Permission::Method> StringToMethod(
       const std::string& method);
+  
+  // Input validation helpers
+  bool ValidateEncryptionInputs(const std::string& pubkey,
+                               const std::string& plaintext,
+                               int request_id,
+                               const std::string& operation);
+  bool ValidateDecryptionInputs(const std::string& pubkey,
+                               const std::string& ciphertext,
+                               int request_id,
+                               const std::string& operation);
+  
   void SendErrorResponse(int request_id, const std::string& error);
 
   // Browser context for accessing profile-specific services

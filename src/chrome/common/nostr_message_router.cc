@@ -212,15 +212,9 @@ void NostrMessageRouter::OnNip04Encrypt(int request_id,
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
   // Validate inputs
-  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+  if (!ValidateEncryptionInputs(pubkey, plaintext, request_id, "nip04.encrypt")) {
     Send(new NostrMsg_Nip04EncryptResponse(
-        routing_id(), request_id, false, "Invalid public key format"));
-    return;
-  }
-  
-  if (plaintext.empty() || plaintext.length() > nostr::NostrInputValidator::kMaxContentLength) {
-    Send(new NostrMsg_Nip04EncryptResponse(
-        routing_id(), request_id, false, "Invalid plaintext length"));
+        routing_id(), request_id, false, "Invalid input parameters"));
     return;
   }
   
@@ -259,15 +253,9 @@ void NostrMessageRouter::OnNip04Decrypt(int request_id,
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
   // Validate inputs
-  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+  if (!ValidateDecryptionInputs(pubkey, ciphertext, request_id, "nip04.decrypt")) {
     Send(new NostrMsg_Nip04DecryptResponse(
-        routing_id(), request_id, false, "Invalid public key format"));
-    return;
-  }
-  
-  if (ciphertext.empty() || ciphertext.length() > nostr::NostrInputValidator::kMaxContentLength * 2) {
-    Send(new NostrMsg_Nip04DecryptResponse(
-        routing_id(), request_id, false, "Invalid ciphertext length"));
+        routing_id(), request_id, false, "Invalid input parameters"));
     return;
   }
   
@@ -306,15 +294,9 @@ void NostrMessageRouter::OnNip44Encrypt(int request_id,
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
   // Validate inputs
-  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+  if (!ValidateEncryptionInputs(pubkey, plaintext, request_id, "nip44.encrypt")) {
     Send(new NostrMsg_Nip44EncryptResponse(
-        routing_id(), request_id, false, "Invalid public key format"));
-    return;
-  }
-  
-  if (plaintext.empty() || plaintext.length() > nostr::NostrInputValidator::kMaxContentLength) {
-    Send(new NostrMsg_Nip44EncryptResponse(
-        routing_id(), request_id, false, "Invalid plaintext length"));
+        routing_id(), request_id, false, "Invalid input parameters"));
     return;
   }
   
@@ -353,15 +335,9 @@ void NostrMessageRouter::OnNip44Decrypt(int request_id,
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   
   // Validate inputs
-  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+  if (!ValidateDecryptionInputs(pubkey, ciphertext, request_id, "nip44.decrypt")) {
     Send(new NostrMsg_Nip44DecryptResponse(
-        routing_id(), request_id, false, "Invalid public key format"));
-    return;
-  }
-  
-  if (ciphertext.empty() || ciphertext.length() > nostr::NostrInputValidator::kMaxContentLength * 2) {
-    Send(new NostrMsg_Nip44DecryptResponse(
-        routing_id(), request_id, false, "Invalid ciphertext length"));
+        routing_id(), request_id, false, "Invalid input parameters"));
     return;
   }
   
@@ -599,7 +575,7 @@ void NostrMessageRouter::OnSwitchAccount(int request_id,
   
   // Validate pubkey format
   if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
-    LOG(ERROR) << "Invalid pubkey format for account switch";
+    LOG(ERROR) << "Invalid pubkey format for account switch: " << pubkey;
     Send(new NostrMsg_SwitchAccountResponse(
         routing_id(), request_id, false));
     return;
@@ -683,6 +659,44 @@ std::optional<nostr::NIP07Permission::Method> NostrMessageRouter::StringToMethod
   if (method == "nip04.decrypt") 
     return nostr::NIP07Permission::Method::NIP04_DECRYPT;
   return std::nullopt;
+}
+
+bool NostrMessageRouter::ValidateEncryptionInputs(const std::string& pubkey,
+                                                 const std::string& plaintext,
+                                                 int request_id,
+                                                 const std::string& operation) {
+  // Validate public key
+  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+    LOG(ERROR) << "Invalid public key format for " << operation << ": " << pubkey;
+    return false;
+  }
+  
+  // Validate plaintext length
+  if (plaintext.empty() || plaintext.length() > nostr::NostrInputValidator::kMaxContentLength) {
+    LOG(ERROR) << "Invalid plaintext length for " << operation << ": " << plaintext.length();
+    return false;
+  }
+  
+  return true;
+}
+
+bool NostrMessageRouter::ValidateDecryptionInputs(const std::string& pubkey,
+                                                  const std::string& ciphertext,
+                                                  int request_id,
+                                                  const std::string& operation) {
+  // Validate public key
+  if (!nostr::NostrInputValidator::IsValidHexKey(pubkey)) {
+    LOG(ERROR) << "Invalid public key format for " << operation << ": " << pubkey;
+    return false;
+  }
+  
+  // Validate ciphertext length
+  if (ciphertext.empty() || ciphertext.length() > nostr::NostrInputValidator::kMaxContentLength * 2) {
+    LOG(ERROR) << "Invalid ciphertext length for " << operation << ": " << ciphertext.length();
+    return false;
+  }
+  
+  return true;
 }
 
 void NostrMessageRouter::SendErrorResponse(int request_id,
