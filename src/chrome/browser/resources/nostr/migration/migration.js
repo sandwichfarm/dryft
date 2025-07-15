@@ -315,7 +315,7 @@ class MigrationPage {
     }
     
     // Navigate to Nostr settings or close window
-    window.location.href = 'chrome://settings/nostr';
+    window.location.href = kChromeUINostrSettingsURL;
   }
   
   showError(message) {
