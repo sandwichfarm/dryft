@@ -46,6 +46,7 @@ void SecureClearString(std::string& str) {
   if (!str.empty()) {
     crypto::SecureZeroMemory(&str[0], str.size());
     str.clear();
+    str.shrink_to_fit();  // Ensure memory is deallocated
   }
 }
 
