@@ -1,0 +1,50 @@
+name: Full Build (Cache + Build)
+
+on:
+  workflow_dispatch:
+    inputs:
+      chromium_branch:
+        description: 'Chromium branch/tag (e.g., main, 120.0.6099.109)'
+        required: false
+        type: string
+        default: 'main'
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+      platforms:
+        description: 'Platforms to build'
+        required: true
+        default: 'linux'
+        type: choice
+        options:
+          - linux
+          - windows
+          - macos
+          - all
+
+jobs:
+  # First, ensure we have cached Chromium source
+  cache-chromium:
+    name: Cache Chromium Source
+    uses: ./.github/workflows/cache-chromium-source.yml
+    with:
+      force_update: false
+      chromium_branch: ${{ inputs.chromium_branch }}
+      shallow_clone: true
+      trigger_builds: false
+    secrets: inherit
+    
+  # Then run the builds
+  build:
+    name: Build Tungsten
+    needs: cache-chromium
+    uses: ./.github/workflows/build-all.yml
+    with:
+      build_type: ${{ inputs.build_type }}
+      platforms: ${{ inputs.platforms }}
+    secrets: inherit

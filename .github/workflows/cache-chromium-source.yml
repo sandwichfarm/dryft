@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: true
+      trigger_builds:
+        description: 'Trigger builds after caching'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   cache-chromium:
@@ -177,3 +182,29 @@ jobs:
             exit 1
           fi
         shell: bash
+        
+  # Job to trigger builds after successful caching
+  trigger-builds:
+    name: Trigger Build Workflow
+    needs: [cache-chromium, test-cache]
+    if: |
+      success() && 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.trigger_builds == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Build Workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build-all.yml',
+              ref: context.ref,
+              inputs: {
+                build_type: 'release',
+                platforms: 'all'
+              }
+            });
+            console.log('Triggered build workflow');
+          github-token: ${{ secrets.GITHUB_TOKEN }}
