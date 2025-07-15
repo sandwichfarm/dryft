@@ -169,6 +169,24 @@ void NostrSettingsHandler::RegisterMessages() {
       "exportAccount",
       base::BindRepeating(&NostrSettingsHandler::HandleExportAccount,
                           weak_factory_.GetWeakPtr()));
+  
+  // Enhanced permission handlers
+  web_ui()->RegisterMessageCallback(
+      "setPermissionFull",
+      base::BindRepeating(&NostrSettingsHandler::HandleSetPermissionFull,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "resetPermission",
+      base::BindRepeating(&NostrSettingsHandler::HandleResetPermission,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "deletePermission",
+      base::BindRepeating(&NostrSettingsHandler::HandleDeletePermission,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "bulkPermissionAction",
+      base::BindRepeating(&NostrSettingsHandler::HandleBulkPermissionAction,
+                          weak_factory_.GetWeakPtr()));
 }
 
 void NostrSettingsHandler::HandleGetNostrEnabled(const base::Value::List& args) {
@@ -316,6 +334,17 @@ void NostrSettingsHandler::HandleGetPermissions(const base::Value::List& args) {
                   NostrPermissionPolicyToString(policy));
     }
     origin_permissions.Set("methods", std::move(methods));
+    
+    // Add kind permissions (placeholder for future implementation)
+    base::Value::Dict kind_permissions;
+    // TODO: Add actual kind permission data when available
+    origin_permissions.Set("kindPermissions", std::move(kind_permissions));
+    
+    // Add rate limits (placeholder for future implementation)  
+    base::Value::Dict rate_limits;
+    rate_limits.Set("requestsPerMinute", 60);
+    rate_limits.Set("signsPerHour", 20);
+    origin_permissions.Set("rateLimits", std::move(rate_limits));
     
     // Add metadata
     origin_permissions.Set("lastUsed", base::TimeToValue(permission.last_used));
@@ -522,6 +551,181 @@ void NostrSettingsHandler::HandleExportAccount(const base::Value::List& args) {
   // Note: Actual implementation should encrypt the private key
   
   ResolveJavascriptCallback(callback_id, base::Value(std::move(export_data)));
+}
+
+void NostrSettingsHandler::HandleSetPermissionFull(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& permission_data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* permission_manager = NostrPermissionManagerFactory::GetForProfile(profile);
+  
+  if (!permission_manager) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  const std::string* origin_str = permission_data.FindString("origin");
+  const base::Value::Dict* permission_dict = permission_data.FindDict("permission");
+  
+  if (!origin_str || !permission_dict) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  // Parse origin
+  auto origin = url::Origin::Create(GURL(*origin_str));
+  
+  // Create permission object
+  nostr::NIP07Permission permission;
+  permission.origin = origin;
+  
+  // Set default policy
+  const std::string* default_policy = permission_dict->FindString("default");
+  if (default_policy) {
+    permission.default_policy = NostrPermissionPolicyFromString(*default_policy);
+  }
+  
+  // Set method policies
+  const base::Value::Dict* methods = permission_dict->FindDict("methods");
+  if (methods) {
+    for (const auto [method_str, policy_value] : *methods) {
+      if (policy_value.is_string()) {
+        auto method = NostrPermissionMethodFromString(method_str);
+        auto policy = NostrPermissionPolicyFromString(policy_value.GetString());
+        permission.method_policies[method] = policy;
+      }
+    }
+  }
+  
+  // Set expiration if provided
+  const std::string* granted_until = permission_dict->FindString("grantedUntil");
+  if (granted_until) {
+    base::Time expiration;
+    if (base::Time::FromString(granted_until->c_str(), &expiration)) {
+      permission.granted_until = expiration;
+    }
+  }
+  
+  // Grant the permission
+  auto result = permission_manager->GrantPermission(origin, permission);
+  
+  ResolveJavascriptCallback(callback_id, 
+                           base::Value(result == nostr::NostrPermissionManager::GrantResult::SUCCESS));
+}
+
+void NostrSettingsHandler::HandleResetPermission(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* permission_manager = NostrPermissionManagerFactory::GetForProfile(profile);
+  
+  if (!permission_manager) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  const std::string* origin_str = data.FindString("origin");
+  if (!origin_str) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  auto origin = url::Origin::Create(GURL(*origin_str));
+  
+  // Reset to default permission policy (keep the permission entry but reset to ASK)
+  nostr::NIP07Permission permission;
+  permission.origin = origin;
+  permission.default_policy = nostr::NIP07Permission::Policy::ASK;
+  // Clear all method-specific policies to use default
+  permission.method_policies.clear();
+  
+  auto result = permission_manager->GrantPermission(origin, permission);
+  
+  ResolveJavascriptCallback(callback_id, 
+                           base::Value(result == nostr::NostrPermissionManager::GrantResult::SUCCESS));
+}
+
+void NostrSettingsHandler::HandleDeletePermission(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* permission_manager = NostrPermissionManagerFactory::GetForProfile(profile);
+  
+  if (!permission_manager) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  const std::string* origin_str = data.FindString("origin");
+  if (!origin_str) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  auto origin = url::Origin::Create(GURL(*origin_str));
+  
+  // Remove the permission
+  bool success = permission_manager->RevokePermission(origin);
+  
+  ResolveJavascriptCallback(callback_id, base::Value(success));
+}
+
+void NostrSettingsHandler::HandleBulkPermissionAction(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* permission_manager = NostrPermissionManagerFactory::GetForProfile(profile);
+  
+  if (!permission_manager) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  const std::string* action = data.FindString("action");
+  if (!action) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  bool success = false;
+  
+  if (*action == "clear-all") {
+    // Clear all permissions
+    success = permission_manager->ClearAllPermissions();
+  } else if (*action == "allow-all" || *action == "deny-all" || *action == "reset-all") {
+    // Get all current permissions and update them
+    auto permissions = permission_manager->GetAllPermissions();
+    
+    nostr::NIP07Permission::Policy new_policy;
+    if (*action == "allow-all") {
+      new_policy = nostr::NIP07Permission::Policy::ALLOW;
+    } else if (*action == "deny-all") {
+      new_policy = nostr::NIP07Permission::Policy::DENY;
+    } else {
+      new_policy = nostr::NIP07Permission::Policy::ASK;
+    }
+    
+    success = true;
+    for (const auto& permission : permissions) {
+      nostr::NIP07Permission updated_permission = permission;
+      updated_permission.default_policy = new_policy;
+      
+      auto result = permission_manager->GrantPermission(permission.origin, updated_permission);
+      if (result != nostr::NostrPermissionManager::GrantResult::SUCCESS) {
+        success = false;
+      }
+    }
+  }
+  
+  ResolveJavascriptCallback(callback_id, base::Value(success));
 }
 
 // NostrSettingsUI implementation

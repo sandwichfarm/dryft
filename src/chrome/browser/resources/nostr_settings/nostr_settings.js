@@ -101,7 +101,10 @@ const NostrSettings = {
    * Set up permissions section
    */
   setupPermissionsSection() {
-    // Permission controls will be added here
+    // Initialize PermissionManager for enhanced UI
+    if (window.PermissionManager) {
+      PermissionManager.initialize();
+    }
   },
   
   /**
@@ -109,6 +112,20 @@ const NostrSettings = {
    * @param {Object} permissions
    */
   displayPermissions(permissions) {
+    // Delegate to PermissionManager for enhanced UI
+    if (window.PermissionManager) {
+      PermissionManager.displayPermissions(permissions);
+    } else {
+      // Fallback to simple display
+      this.displayPermissionsSimple(permissions);
+    }
+  },
+
+  /**
+   * Simple fallback permission display
+   * @param {Object} permissions
+   */
+  displayPermissionsSimple(permissions) {
     const container = document.getElementById('permissions-list');
     container.innerHTML = '';
     

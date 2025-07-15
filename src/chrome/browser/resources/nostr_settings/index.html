@@ -9,6 +9,7 @@
   <script src="chrome://resources/js/promise_resolver.js"></script>
   <script src="chrome://resources/js/util.js"></script>
   <script src="account_manager.js"></script>
+  <script src="permission_manager.js"></script>
   <script src="nostr_settings.js"></script>
 </head>
 <body>
@@ -224,11 +225,241 @@
         <h2>Site Permissions</h2>
         <div class="section-content">
           <div class="setting-item">
-            <p>Control which sites can access your Nostr identity</p>
-            <div id="permissions-list" class="permissions-list"></div>
+            <p>Control which sites can access your Nostr identity and operations</p>
+            
+            <!-- Permission Controls -->
+            <div class="permission-controls-bar">
+              <div class="permission-search">
+                <input type="text" id="permission-search" placeholder="Search sites..." class="search-input">
+              </div>
+              <div class="permission-actions">
+                <button id="bulk-permissions-button" class="secondary-button">Bulk Actions</button>
+                <button id="add-permission-button" class="secondary-button">Add Site</button>
+                <button id="clear-all-permissions" class="danger-button">Clear All</button>
+              </div>
+            </div>
+            
+            <!-- Permission Summary -->
+            <div class="permission-summary">
+              <div class="permission-stat">
+                <span class="stat-number" id="total-sites">0</span>
+                <span class="stat-label">Sites</span>
+              </div>
+              <div class="permission-stat">
+                <span class="stat-number" id="allowed-sites">0</span>
+                <span class="stat-label">Allowed</span>
+              </div>
+              <div class="permission-stat">
+                <span class="stat-number" id="blocked-sites">0</span>
+                <span class="stat-label">Blocked</span>
+              </div>
+              <div class="permission-stat">
+                <span class="stat-number" id="ask-sites">0</span>
+                <span class="stat-label">Ask</span>
+              </div>
+            </div>
+            
+            <!-- Permissions List -->
+            <div id="permissions-list" class="permissions-list">
+              <div class="permissions-empty" id="permissions-empty">
+                <div class="empty-icon">🔒</div>
+                <h3>No Site Permissions</h3>
+                <p>Sites you visit will appear here when they request Nostr permissions</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+      
+      <!-- Permission Edit Dialog -->
+      <dialog id="permission-edit-dialog" class="permission-dialog">
+        <div class="dialog-header">
+          <h2>Edit Site Permissions</h2>
+          <button class="close-button" id="close-permission-dialog">×</button>
+        </div>
+        <div class="dialog-content">
+          <div class="permission-site-info">
+            <div class="site-icon" id="permission-site-icon">🌐</div>
+            <div class="site-details">
+              <h3 id="permission-site-name"></h3>
+              <p id="permission-site-origin"></p>
+            </div>
+          </div>
+          
+          <!-- General Permissions -->
+          <div class="permission-section">
+            <h4>General Access</h4>
+            <div class="permission-setting">
+              <label>Default Policy</label>
+              <select id="default-policy">
+                <option value="ask">Ask each time</option>
+                <option value="allow">Always allow</option>
+                <option value="deny">Always deny</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Method Permissions -->
+          <div class="permission-section">
+            <h4>Method Permissions</h4>
+            <div class="method-permissions">
+              <div class="permission-method">
+                <label>
+                  <span class="method-name">Get Public Key</span>
+                  <span class="method-description">Read your public identity</span>
+                </label>
+                <select data-method="getPublicKey">
+                  <option value="default">Use default</option>
+                  <option value="allow">Allow</option>
+                  <option value="deny">Deny</option>
+                  <option value="ask">Ask</option>
+                </select>
+              </div>
+              
+              <div class="permission-method">
+                <label>
+                  <span class="method-name">Sign Events</span>
+                  <span class="method-description">Create signed messages</span>
+                </label>
+                <select data-method="signEvent">
+                  <option value="default">Use default</option>
+                  <option value="allow">Allow</option>
+                  <option value="deny">Deny</option>
+                  <option value="ask">Ask</option>
+                </select>
+              </div>
+              
+              <div class="permission-method">
+                <label>
+                  <span class="method-name">Get Relays</span>
+                  <span class="method-description">Read relay configuration</span>
+                </label>
+                <select data-method="getRelays">
+                  <option value="default">Use default</option>
+                  <option value="allow">Allow</option>
+                  <option value="deny">Deny</option>
+                  <option value="ask">Ask</option>
+                </select>
+              </div>
+              
+              <div class="permission-method">
+                <label>
+                  <span class="method-name">NIP-04 Encrypt</span>
+                  <span class="method-description">Encrypt private messages</span>
+                </label>
+                <select data-method="nip04.encrypt">
+                  <option value="default">Use default</option>
+                  <option value="allow">Allow</option>
+                  <option value="deny">Deny</option>
+                  <option value="ask">Ask</option>
+                </select>
+              </div>
+              
+              <div class="permission-method">
+                <label>
+                  <span class="method-name">NIP-04 Decrypt</span>
+                  <span class="method-description">Decrypt private messages</span>
+                </label>
+                <select data-method="nip04.decrypt">
+                  <option value="default">Use default</option>
+                  <option value="allow">Allow</option>
+                  <option value="deny">Deny</option>
+                  <option value="ask">Ask</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Event Kind Permissions -->
+          <div class="permission-section">
+            <h4>Event Kind Permissions</h4>
+            <p class="section-description">Control which types of events this site can create</p>
+            <div class="kind-permissions">
+              <div class="kind-presets">
+                <button class="preset-button" data-preset="social">Social Media</button>
+                <button class="preset-button" data-preset="messaging">Messaging</button>
+                <button class="preset-button" data-preset="custom">Custom</button>
+              </div>
+              <div class="kind-matrix" id="kind-matrix">
+                <!-- Will be populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+          
+          <!-- Rate Limits -->
+          <div class="permission-section">
+            <h4>Rate Limits</h4>
+            <div class="rate-limit-settings">
+              <div class="rate-limit-setting">
+                <label for="requests-per-minute">Requests per minute</label>
+                <input type="number" id="requests-per-minute" min="1" max="300" value="60">
+              </div>
+              <div class="rate-limit-setting">
+                <label for="signs-per-hour">Signs per hour</label>
+                <input type="number" id="signs-per-hour" min="1" max="1000" value="20">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Expiration -->
+          <div class="permission-section">
+            <h4>Permission Expiration</h4>
+            <div class="expiration-settings">
+              <label>
+                <input type="radio" name="expiration" value="never" checked>
+                <span>Never expire</span>
+              </label>
+              <label>
+                <input type="radio" name="expiration" value="session">
+                <span>End of session</span>
+              </label>
+              <label>
+                <input type="radio" name="expiration" value="custom">
+                <span>Custom duration:</span>
+              </label>
+              <div class="custom-expiration" id="custom-expiration" style="display: none;">
+                <input type="number" id="expiration-days" min="1" max="365" value="30">
+                <span>days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button id="reset-permission" class="danger-button">Reset to Default</button>
+          <div class="dialog-actions">
+            <button id="cancel-permission-edit" class="secondary-button">Cancel</button>
+            <button id="save-permission-edit" class="primary-button">Save Changes</button>
+          </div>
+        </div>
+      </dialog>
+      
+      <!-- Bulk Actions Dialog -->
+      <dialog id="bulk-actions-dialog" class="permission-dialog compact">
+        <div class="dialog-header">
+          <h3>Bulk Permission Actions</h3>
+          <button class="close-button" id="close-bulk-dialog">×</button>
+        </div>
+        <div class="dialog-content">
+          <div class="bulk-actions">
+            <button class="bulk-action-button" data-action="allow-all">
+              <span class="action-icon">✓</span>
+              <span>Allow All Sites</span>
+            </button>
+            <button class="bulk-action-button" data-action="deny-all">
+              <span class="action-icon">✕</span>
+              <span>Deny All Sites</span>
+            </button>
+            <button class="bulk-action-button" data-action="reset-all">
+              <span class="action-icon">↺</span>
+              <span>Reset All to Ask</span>
+            </button>
+            <button class="bulk-action-button danger" data-action="clear-all">
+              <span class="action-icon">🗑</span>
+              <span>Clear All Permissions</span>
+            </button>
+          </div>
+        </div>
+      </dialog>
       
       <!-- Local Relay Section -->
       <section id="local-relay" class="settings-section" hidden>
