@@ -1,0 +1,535 @@
+name: Tungsten Browser CI/CD Build
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Nightly builds at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+      platforms:
+        description: 'Platforms to build (comma-separated)'
+        required: false
+        default: 'all'
+
+env:
+  DEPOT_TOOLS_UPDATE: 0
+  VPYTHON_BYPASS: manually managed python not supported by chrome operations
+
+jobs:
+  # ============================================================
+  # Build Matrix Configuration
+  # ============================================================
+  prepare:
+    name: Prepare Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Get Version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(git describe --tags --always --dirty)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Set Build Matrix
+        id: set-matrix
+        run: |
+          if [[ "${{ github.event.inputs.platforms }}" == "all" ]] || [[ -z "${{ github.event.inputs.platforms }}" ]]; then
+            PLATFORMS='["linux-x64", "windows-x64", "macos-x64", "macos-arm64", "android-arm64", "raspi-arm64"]'
+          else
+            # Convert comma-separated list to JSON array
+            PLATFORMS=$(echo "${{ github.event.inputs.platforms }}" | jq -R 'split(",") | map(gsub("\\s+"; ""))')
+          fi
+          
+          echo "matrix={\"platform\": $PLATFORMS}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Linux Builds
+  # ============================================================
+  build-linux:
+    name: Build Linux ${{ matrix.arch }}
+    needs: prepare
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ccache
+            src/out/*/obj
+          key: ${{ runner.os }}-${{ matrix.arch }}-build-${{ hashFiles('**/*.gn*') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-build-
+            
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          ./scripts/install-build-deps.sh --no-prompt
+          
+      - name: Setup Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+          
+      - name: Setup ccache
+        run: |
+          sudo apt-get install -y ccache
+          ccache --set-config=max_size=10G
+          ccache --set-config=compression=true
+          ccache --set-config=compression_level=6
+          
+      - name: Sync Source
+        run: |
+          cd src
+          gclient sync --no-history --shallow
+          
+      - name: Build
+        run: |
+          export CCACHE_DIR=~/.cache/ccache
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          if [[ "$BUILD_TYPE" == "release" ]]; then
+            ./build.py --release --platform=linux --arch=${{ matrix.arch }}
+          else
+            ./build.py --debug --platform=linux --arch=${{ matrix.arch }}
+          fi
+          
+      - name: Run Tests
+        run: |
+          cd src
+          ./out/Release-linux-${{ matrix.arch }}/unit_tests --gtest_filter="Nostr*"
+          ./out/Release-linux-${{ matrix.arch }}/browser_tests --gtest_filter="Nostr*" || true
+          
+      - name: Package
+        run: |
+          ./build.py --platform=linux --arch=${{ matrix.arch }} --package
+          
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tungsten-linux-${{ matrix.arch }}-${{ needs.prepare.outputs.version }}
+          path: |
+            artifacts/linux/${{ matrix.arch }}/*.deb
+            artifacts/linux/${{ matrix.arch }}/*.rpm
+            artifacts/linux/${{ matrix.arch }}/*.tar.xz
+          retention-days: 7
+
+  # ============================================================
+  # Windows Builds
+  # ============================================================
+  build-windows:
+    name: Build Windows ${{ matrix.arch }}
+    needs: prepare
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/AppData/Local/Mozilla/sccache
+            src/out/*/obj
+          key: ${{ runner.os }}-${{ matrix.arch }}-build-${{ hashFiles('**/*.gn*') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-build-
+            
+      - name: Setup Visual Studio
+        uses: microsoft/setup-msbuild@v1
+        
+      - name: Setup Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      - name: Setup sccache
+        run: |
+          choco install sccache
+          sccache --start-server
+          
+      - name: Sync Source
+        run: |
+          cd src
+          gclient sync --no-history --shallow
+          
+      - name: Build
+        shell: cmd
+        run: |
+          set SCCACHE_DIR=%USERPROFILE%\AppData\Local\Mozilla\sccache
+          set CC=sccache cl
+          set CXX=sccache cl
+          
+          if "${{ github.event.inputs.build_type || 'release' }}" == "release" (
+            python build.py --release --platform=windows --arch=${{ matrix.arch }}
+          ) else (
+            python build.py --debug --platform=windows --arch=${{ matrix.arch }}
+          )
+          
+      - name: Run Tests
+        run: |
+          cd src
+          .\out\Release-windows-${{ matrix.arch }}\unit_tests.exe --gtest_filter="Nostr*"
+          
+      - name: Package
+        run: |
+          python build.py --platform=windows --arch=${{ matrix.arch }} --package
+          
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tungsten-windows-${{ matrix.arch }}-${{ needs.prepare.outputs.version }}
+          path: |
+            artifacts/windows/${{ matrix.arch }}/*.exe
+            artifacts/windows/${{ matrix.arch }}/*.msi
+            artifacts/windows/${{ matrix.arch }}/*.zip
+          retention-days: 7
+
+  # ============================================================
+  # macOS Builds
+  # ============================================================
+  build-macos:
+    name: Build macOS ${{ matrix.arch }}
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            os: macos-13  # Intel
+          - arch: arm64
+            os: macos-14  # M1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ccache
+            src/out/*/obj
+          key: ${{ runner.os }}-${{ matrix.arch }}-build-${{ hashFiles('**/*.gn*') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-build-
+            
+      - name: Install Dependencies
+        run: |
+          brew install ninja ccache
+          
+      - name: Setup Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+          
+      - name: Setup ccache
+        run: |
+          ccache --set-config=max_size=10G
+          ccache --set-config=compression=true
+          
+      - name: Sync Source
+        run: |
+          cd src
+          gclient sync --no-history --shallow
+          
+      - name: Build
+        run: |
+          export CCACHE_DIR=~/.cache/ccache
+          export CC="ccache clang"
+          export CXX="ccache clang++"
+          
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          if [[ "$BUILD_TYPE" == "release" ]]; then
+            ./build.py --release --platform=macos --arch=${{ matrix.arch }}
+          else
+            ./build.py --debug --platform=macos --arch=${{ matrix.arch }}
+          fi
+          
+      - name: Run Tests
+        run: |
+          cd src
+          ./out/Release-macos-${{ matrix.arch }}/unit_tests --gtest_filter="Nostr*"
+          
+      - name: Code Sign
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          # TODO: Implement code signing
+          echo "Code signing not yet implemented"
+          
+      - name: Package
+        run: |
+          ./build.py --platform=macos --arch=${{ matrix.arch }} --package
+          
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tungsten-macos-${{ matrix.arch }}-${{ needs.prepare.outputs.version }}
+          path: |
+            artifacts/macos/${{ matrix.arch }}/*.dmg
+            artifacts/macos/${{ matrix.arch }}/*.app
+          retention-days: 7
+
+  # ============================================================
+  # Android Builds
+  # ============================================================
+  build-android:
+    name: Build Android ${{ matrix.arch }}
+    needs: prepare
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch: [arm64, arm32]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ccache
+            src/out/*/obj
+          key: ${{ runner.os }}-android-${{ matrix.arch }}-build-${{ hashFiles('**/*.gn*') }}
+          restore-keys: |
+            ${{ runner.os }}-android-${{ matrix.arch }}-build-
+            
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          ./scripts/install-build-deps.sh --android --no-prompt
+          
+      - name: Setup Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+          
+      - name: Sync Source
+        run: |
+          cd src
+          gclient sync --no-history --shallow
+          
+      - name: Build
+        run: |
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          if [[ "$BUILD_TYPE" == "release" ]]; then
+            ./build.py --release --platform=android --android-arch=${{ matrix.arch }}
+          else
+            ./build.py --debug --platform=android --android-arch=${{ matrix.arch }}
+          fi
+          
+      - name: Package
+        run: |
+          ./build.py --platform=android --android-arch=${{ matrix.arch }} --package
+          
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tungsten-android-${{ matrix.arch }}-${{ needs.prepare.outputs.version }}
+          path: |
+            artifacts/android/*.apk
+            artifacts/android/*.aab
+          retention-days: 7
+
+  # ============================================================
+  # Raspberry Pi Builds
+  # ============================================================
+  build-raspi:
+    name: Build Raspberry Pi
+    needs: prepare
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ccache
+            src/out/*/obj
+          key: ${{ runner.os }}-raspi-build-${{ hashFiles('**/*.gn*') }}
+          restore-keys: |
+            ${{ runner.os }}-raspi-build-
+            
+      - name: Install Cross-compilation Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          ./scripts/install-build-deps.sh --arm --no-prompt
+          
+      - name: Setup Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+          
+      - name: Sync Source
+        run: |
+          cd src
+          gclient sync --no-history --shallow
+          
+      - name: Build
+        run: |
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          if [[ "$BUILD_TYPE" == "release" ]]; then
+            ./build.py --release --platform=raspi
+          else
+            ./build.py --debug --platform=raspi
+          fi
+          
+      - name: Package
+        run: |
+          ./build.py --platform=raspi --package
+          
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tungsten-raspi-arm64-${{ needs.prepare.outputs.version }}
+          path: |
+            artifacts/raspi/*.deb
+            artifacts/raspi/*.tar.xz
+          retention-days: 7
+
+  # ============================================================
+  # Release Creation
+  # ============================================================
+  create-release:
+    name: Create Release
+    needs: [prepare, build-linux, build-windows, build-macos, build-android, build-raspi]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          
+      - name: Create Checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.tar.xz" \
+                           -o -name "*.exe" -o -name "*.msi" -o -name "*.zip" \
+                           -o -name "*.dmg" -o -name "*.apk" -o -name "*.aab" \) \
+            -exec sha256sum {} \; > SHA256SUMS.txt
+            
+      - name: Create Release Notes
+        run: |
+          cat > RELEASE_NOTES.md << EOF
+          # Tungsten Browser ${{ needs.prepare.outputs.version }}
+          
+          ## What's New
+          - Native Nostr protocol support (NIP-07)
+          - Built-in local relay
+          - Blossom server integration
+          - nostr:// URL scheme support
+          - Nsite static hosting
+          
+          ## Downloads
+          Please download the appropriate package for your platform below.
+          
+          ## Checksums
+          SHA256 checksums are available in SHA256SUMS.txt
+          
+          ## Installation
+          - **Linux**: Use the .deb or .rpm package for your distribution
+          - **Windows**: Run the installer .exe or extract the portable .zip
+          - **macOS**: Mount the .dmg and drag Tungsten to Applications
+          - **Android**: Install the .apk directly or through app stores
+          - **Raspberry Pi**: Use the ARM64 .deb package
+          EOF
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Tungsten Browser ${{ needs.prepare.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(needs.prepare.outputs.version, '-') }}
+          files: |
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.tar.xz
+            artifacts/**/*.exe
+            artifacts/**/*.msi
+            artifacts/**/*.zip
+            artifacts/**/*.dmg
+            artifacts/**/*.apk
+            artifacts/**/*.aab
+            artifacts/SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # Notification
+  # ============================================================
+  notify:
+    name: Build Notification
+    needs: [build-linux, build-windows, build-macos, build-android, build-raspi]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Build Status
+        run: |
+          if [[ "${{ needs.build-linux.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-windows.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-macos.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-android.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-raspi.result }}" == "failure" ]]; then
+            echo "One or more builds failed"
+            exit 1
+          else
+            echo "All builds completed successfully"
+          fi

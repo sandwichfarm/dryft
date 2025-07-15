@@ -1,0 +1,172 @@
+name: Test Build System
+
+on:
+  push:
+    paths:
+      - 'build.py'
+      - 'scripts/**.sh'
+      - '.github/workflows/build-all.yml'
+      - '.github/workflows/test-build-system.yml'
+      - 'test_build_system.py'
+  pull_request:
+    paths:
+      - 'build.py'
+      - 'scripts/**.sh'
+      - '.github/workflows/build-all.yml'
+      - '.github/workflows/test-build-system.yml'
+      - 'test_build_system.py'
+
+jobs:
+  test-build-scripts:
+    name: Test Build Scripts
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Run build.py tests
+        run: |
+          python test_build_system.py
+      
+      - name: Test build.py help
+        run: |
+          python build.py --help
+      
+      - name: Test platform detection
+        run: |
+          python build.py --platform=auto --dry-run || true
+      
+      - name: Validate build.py syntax
+        run: |
+          python -m py_compile build.py
+      
+      - name: Test dependency script (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          bash -n scripts/install-build-deps.sh
+          ./scripts/install-build-deps.sh --help
+      
+      - name: Test cache setup script (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          bash -n scripts/setup-build-cache.sh
+          ./scripts/setup-build-cache.sh --help || true
+
+  validate-workflows:
+    name: Validate GitHub Workflows
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate workflow files
+        run: |
+          for workflow in .github/workflows/*.yml; do
+            echo "Validating $workflow"
+            python -c "import yaml; yaml.safe_load(open('$workflow'))"
+          done
+      
+      - name: Check workflow permissions
+        run: |
+          # Ensure workflows don't have excessive permissions
+          for workflow in .github/workflows/*.yml; do
+            if grep -q "permissions: write-all" "$workflow"; then
+              echo "ERROR: $workflow has excessive permissions"
+              exit 1
+            fi
+          done
+
+  shellcheck:
+    name: ShellCheck Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          severity: warning
+
+  test-build-cache:
+    name: Test Build Cache Setup
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install ccache
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y ccache
+          else
+            brew install ccache
+          fi
+      
+      - name: Test cache setup
+        run: |
+          ./scripts/setup-build-cache.sh setup
+          ./scripts/setup-build-cache.sh stats
+      
+      - name: Verify cache configuration
+        run: |
+          ccache --show-config | grep max_size
+          ccache --show-config | grep compression
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup test environment
+        run: |
+          # Create minimal src directory structure
+          mkdir -p src/chrome
+          echo "MAJOR=1" > src/chrome/VERSION
+          echo "MINOR=0" >> src/chrome/VERSION
+          echo "BUILD=0" >> src/chrome/VERSION
+          echo "PATCH=0" >> src/chrome/VERSION
+      
+      - name: Test version detection
+        run: |
+          python -c "
+import sys
+sys.path.insert(0, '.')
+import build
+config = build.BuildConfig()
+builder = build.TungstenBuilder(config)
+version = builder._get_version()
+print(f'Detected version: {version}')
+"
+      
+      - name: Test build argument generation
+        run: |
+          python -c "
+import sys
+from unittest.mock import Mock
+sys.path.insert(0, '.')
+import build
+config = build.BuildConfig()
+builder = build.TungstenBuilder(config)
+args = Mock(release=True, debug=False, gn_args=None, pgo=False, lto=False, use_cache=False)
+build_args = builder.prepare_build_args(args)
+print('Build arguments:', build_args)
+assert build_args['enable_nostr'] == 'true'
+assert build_args['enable_local_relay'] == 'true'
+"
