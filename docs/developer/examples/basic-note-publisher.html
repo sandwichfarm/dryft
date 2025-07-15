@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Note Publisher - Tungsten Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .status.tungsten { background: #e7f5e7; color: #2d5a2d; }
+        .status.basic { background: #fff3cd; color: #856404; }
+        .status.none { background: #f8d7da; color: #721c24; }
+        
+        .compose-area {
+            margin-bottom: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+        
+        .char-count {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .char-count.warning { color: #ff6b35; }
+        .char-count.error { color: #dc3545; }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .connect-btn {
+            background: #28a745;
+            margin-bottom: 20px;
+        }
+        
+        .connect-btn:hover:not(:disabled) {
+            background: #1e7e34;
+        }
+        
+        .user-info {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .user-info h3 {
+            margin: 0 0 8px 0;
+            color: #495057;
+        }
+        
+        .user-info code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        
+        .publish-status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .publish-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .publish-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .relay-status {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .relay-item {
+            margin: 4px 0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .relay-success { background: #d4edda; }
+        .relay-error { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Basic Note Publisher</h1>
+        <p>Publish notes to Nostr using Tungsten Browser's native capabilities.</p>
+        
+        <!-- Status indicator -->
+        <div id="nostr-status" class="status"></div>
+        
+        <!-- Connection section -->
+        <div id="connection-section">
+            <button id="connect-btn" class="connect-btn" onclick="connectToNostr()">
+                Connect to Nostr
+            </button>
+        </div>
+        
+        <!-- User info (hidden initially) -->
+        <div id="user-info" class="user-info" style="display: none;">
+            <h3>Connected User</h3>
+            <div>Public Key: <code id="user-pubkey"></code></div>
+        </div>
+        
+        <!-- Compose section (hidden initially) -->
+        <div id="compose-section" style="display: none;">
+            <div class="compose-area">
+                <label for="note-content">Compose your note:</label>
+                <textarea 
+                    id="note-content" 
+                    placeholder="What's on your mind?"
+                    maxlength="10000"
+                    oninput="updateCharCount()"
+                ></textarea>
+                
+                <div class="actions">
+                    <div class="char-count" id="char-count">0 / 10000</div>
+                    <button id="publish-btn" onclick="publishNote()" disabled>
+                        Publish Note
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Publish status -->
+            <div id="publish-status" class="publish-status">
+                <div id="status-message"></div>
+                <div id="relay-status" class="relay-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let userPubkey = null;
+        let isConnected = false;
+        
+        // Initialize the app
+        async function initializeApp() {
+            const statusDiv = document.getElementById('nostr-status');
+            
+            // Check Nostr support
+            if (typeof window.nostr === 'undefined') {
+                statusDiv.innerHTML = '❌ No Nostr support detected. Please install Tungsten Browser or a Nostr extension.';
+                statusDiv.className = 'status none';
+                return;
+            }
+            
+            // Check for Tungsten features
+            const isTungsten = window.nostr?.relay?.url !== undefined;
+            const hasBlossom = typeof window.blossom !== 'undefined';
+            
+            if (isTungsten) {
+                statusDiv.innerHTML = `✅ Tungsten Browser detected - Enhanced features available<br>
+                    Local relay: ${window.nostr.relay.url} (${window.nostr.relay.connected ? 'Connected' : 'Disconnected'})`;
+                statusDiv.className = 'status tungsten';
+            } else {
+                statusDiv.innerHTML = '⚡ Nostr extension detected - Basic features available';
+                statusDiv.className = 'status basic';
+            }
+            
+            console.log('Nostr environment initialized');
+        }
+        
+        // Connect to Nostr
+        async function connectToNostr() {
+            const connectBtn = document.getElementById('connect-btn');
+            const userInfo = document.getElementById('user-info');
+            const composeSection = document.getElementById('compose-section');
+            
+            try {
+                connectBtn.textContent = 'Connecting...';
+                connectBtn.disabled = true;
+                
+                // Request public key (triggers permission prompt)
+                userPubkey = await window.nostr.getPublicKey();
+                isConnected = true;
+                
+                // Update UI
+                document.getElementById('user-pubkey').textContent = userPubkey;
+                userInfo.style.display = 'block';
+                composeSection.style.display = 'block';
+                connectBtn.style.display = 'none';
+                
+                console.log('Connected to Nostr with pubkey:', userPubkey);
+                
+            } catch (error) {
+                console.error('Connection failed:', error);
+                
+                connectBtn.textContent = 'Connection Failed - Retry';
+                connectBtn.disabled = false;
+                
+                if (error.message.includes('denied')) {
+                    alert('Permission denied. Please check your browser settings and try again.');
+                } else {
+                    alert('Connection failed: ' + error.message);
+                }
+            }
+        }
+        
+        // Update character count
+        function updateCharCount() {
+            const textarea = document.getElementById('note-content');
+            const charCount = document.getElementById('char-count');
+            const publishBtn = document.getElementById('publish-btn');
+            
+            const length = textarea.value.length;
+            const maxLength = 10000;
+            
+            charCount.textContent = `${length} / ${maxLength}`;
+            
+            // Update styling based on length
+            if (length > maxLength * 0.9) {
+                charCount.className = 'char-count error';
+            } else if (length > maxLength * 0.8) {
+                charCount.className = 'char-count warning';
+            } else {
+                charCount.className = 'char-count';
+            }
+            
+            // Enable/disable publish button
+            publishBtn.disabled = length === 0 || length > maxLength || !isConnected;
+        }
+        
+        // Publish note
+        async function publishNote() {
+            const content = document.getElementById('note-content').value.trim();
+            const publishBtn = document.getElementById('publish-btn');
+            const statusDiv = document.getElementById('publish-status');
+            const statusMessage = document.getElementById('status-message');
+            const relayStatus = document.getElementById('relay-status');
+            
+            if (!content) {
+                alert('Please enter some content');
+                return;
+            }
+            
+            try {
+                publishBtn.textContent = 'Publishing...';
+                publishBtn.disabled = true;
+                statusDiv.style.display = 'none';
+                
+                // Create note event
+                const event = {
+                    kind: 1,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: extractHashtags(content),
+                    content: content
+                };
+                
+                console.log('Signing event:', event);
+                
+                // Sign the event
+                const signedEvent = await window.nostr.signEvent(event);
+                console.log('Event signed:', signedEvent);
+                
+                // Publish to relays
+                const results = await publishToRelays(signedEvent);
+                
+                // Show success
+                statusMessage.textContent = `Note published successfully! Event ID: ${signedEvent.id.slice(0, 8)}...`;
+                statusDiv.className = 'publish-status success';
+                statusDiv.style.display = 'block';
+                
+                // Show relay results
+                displayRelayResults(results);
+                
+                // Clear textarea
+                document.getElementById('note-content').value = '';
+                updateCharCount();
+                
+            } catch (error) {
+                console.error('Publishing failed:', error);
+                
+                statusMessage.textContent = `Publishing failed: ${error.message}`;
+                statusDiv.className = 'publish-status error';
+                statusDiv.style.display = 'block';
+                relayStatus.innerHTML = '';
+                
+            } finally {
+                publishBtn.textContent = 'Publish Note';
+                publishBtn.disabled = false;
+            }
+        }
+        
+        // Extract hashtags from content
+        function extractHashtags(content) {
+            const hashtags = content.match(/#\w+/g) || [];
+            return hashtags.map(tag => ['t', tag.slice(1).toLowerCase()]);
+        }
+        
+        // Publish to relays
+        async function publishToRelays(event) {
+            const results = [];
+            
+            // Try local relay first (Tungsten feature)
+            if (window.nostr?.relay?.connected) {
+                try {
+                    await publishToRelay(window.nostr.relay.url, event);
+                    results.push({ relay: 'Local Relay', success: true });
+                } catch (error) {
+                    results.push({ relay: 'Local Relay', success: false, error: error.message });
+                }
+            }
+            
+            // Get user's relay list and publish to external relays
+            try {
+                const relays = await window.nostr.getRelays();
+                const writeRelays = Object.entries(relays)
+                    .filter(([url, policy]) => policy.write)
+                    .map(([url]) => url);
+                
+                console.log('Publishing to relays:', writeRelays);
+                
+                const relayPromises = writeRelays.map(async (url) => {
+                    try {
+                        await publishToRelay(url, event);
+                        return { relay: url, success: true };
+                    } catch (error) {
+                        return { relay: url, success: false, error: error.message };
+                    }
+                });
+                
+                const relayResults = await Promise.all(relayPromises);
+                results.push(...relayResults);
+                
+            } catch (error) {
+                console.warn('Could not get relay list:', error);
+                results.push({ relay: 'Relay Discovery', success: false, error: error.message });
+            }
+            
+            return results;
+        }
+        
+        // Publish to a single relay
+        function publishToRelay(url, event) {
+            return new Promise((resolve, reject) => {
+                const ws = new WebSocket(url);
+                const timeout = setTimeout(() => {
+                    ws.close();
+                    reject(new Error('Connection timeout'));
+                }, 10000);
+                
+                ws.onopen = () => {
+                    ws.send(JSON.stringify(['EVENT', event]));
+                };
+                
+                ws.onmessage = (message) => {
+                    try {
+                        const [type, eventId, success, reason] = JSON.parse(message.data);
+                        clearTimeout(timeout);
+                        
+                        if (type === 'OK') {
+                            if (success) {
+                                resolve();
+                            } else {
+                                reject(new Error(reason || 'Publishing failed'));
+                            }
+                        }
+                    } catch (error) {
+                        reject(new Error('Invalid response from relay'));
+                    }
+                    ws.close();
+                };
+                
+                ws.onerror = () => {
+                    clearTimeout(timeout);
+                    reject(new Error('WebSocket connection failed'));
+                };
+            });
+        }
+        
+        // Display relay publishing results
+        function displayRelayResults(results) {
+            const relayStatus = document.getElementById('relay-status');
+            
+            if (results.length === 0) {
+                relayStatus.innerHTML = '<div>No relays available</div>';
+                return;
+            }
+            
+            const successCount = results.filter(r => r.success).length;
+            const totalCount = results.length;
+            
+            let html = `<div>Published to ${successCount}/${totalCount} relays:</div>`;
+            
+            results.forEach(result => {
+                const className = result.success ? 'relay-success' : 'relay-error';
+                const status = result.success ? '✅' : '❌';
+                const relayName = result.relay === window.nostr?.relay?.url ? 'Local Relay' : 
+                                 new URL(result.relay).hostname;
+                
+                html += `<div class="relay-item ${className}">
+                    ${status} ${relayName}
+                    ${result.error ? ` - ${result.error}` : ''}
+                </div>`;
+            });
+            
+            relayStatus.innerHTML = html;
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
