@@ -22,10 +22,11 @@
 #include "base/task/thread_pool.h"
 #include "chrome/browser/nostr/key_storage_factory.h"
 #include "chrome/browser/nostr/key_encryption.h"
+#include "chrome/browser/nostr/nostr_input_validator.h"
+#include "chrome/browser/nostr/nostr_operation_rate_limiter.h"
 #include "chrome/browser/nostr/nostr_passphrase_manager.h"
 #include "chrome/browser/nostr/nostr_passphrase_manager_factory.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
-#include "chrome/browser/nostr/nostr_operation_rate_limiter.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/nostr_messages.h"
 #include "crypto/openssl_util.h"
@@ -237,8 +238,13 @@ void NostrService::Nip04Encrypt(const std::string& pubkey,
                                const std::string& plaintext,
                                EncryptCallback callback) {
   // Validate inputs
-  if (pubkey.length() != 64 || plaintext.empty()) {
-    std::move(callback).Run(false, "Invalid input parameters");
+  if (!NostrInputValidator::IsValidHexKey(pubkey)) {
+    std::move(callback).Run(false, "Invalid public key format");
+    return;
+  }
+  
+  if (plaintext.empty() || plaintext.length() > NostrInputValidator::kMaxContentLength) {
+    std::move(callback).Run(false, "Invalid plaintext length");
     return;
   }
   
@@ -265,8 +271,13 @@ void NostrService::Nip04Decrypt(const std::string& pubkey,
                                const std::string& ciphertext,
                                DecryptCallback callback) {
   // Validate inputs
-  if (pubkey.length() != 64 || ciphertext.empty()) {
-    std::move(callback).Run(false, "Invalid input parameters");
+  if (!NostrInputValidator::IsValidHexKey(pubkey)) {
+    std::move(callback).Run(false, "Invalid public key format");
+    return;
+  }
+  
+  if (ciphertext.empty() || ciphertext.length() > NostrInputValidator::kMaxContentLength * 2) {
+    std::move(callback).Run(false, "Invalid ciphertext length");
     return;
   }
   
@@ -778,35 +789,19 @@ void NostrService::RecordOperation(const GURL& origin,
 
 void NostrService::Shutdown() {
   key_storage_.reset();
+  rate_limiter_.reset();
   permission_manager_ = nullptr;
 }
 
 bool NostrService::ValidateEvent(const base::Value::Dict& event) {
-  // Check required fields
-  auto* pubkey = event.FindString("pubkey");
-  auto* content = event.FindString("content");
-  auto created_at = event.FindInt("created_at");
-  auto kind = event.FindInt("kind");
-  auto* tags = event.FindList("tags");
+  std::string error_message;
+  bool valid = NostrInputValidator::ValidateEvent(event, &error_message);
   
-  if (!pubkey || !content || !created_at || !kind || !tags) {
-    LOG(ERROR) << "Event missing required fields";
-    return false;
+  if (!valid) {
+    LOG(ERROR) << "Event validation failed: " << error_message;
   }
   
-  // Validate pubkey format (64 hex characters)
-  if (pubkey->length() != 64) {
-    LOG(ERROR) << "Invalid pubkey length";
-    return false;
-  }
-  
-  // Validate kind
-  if (*kind < 0) {
-    LOG(ERROR) << "Invalid event kind";
-    return false;
-  }
-  
-  return true;
+  return valid;
 }
 
 base::Value::Dict NostrService::SignEventInternal(const base::Value::Dict& unsigned_event) {
