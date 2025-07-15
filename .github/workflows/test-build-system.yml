@@ -146,27 +146,27 @@ jobs:
       - name: Test version detection
         run: |
           python -c "
-import sys
-sys.path.insert(0, '.')
-import build
-config = build.BuildConfig()
-builder = build.TungstenBuilder(config)
-version = builder._get_version()
-print(f'Detected version: {version}')
-"
+          import sys
+          sys.path.insert(0, '.')
+          import build
+          config = build.BuildConfig()
+          builder = build.TungstenBuilder(config)
+          version = builder._get_version()
+          print(f'Detected version: {version}')
+          "
       
       - name: Test build argument generation
         run: |
           python -c "
-import sys
-from unittest.mock import Mock
-sys.path.insert(0, '.')
-import build
-config = build.BuildConfig()
-builder = build.TungstenBuilder(config)
-args = Mock(release=True, debug=False, gn_args=None, pgo=False, lto=False, use_cache=False)
-build_args = builder.prepare_build_args(args)
-print('Build arguments:', build_args)
-assert build_args['enable_nostr'] == 'true'
-assert build_args['enable_local_relay'] == 'true'
-"
+          import sys
+          from unittest.mock import Mock
+          sys.path.insert(0, '.')
+          import build
+          config = build.BuildConfig()
+          builder = build.TungstenBuilder(config)
+          args = Mock(release=True, debug=False, gn_args=None, pgo=False, lto=False, use_cache=False)
+          build_args = builder.prepare_build_args(args)
+          print('Build arguments:', build_args)
+          assert build_args['enable_nostr'] == 'true'
+          assert build_args['enable_local_relay'] == 'true'
+          "
