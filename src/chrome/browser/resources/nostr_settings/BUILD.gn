@@ -17,6 +17,7 @@ generate_grd("build_grd") {
     "index.html",
     "nostr_settings.css",
     "nostr_settings.js",
+    "account_manager.js",
   ]
   
   input_files_base_dir = rebase_path(".", "//")

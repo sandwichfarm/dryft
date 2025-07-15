@@ -55,7 +55,10 @@ source_set("unit_tests") {
 
 source_set("browser_tests") {
   testonly = true
-  sources = [ "nostr_settings_ui_browsertest.cc" ]
+  sources = [
+    "nostr_settings_ui_browsertest.cc",
+    "account_manager_browsertest.cc",
+  ]
   
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
   

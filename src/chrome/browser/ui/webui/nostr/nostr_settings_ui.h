@@ -34,6 +34,14 @@ class NostrSettingsHandler : public content::WebUIMessageHandler {
   void HandleGetPermissions(const base::Value::List& args);
   void HandleSetPermission(const base::Value::List& args);
   
+  // Account management handlers
+  void HandleGenerateKeys(const base::Value::List& args);
+  void HandleCreateAccount(const base::Value::List& args);
+  void HandleImportAccount(const base::Value::List& args);
+  void HandleSwitchAccount(const base::Value::List& args);
+  void HandleDeleteAccount(const base::Value::List& args);
+  void HandleExportAccount(const base::Value::List& args);
+  
   // Send response back to JavaScript
   void ResolveJavascriptCallback(const base::Value& callback_id,
                                  const base::Value& response);

@@ -80,10 +80,10 @@ const NostrSettings = {
    * Set up accounts section
    */
   setupAccountsSection() {
-    const addButton = document.getElementById('add-account-button');
-    addButton.addEventListener('click', () => {
-      this.showAddAccountDialog();
-    });
+    // Initialize AccountManager
+    if (window.AccountManager) {
+      AccountManager.initialize();
+    }
   },
   
   /**
@@ -91,43 +91,10 @@ const NostrSettings = {
    * @param {Array} accounts
    */
   displayAccounts(accounts) {
-    const container = document.getElementById('accounts-list');
-    container.innerHTML = '';
-    
-    accounts.forEach(account => {
-      const accountEl = document.createElement('div');
-      accountEl.className = 'account-item';
-      accountEl.innerHTML = `
-        <div class="account-info">
-          <div class="account-name">${account.name || 'Unnamed'}</div>
-          <div class="account-pubkey">${this.truncatePubkey(account.pubkey)}</div>
-        </div>
-        <div class="account-actions">
-          ${account.isDefault ? '<span class="default-badge">Default</span>' : ''}
-          <button class="icon-button" data-action="edit" data-pubkey="${account.pubkey}">
-            Edit
-          </button>
-          <button class="icon-button" data-action="delete" data-pubkey="${account.pubkey}">
-            Delete
-          </button>
-        </div>
-      `;
-      
-      // Add event listeners
-      accountEl.querySelectorAll('button').forEach(button => {
-        button.addEventListener('click', () => {
-          const action = button.dataset.action;
-          const pubkey = button.dataset.pubkey;
-          if (action === 'edit') {
-            this.editAccount(pubkey);
-          } else if (action === 'delete') {
-            this.deleteAccount(pubkey);
-          }
-        });
-      });
-      
-      container.appendChild(accountEl);
-    });
+    // Delegate to AccountManager for enhanced UI
+    if (window.AccountManager) {
+      AccountManager.displayAccounts(accounts);
+    }
   },
   
   /**
@@ -326,6 +293,34 @@ const NostrSettings = {
   async backupSettings() {
     // TODO: Implement settings backup
     alert('Settings backup not yet implemented');
+  },
+  
+  /**
+   * Show success notification
+   * @param {string} message
+   */
+  showSuccess(message) {
+    // TODO: Implement toast notification
+    console.log('Success:', message);
+  },
+  
+  /**
+   * Show error notification
+   * @param {string} message
+   */
+  showError(message) {
+    // TODO: Implement toast notification
+    console.error('Error:', message);
+    alert(message);
+  },
+  
+  /**
+   * Show info notification
+   * @param {string} message
+   */
+  showInfo(message) {
+    // TODO: Implement toast notification
+    console.info('Info:', message);
   },
   
   /**
