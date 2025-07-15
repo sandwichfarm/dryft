@@ -11,6 +11,7 @@
 
 #if BUILDFLAG(ENABLE_NOSTR)
 #include "chrome/browser/ui/webui/nostr/nostr_settings_ui_config.h"
+#include "chrome/browser/ui/webui/nostr/nostr_migration_ui_config.h"
 #endif
 
 void RegisterChromeWebUIConfigs() {
@@ -19,6 +20,7 @@ void RegisterChromeWebUIConfigs() {
 #if BUILDFLAG(ENABLE_NOSTR)
   // Register Nostr-related WebUI pages
   map.AddWebUIConfig(std::make_unique<tungsten::NostrSettingsUIConfig>());
+  map.AddWebUIConfig(std::make_unique<tungsten::NostrMigrationUIConfig>());
 #endif
 
   // Add other WebUIConfig registrations here as needed

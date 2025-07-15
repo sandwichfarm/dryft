@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Migrate from Nostr Extensions</title>
+  <link rel="stylesheet" href="chrome://resources/css/chromeos/cros_styles.css">
+  <link rel="stylesheet" href="../shared/nostr_shared.css">
+  <link rel="stylesheet" href="migration.css">
+  <script type="module" src="migration.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Migrate from Nostr Extensions</h1>
+    
+    <div id="detection-phase" class="phase">
+      <p class="description">
+        We can import your keys, relay lists, and permissions from other Nostr browser extensions.
+        This will help you transition smoothly to Tungsten's built-in Nostr support.
+      </p>
+      
+      <div class="action-buttons">
+        <button id="scan-button" class="primary-button">
+          Scan for Extensions
+        </button>
+      </div>
+      
+      <div id="scan-status" class="status-message" hidden></div>
+    </div>
+    
+    <div id="selection-phase" class="phase" hidden>
+      <h2>Detected Extensions</h2>
+      <div id="extension-list" class="extension-list"></div>
+      
+      <div class="action-buttons">
+        <button id="back-button" class="secondary-button">Back</button>
+        <button id="import-button" class="primary-button" disabled>
+          Import Selected
+        </button>
+      </div>
+    </div>
+    
+    <div id="preview-phase" class="phase" hidden>
+      <h2>Migration Preview</h2>
+      <div id="preview-content" class="preview-content"></div>
+      
+      <div class="warning-box">
+        <strong>Note:</strong> Your existing extension data will not be modified.
+        You can choose to disable the extension after successful import.
+      </div>
+      
+      <div class="action-buttons">
+        <button id="cancel-preview-button" class="secondary-button">Cancel</button>
+        <button id="confirm-import-button" class="primary-button">
+          Confirm Import
+        </button>
+      </div>
+    </div>
+    
+    <div id="progress-phase" class="phase" hidden>
+      <h2>Importing...</h2>
+      <div class="progress-container">
+        <div id="progress-bar" class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <div id="progress-status" class="progress-status"></div>
+      </div>
+    </div>
+    
+    <div id="complete-phase" class="phase" hidden>
+      <h2>Import Complete!</h2>
+      <div id="result-summary" class="result-summary"></div>
+      
+      <div id="disable-extension-option" class="option-box" hidden>
+        <label>
+          <input type="checkbox" id="disable-extension-checkbox">
+          Disable the imported extension (recommended)
+        </label>
+      </div>
+      
+      <div class="action-buttons">
+        <button id="finish-button" class="primary-button">Finish</button>
+      </div>
+    </div>
+    
+    <div id="error-phase" class="phase" hidden>
+      <h2>Import Failed</h2>
+      <div id="error-message" class="error-message"></div>
+      
+      <div class="action-buttons">
+        <button id="retry-button" class="secondary-button">Try Again</button>
+        <button id="close-button" class="secondary-button">Close</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

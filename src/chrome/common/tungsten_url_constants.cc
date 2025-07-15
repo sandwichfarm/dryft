@@ -8,10 +8,12 @@ namespace tungsten {
 
 // WebUI host names
 const char kChromeUINostrSettingsHost[] = "settings-nostr";
+const char kChromeUINostrMigrationHost[] = "nostr-migration";
 const char kChromeUINsiteInternalsHost[] = "nsite-internals";
 
 // WebUI URLs
 const char kChromeUINostrSettingsURL[] = "chrome://settings-nostr/";
+const char kChromeUINostrMigrationURL[] = "chrome://nostr-migration/";
 const char kChromeUINsiteInternalsURL[] = "chrome://nsite-internals/";
 
 }  // namespace tungsten
