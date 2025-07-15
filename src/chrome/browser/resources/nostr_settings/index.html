@@ -8,6 +8,7 @@
   <script src="chrome://resources/js/cr.js"></script>
   <script src="chrome://resources/js/promise_resolver.js"></script>
   <script src="chrome://resources/js/util.js"></script>
+  <script src="account_manager.js"></script>
   <script src="nostr_settings.js"></script>
 </head>
 <body>
@@ -28,12 +29,195 @@
         <h2>Nostr Accounts</h2>
         <div class="section-content">
           <div class="setting-item">
-            <p>Manage your Nostr identities</p>
+            <p>Manage your Nostr identities and switch between accounts</p>
+            
+            <!-- Current Account Display -->
+            <div id="current-account" class="current-account-display" hidden>
+              <h3>Active Account</h3>
+              <div class="current-account-info">
+                <div class="account-avatar">
+                  <img id="current-account-avatar" src="" alt="Avatar">
+                  <div class="avatar-placeholder" id="current-account-placeholder">N</div>
+                </div>
+                <div class="account-details">
+                  <div id="current-account-name" class="account-name"></div>
+                  <div id="current-account-pubkey" class="account-pubkey"></div>
+                  <div id="current-account-nip05" class="account-nip05"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Accounts List -->
+            <h3>All Accounts</h3>
             <div id="accounts-list" class="accounts-list"></div>
-            <button id="add-account-button" class="primary-button">Add Account</button>
+            
+            <!-- Account Actions -->
+            <div class="account-actions-container">
+              <button id="add-account-button" class="primary-button">
+                <span class="icon">+</span> Create New Account
+              </button>
+              <button id="import-account-button" class="secondary-button">
+                <span class="icon">⬇</span> Import Account
+              </button>
+            </div>
           </div>
         </div>
       </section>
+      
+      <!-- Account Creation Wizard -->
+      <dialog id="account-creation-dialog" class="account-dialog">
+        <div class="dialog-header">
+          <h2>Create New Account</h2>
+          <button class="close-button" id="close-creation-dialog">×</button>
+        </div>
+        <div class="wizard-steps">
+          <div class="step active" data-step="1">1. Generate Keys</div>
+          <div class="step" data-step="2">2. Profile Setup</div>
+          <div class="step" data-step="3">3. Backup Keys</div>
+        </div>
+        <div class="dialog-content">
+          <!-- Step 1: Key Generation -->
+          <div id="step-1" class="wizard-step active">
+            <h3>Generate Your Nostr Keys</h3>
+            <p>Your keys are your identity on Nostr. Keep them safe!</p>
+            <div class="key-display">
+              <div class="key-field">
+                <label>Public Key (npub)</label>
+                <div class="key-value" id="generated-npub"></div>
+                <button class="copy-button" data-copy="generated-npub">Copy</button>
+              </div>
+              <div class="key-field">
+                <label>Private Key (nsec) - Keep this secret!</label>
+                <div class="key-value masked" id="generated-nsec">
+                  <span class="masked-content">••••••••••••••••••••</span>
+                </div>
+                <button class="toggle-visibility" data-target="generated-nsec">Show</button>
+                <button class="copy-button" data-copy="generated-nsec">Copy</button>
+              </div>
+            </div>
+            <div class="warning-box">
+              <strong>⚠️ Important:</strong> Save your private key somewhere safe. 
+              If you lose it, you cannot recover your account!
+            </div>
+          </div>
+          
+          <!-- Step 2: Profile Setup -->
+          <div id="step-2" class="wizard-step" hidden>
+            <h3>Set Up Your Profile</h3>
+            <div class="form-group">
+              <label for="account-name">Display Name</label>
+              <input type="text" id="account-name" placeholder="Enter your display name">
+            </div>
+            <div class="form-group">
+              <label for="account-about">About</label>
+              <textarea id="account-about" rows="3" placeholder="Tell something about yourself"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="account-picture">Picture URL (optional)</label>
+              <input type="url" id="account-picture" placeholder="https://example.com/avatar.jpg">
+            </div>
+            <div class="form-group">
+              <label for="account-nip05">NIP-05 Identifier (optional)</label>
+              <input type="text" id="account-nip05" placeholder="name@example.com">
+            </div>
+          </div>
+          
+          <!-- Step 3: Backup -->
+          <div id="step-3" class="wizard-step" hidden>
+            <h3>Backup Your Keys</h3>
+            <p>Choose how you want to backup your keys:</p>
+            <div class="backup-options">
+              <label class="backup-option">
+                <input type="checkbox" id="backup-downloaded">
+                <span>Download encrypted backup file</span>
+              </label>
+              <label class="backup-option">
+                <input type="checkbox" id="backup-written">
+                <span>I have written down my private key</span>
+              </label>
+              <label class="backup-option">
+                <input type="checkbox" id="backup-password-manager">
+                <span>I have saved it in my password manager</span>
+              </label>
+            </div>
+            <div class="qr-code-container" hidden>
+              <h4>QR Code (Private Key)</h4>
+              <canvas id="nsec-qr-code"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button id="wizard-back" class="secondary-button" hidden>Back</button>
+          <button id="wizard-next" class="primary-button">Next</button>
+          <button id="wizard-finish" class="primary-button" hidden>Create Account</button>
+        </div>
+      </dialog>
+      
+      <!-- Import Account Dialog -->
+      <dialog id="import-account-dialog" class="account-dialog">
+        <div class="dialog-header">
+          <h2>Import Account</h2>
+          <button class="close-button" id="close-import-dialog">×</button>
+        </div>
+        <div class="dialog-content">
+          <p>Import an existing Nostr account using your private key</p>
+          <div class="import-tabs">
+            <button class="tab-button active" data-tab="text">Text</button>
+            <button class="tab-button" data-tab="file">File</button>
+            <button class="tab-button" data-tab="qr">QR Code</button>
+          </div>
+          
+          <!-- Text Import -->
+          <div id="import-text" class="import-panel active">
+            <div class="form-group">
+              <label for="import-nsec">Private Key (nsec or hex)</label>
+              <input type="password" id="import-nsec" placeholder="nsec1..." autocomplete="off">
+              <button class="toggle-visibility" data-target="import-nsec">Show</button>
+            </div>
+          </div>
+          
+          <!-- File Import -->
+          <div id="import-file" class="import-panel" hidden>
+            <div class="form-group">
+              <label for="import-file-input">Select backup file</label>
+              <input type="file" id="import-file-input" accept=".json,.txt">
+              <p class="help-text">Supports encrypted backup files from Tungsten or other Nostr clients</p>
+            </div>
+            <div class="form-group" id="file-password-group" hidden>
+              <label for="import-file-password">File Password</label>
+              <input type="password" id="import-file-password" placeholder="Enter password">
+            </div>
+          </div>
+          
+          <!-- QR Import -->
+          <div id="import-qr" class="import-panel" hidden>
+            <div class="qr-scanner">
+              <video id="qr-video" hidden></video>
+              <canvas id="qr-canvas"></canvas>
+              <button id="start-qr-scan" class="primary-button">Start Camera</button>
+            </div>
+          </div>
+          
+          <div class="warning-box">
+            <strong>Security Note:</strong> Your private key will be encrypted and stored securely in your browser.
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button id="cancel-import" class="secondary-button">Cancel</button>
+          <button id="confirm-import" class="primary-button">Import Account</button>
+        </div>
+      </dialog>
+      
+      <!-- Account Switch Dialog -->
+      <dialog id="switch-account-dialog" class="account-dialog compact">
+        <div class="dialog-header">
+          <h3>Switch Account</h3>
+          <button class="close-button" id="close-switch-dialog">×</button>
+        </div>
+        <div class="dialog-content">
+          <div id="switch-accounts-list" class="switch-accounts-list"></div>
+        </div>
+      </dialog>
       
       <!-- Permissions Section -->
       <section id="permissions" class="settings-section" hidden>
@@ -148,5 +332,8 @@
       </section>
     </div>
   </div>
+  
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
 </body>
 </html>

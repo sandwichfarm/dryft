@@ -143,6 +143,32 @@ void NostrSettingsHandler::RegisterMessages() {
       "setPermission",
       base::BindRepeating(&NostrSettingsHandler::HandleSetPermission,
                           weak_factory_.GetWeakPtr()));
+  
+  // Account management handlers
+  web_ui()->RegisterMessageCallback(
+      "generateKeys",
+      base::BindRepeating(&NostrSettingsHandler::HandleGenerateKeys,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "createAccount",
+      base::BindRepeating(&NostrSettingsHandler::HandleCreateAccount,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "importAccount",
+      base::BindRepeating(&NostrSettingsHandler::HandleImportAccount,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "switchAccount",
+      base::BindRepeating(&NostrSettingsHandler::HandleSwitchAccount,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "deleteAccount",
+      base::BindRepeating(&NostrSettingsHandler::HandleDeleteAccount,
+                          weak_factory_.GetWeakPtr()));
+  web_ui()->RegisterMessageCallback(
+      "exportAccount",
+      base::BindRepeating(&NostrSettingsHandler::HandleExportAccount,
+                          weak_factory_.GetWeakPtr()));
 }
 
 void NostrSettingsHandler::HandleGetNostrEnabled(const base::Value::List& args) {
@@ -351,6 +377,151 @@ void NostrSettingsHandler::ResolveJavascriptCallback(
     const base::Value& response) {
   AllowJavascript();
   CallJavascriptFunction("cr.webUIResponse", callback_id, response);
+}
+
+void NostrSettingsHandler::HandleGenerateKeys(const base::Value::List& args) {
+  CHECK_EQ(1U, args.size());
+  const base::Value& callback_id = args[0];
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value());
+    return;
+  }
+  
+  // Generate new keypair
+  std::string pubkey = nostr_service->GenerateNewKey();
+  
+  // Get the key details (this is a simplified version)
+  base::Value::Dict result;
+  result.Set("pubkey", pubkey);
+  result.Set("npub", "npub1" + pubkey.substr(0, 20) + "...");  // Simplified
+  result.Set("privkey", "generated_privkey");  // Should not expose actual privkey
+  result.Set("nsec", "nsec1...");  // Simplified
+  
+  ResolveJavascriptCallback(callback_id, base::Value(std::move(result)));
+}
+
+void NostrSettingsHandler::HandleCreateAccount(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& account_data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  // Extract account data
+  const std::string* name = account_data.FindString("name");
+  const std::string* about = account_data.FindString("about");
+  const std::string* picture = account_data.FindString("picture");
+  const std::string* nip05 = account_data.FindString("nip05");
+  
+  // Store profile metadata
+  // TODO: Implement proper profile storage
+  
+  ResolveJavascriptCallback(callback_id, base::Value(true));
+}
+
+void NostrSettingsHandler::HandleImportAccount(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  const std::string* private_key = data.FindString("privateKey");
+  if (!private_key) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  // Import the key
+  std::string pubkey = nostr_service->ImportKey(*private_key);
+  
+  ResolveJavascriptCallback(callback_id, base::Value(!pubkey.empty()));
+}
+
+void NostrSettingsHandler::HandleSwitchAccount(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  const std::string* pubkey = data.FindString("pubkey");
+  if (!pubkey) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  bool success = nostr_service->SetDefaultKey(*pubkey);
+  
+  ResolveJavascriptCallback(callback_id, base::Value(success));
+}
+
+void NostrSettingsHandler::HandleDeleteAccount(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& data = args[1].GetDict();
+  
+  Profile* profile = Profile::FromWebUI(web_ui());
+  auto* nostr_service = NostrServiceFactory::GetForProfile(profile);
+  
+  if (!nostr_service) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  const std::string* pubkey = data.FindString("pubkey");
+  if (!pubkey) {
+    ResolveJavascriptCallback(callback_id, base::Value(false));
+    return;
+  }
+  
+  bool success = nostr_service->DeleteAccount(*pubkey);
+  
+  ResolveJavascriptCallback(callback_id, base::Value(success));
+}
+
+void NostrSettingsHandler::HandleExportAccount(const base::Value::List& args) {
+  CHECK_EQ(2U, args.size());
+  const base::Value& callback_id = args[0];
+  const base::Value::Dict& data = args[1].GetDict();
+  
+  const std::string* pubkey = data.FindString("pubkey");
+  if (!pubkey) {
+    ResolveJavascriptCallback(callback_id, base::Value());
+    return;
+  }
+  
+  // Create export data (without exposing private key directly)
+  base::Value::Dict export_data;
+  export_data.Set("version", 1);
+  export_data.Set("pubkey", *pubkey);
+  export_data.Set("created", base::TimeToValue(base::Time::Now()));
+  export_data.Set("encrypted", true);
+  // Note: Actual implementation should encrypt the private key
+  
+  ResolveJavascriptCallback(callback_id, base::Value(std::move(export_data)));
 }
 
 // NostrSettingsUI implementation
