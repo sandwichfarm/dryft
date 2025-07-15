@@ -26,15 +26,15 @@ namespace {
 const gfx::VectorIcon& GetNostrIcon(NostrStatusButton::ConnectionStatus status) {
   switch (status) {
     case NostrStatusButton::ConnectionStatus::kConnected:
-      return vector_icons::kBoltIcon;
+      return vector_icons::kCheckCircleIcon;  // Green checkmark for connected
     case NostrStatusButton::ConnectionStatus::kDegraded:
-      return vector_icons::kBoltIcon;
+      return vector_icons::kWarningIcon;      // Warning icon for degraded
     case NostrStatusButton::ConnectionStatus::kDisconnected:
-      return vector_icons::kBoltIcon;
+      return vector_icons::kErrorIcon;        // Error icon for disconnected
     case NostrStatusButton::ConnectionStatus::kDisabled:
-      return vector_icons::kBoltIcon;
+      return vector_icons::kBlockIcon;        // Block icon for disabled
   }
-  return vector_icons::kBoltIcon;
+  return vector_icons::kBoltIcon;  // Fallback
 }
 
 SkColor GetStatusColor(NostrStatusButton::ConnectionStatus status,
