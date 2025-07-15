@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
 #include "chrome/browser/nostr/nostr_service_factory.h"
+#include "chrome/browser/nostr/nostr_operation_rate_limiter.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/nostr_messages.h"
 #include "content/public/browser/browser_context.h"
@@ -91,6 +92,18 @@ void NostrMessageRouter::OnGetPublicKey(int request_id,
     return;
   }
   
+  // Check rate limit
+  if (!nostr_service->CheckRateLimit(origin.GetURL(), 
+                                     NostrOperationRateLimiter::OperationType::kGetPublicKey)) {
+    Send(new NostrMsg_GetPublicKeyResponse(
+        routing_id(), request_id, false, "Rate limit exceeded"));
+    return;
+  }
+  
+  // Record the operation
+  nostr_service->RecordOperation(origin.GetURL(),
+                                NostrOperationRateLimiter::OperationType::kGetPublicKey);
+  
   // Get the public key
   std::string pubkey = nostr_service->GetPublicKey();
   Send(new NostrMsg_GetPublicKeyResponse(
@@ -113,16 +126,7 @@ void NostrMessageRouter::OnSignEvent(
     return;
   }
   
-  // Check rate limits
-  if (rate_limit_info.current_count >= rate_limit_info.signs_per_hour) {
-    base::Value::Dict error_dict;
-    error_dict.Set("error", "Rate limit exceeded");
-    Send(new NostrMsg_SignEventResponse(
-        routing_id(), request_id, false, error_dict));
-    return;
-  }
-  
-  // Get the Nostr service and sign the event
+  // Get the Nostr service
   auto* nostr_service = NostrServiceFactory::GetForBrowserContext(
       browser_context_);
   if (!nostr_service) {
@@ -132,6 +136,20 @@ void NostrMessageRouter::OnSignEvent(
         routing_id(), request_id, false, error_dict));
     return;
   }
+  
+  // Check rate limits using centralized rate limiter
+  if (!nostr_service->CheckRateLimit(origin.GetURL(),
+                                     NostrOperationRateLimiter::OperationType::kSignEvent)) {
+    base::Value::Dict error_dict;
+    error_dict.Set("error", "Rate limit exceeded");
+    Send(new NostrMsg_SignEventResponse(
+        routing_id(), request_id, false, error_dict));
+    return;
+  }
+  
+  // Record the operation
+  nostr_service->RecordOperation(origin.GetURL(),
+                                NostrOperationRateLimiter::OperationType::kSignEvent);
   
   // Sign the event asynchronously
   nostr_service->SignEvent(
@@ -166,6 +184,19 @@ void NostrMessageRouter::OnGetRelays(int request_id,
         routing_id(), request_id, false, empty_policy));
     return;
   }
+  
+  // Check rate limit
+  if (!nostr_service->CheckRateLimit(origin.GetURL(),
+                                     NostrOperationRateLimiter::OperationType::kGetRelays)) {
+    NostrRelayPolicy empty_policy;
+    Send(new NostrMsg_GetRelaysResponse(
+        routing_id(), request_id, false, empty_policy));
+    return;
+  }
+  
+  // Record the operation
+  nostr_service->RecordOperation(origin.GetURL(),
+                                NostrOperationRateLimiter::OperationType::kGetRelays);
   
   // Get the relay policy
   NostrRelayPolicy policy = nostr_service->GetRelayPolicy();

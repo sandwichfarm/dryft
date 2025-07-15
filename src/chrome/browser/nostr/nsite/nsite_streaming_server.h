@@ -107,6 +107,10 @@ class NsiteStreamingServer : public net::HttpServer::Delegate {
                             const blossom::ContentResolutionResult& result);
   void SendErrorResponse(int connection_id, int status_code,
                         const std::string& message);
+  
+  // Security headers helper
+  void AddSecurityHeaders(net::HttpResponseHeaders* headers,
+                         const RequestContext& context);
 
   // Session management
   std::string GetOrCreateSession(const net::HttpServerRequestInfo& info);

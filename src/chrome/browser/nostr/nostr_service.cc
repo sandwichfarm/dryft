@@ -25,6 +25,7 @@
 #include "chrome/browser/nostr/nostr_passphrase_manager.h"
 #include "chrome/browser/nostr/nostr_passphrase_manager_factory.h"
 #include "chrome/browser/nostr/nostr_permission_manager_factory.h"
+#include "chrome/browser/nostr/nostr_operation_rate_limiter.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/nostr_messages.h"
 #include "crypto/openssl_util.h"
@@ -161,6 +162,9 @@ NostrService::NostrService(Profile* profile) : profile_(profile) {
   
   // Initialize key storage
   key_storage_ = KeyStorageFactory::CreateKeyStorage(profile_);
+  
+  // Initialize rate limiter
+  rate_limiter_ = std::make_unique<NostrOperationRateLimiter>();
   
   // Load or generate default key
   InitializeCrypto();
@@ -755,6 +759,21 @@ bool NostrService::UpdateAccountMetadata(const std::string& public_key_hex,
   }
   
   return false;
+}
+
+bool NostrService::CheckRateLimit(const GURL& origin,
+                                 NostrOperationRateLimiter::OperationType operation) {
+  if (!rate_limiter_) {
+    return true;  // No rate limiter configured
+  }
+  return rate_limiter_->IsAllowed(origin, operation);
+}
+
+void NostrService::RecordOperation(const GURL& origin,
+                                  NostrOperationRateLimiter::OperationType operation) {
+  if (rate_limiter_) {
+    rate_limiter_->RecordOperation(origin, operation);
+  }
 }
 
 void NostrService::Shutdown() {

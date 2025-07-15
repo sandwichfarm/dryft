@@ -352,6 +352,9 @@ void NsiteStreamingServer::HandleNsiteRequest(int connection_id,
     headers->AddHeader("Cache-Control", "public, max-age=3600");  // 1 hour
     headers->AddHeader("ETag", cached_file->hash);
     
+    // Add security headers
+    AddSecurityHeaders(headers.get(), context);
+    
     // Set session cookie if we have a session
     if (!context.session_id.empty()) {
       headers->AddHeader("Set-Cookie", 
@@ -496,6 +499,9 @@ void NsiteStreamingServer::OnFileContentResolved(int connection_id,
   // Add caching headers
   headers->AddHeader("Cache-Control", "public, max-age=3600"); // 1 hour
   
+  // Add security headers
+  AddSecurityHeaders(headers.get(), context);
+  
   // Set session cookie if we have a session
   if (!context.session_id.empty()) {
     headers->AddHeader("Set-Cookie", 
@@ -533,7 +539,44 @@ void NsiteStreamingServer::SendErrorResponse(int connection_id,
                            net::GetHttpReasonPhrase(status_code)));
   headers->AddHeader("Content-Type", "text/html; charset=utf-8");
   
+  // Add basic security headers even for error responses
+  headers->AddHeader("X-Frame-Options", "DENY");
+  headers->AddHeader("X-Content-Type-Options", "nosniff");
+  headers->AddHeader("Referrer-Policy", "no-referrer");
+  
   server_->SendResponse(connection_id, headers, body);
+}
+
+void NsiteStreamingServer::AddSecurityHeaders(net::HttpResponseHeaders* headers,
+                                              const RequestContext& context) {
+  // Prevent clickjacking attacks
+  headers->AddHeader("X-Frame-Options", "DENY");
+  
+  // Prevent MIME type sniffing
+  headers->AddHeader("X-Content-Type-Options", "nosniff");
+  
+  // Control referrer information
+  headers->AddHeader("Referrer-Policy", "no-referrer");
+  
+  // Restrict browser features/APIs
+  headers->AddHeader("Permissions-Policy", 
+      "camera=(), "
+      "microphone=(), "
+      "geolocation=(), "
+      "payment=(), "
+      "usb=(), "
+      "bluetooth=(), "
+      "accelerometer=(), "
+      "gyroscope=(), "
+      "magnetometer=()");
+  
+  // Add Cross-Origin policies for better isolation
+  headers->AddHeader("Cross-Origin-Opener-Policy", "same-origin");
+  headers->AddHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  headers->AddHeader("Cross-Origin-Resource-Policy", "same-origin");
+  
+  // Add X-Npub header for origin identification
+  headers->AddHeader("X-Npub", context.npub);
 }
 
 std::string NsiteStreamingServer::GetOrCreateSession(
