@@ -430,7 +430,10 @@ std::string NostrInputValidator::RemoveDangerousCharacters(const std::string& st
   
   for (char c : str) {
     // Skip null bytes and control characters (except newline and tab)
-    if (c == '\0' || (IsControlCharacter(c) && c != '\n' && c != '\t')) {
+    if (c == '\0') {
+      continue;
+    }
+    if (IsControlCharacter(c) && c != '\n' && c != '\t') {
       continue;
     }
     result.push_back(c);
