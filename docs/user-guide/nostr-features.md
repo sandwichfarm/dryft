@@ -44,7 +44,7 @@ On any website, open Developer Tools (F12) and test:
 console.log('Nostr available:', !!window.nostr);
 
 // Check for Tungsten-specific features
-console.log('Tungsten features:', !!window.nostr?.relay?.url);
+console.log('Tungsten features:', Boolean(window.nostr?.relay?.url));
 
 // List available methods
 console.log('Available methods:', Object.keys(window.nostr));
