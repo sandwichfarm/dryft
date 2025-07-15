@@ -123,8 +123,10 @@ bool NostrInputValidator::IsValidRelayUrl(const std::string& url) {
   // Reject private IP ranges
   if (gurl.HostIsIPAddress()) {
     net::IPAddress ip_address;
-    if (ip_address.AssignFromIPLiteral(gurl.host()) && ip_address.IsReserved()) {
-      return false;  // Reject private or reserved IP ranges
+    if (ip_address.AssignFromIPLiteral(gurl.host())) {
+      if (ip_address.IsReserved()) {
+        return false;  // Reject private or reserved IP ranges
+      }
     }
   }
   
