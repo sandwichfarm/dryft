@@ -341,15 +341,53 @@ install_arm_deps() {
 install_python_deps() {
     echo -e "${GREEN}Installing Python dependencies...${NC}"
     
-    # Ensure pip is up to date
-    python3 -m pip install --upgrade pip
-    
-    # Install required Python packages
-    python3 -m pip install \
-        psutil \
-        httplib2 \
-        pyparsing \
-        six
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # On macOS, try to install via Homebrew first
+        echo -e "${YELLOW}Installing Python packages via Homebrew for macOS${NC}"
+        
+        # Check if packages are available via brew
+        brew install python-psutil 2>/dev/null || true
+        
+        # For packages not in Homebrew, check if they're already installed
+        echo -e "${YELLOW}Checking Python packages...${NC}"
+        
+        MISSING_PACKAGES=""
+        for package in psutil httplib2 pyparsing six; do
+            if ! python3 -c "import $package" 2>/dev/null; then
+                MISSING_PACKAGES="$MISSING_PACKAGES $package"
+            else
+                echo -e "${GREEN}✓ $package already installed${NC}"
+            fi
+        done
+        
+        if [ -n "$MISSING_PACKAGES" ]; then
+            echo -e "${YELLOW}Missing packages:$MISSING_PACKAGES${NC}"
+            echo -e "${YELLOW}These Python packages are required but not installed.${NC}"
+            echo -e "${YELLOW}You can install them using one of these methods:${NC}"
+            echo "1. Create a virtual environment:"
+            echo "   python3 -m venv ~/tungsten-env"
+            echo "   source ~/tungsten-env/bin/activate"
+            echo "   pip install$MISSING_PACKAGES"
+            echo ""
+            echo "2. Install with pipx (if available):"
+            echo "   brew install pipx"
+            echo "   pipx install$MISSING_PACKAGES"
+            echo ""
+            echo "3. Use --break-system-packages flag (not recommended):"
+            echo "   python3 -m pip install --user --break-system-packages$MISSING_PACKAGES"
+            
+            # For now, we'll skip the error since Chromium build might have its own Python
+            echo -e "${YELLOW}Continuing anyway - Chromium build may provide these dependencies${NC}"
+        fi
+    else
+        # Linux systems - use regular pip
+        python3 -m pip install --upgrade pip
+        python3 -m pip install \
+            psutil \
+            httplib2 \
+            pyparsing \
+            six
+    fi
 }
 
 # Function to setup depot_tools

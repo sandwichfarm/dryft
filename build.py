@@ -24,11 +24,19 @@ class BuildConfig:
         self.platform = self._detect_platform()
         self.arch = self._detect_arch()
         self.script_dir = Path(__file__).parent
+        
+        # Check for CR_DIR environment variable first (Thorium/Tungsten standard)
+        if os.environ.get("CR_DIR"):
+            self.src_dir = Path(os.environ["CR_DIR"])
         # Check if we're in CI with cached Chromium
-        if os.environ.get("CI") and (self.script_dir / "chromium" / "src").exists():
+        elif os.environ.get("CI") and (self.script_dir / "chromium" / "src").exists():
             self.src_dir = self.script_dir / "chromium" / "src"
+        # Check standard Chromium location
+        elif (Path.home() / "chromium" / "src").exists():
+            self.src_dir = Path.home() / "chromium" / "src"
         else:
             self.src_dir = self.script_dir / "src"
+            
         self.out_dir = self.src_dir / "out"
         self.depot_tools_path = None
         
@@ -75,6 +83,14 @@ class TungstenBuilder:
         """Setup build environment"""
         print(f"Setting up build environment for {self.config.platform}/{self.config.arch}")
         
+        # Check if source directory exists
+        if not self.config.src_dir.exists():
+            print(f"ERROR: Chromium source not found at {self.config.src_dir}")
+            print("Please run one of the following:")
+            print("  1. make fetch-chromium  # Download full Chromium source")
+            print("  2. export CR_DIR=/path/to/chromium/src  # Use existing checkout")
+            return False
+            
         # Check for depot_tools
         if not self._find_depot_tools():
             print("ERROR: depot_tools not found. Please install depot_tools and add to PATH")

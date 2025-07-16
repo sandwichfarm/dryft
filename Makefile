@@ -47,8 +47,30 @@ help: ## Show this help message
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 
 ## Setup
-setup: check-deps deps cache-setup ## Complete setup for new developers
-	@echo "$(GREEN)Setup complete! You can now run 'make build'$(NC)"
+setup: check-deps install-depot-tools deps cache-setup ## Complete setup for new developers
+	@echo "$(GREEN)Basic setup complete!$(NC)"
+	@echo "$(YELLOW)IMPORTANT: You still need Chromium source to build Tungsten$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Choose one of the following:$(NC)"
+	@echo "1. $(GREEN)make fetch-chromium$(NC)  # Download ~30GB Chromium source (recommended)"
+	@echo "2. Set CR_DIR to existing Chromium: export CR_DIR=/path/to/chromium/src"
+	@echo ""
+	@echo "$(YELLOW)Or run 'make setup-full' to do everything automatically$(NC)"
+
+setup-full: check-deps install-depot-tools deps cache-setup fetch-chromium ## Complete setup including Chromium source
+	@echo "$(GREEN)Full setup complete with Chromium source!$(NC)"
+	@echo "$(YELLOW)Next steps:$(NC)"
+	@echo "1. export CR_DIR=$$HOME/chromium/src"
+	@echo "2. make prepare-build"
+	@echo "3. make build"
+
+init-depot-tools: ## Initialize depot_tools (fixes python3_bin_reldir.txt error)
+	@echo "Initializing depot_tools..."
+	@export PATH="$$PATH:$(DEPOT_TOOLS_DIR)" && \
+		cd $(DEPOT_TOOLS_DIR) && \
+		./update_depot_tools && \
+		gclient --version
+	@echo "$(GREEN)depot_tools initialized$(NC)"
 
 check-deps: ## Check if required dependencies are installed
 	@echo "Checking dependencies..."
@@ -68,6 +90,12 @@ install-depot-tools: ## Install depot_tools
 	else \
 		echo "$(YELLOW)depot_tools already installed at $(DEPOT_TOOLS_DIR)$(NC)"; \
 	fi
+	@echo "Initializing depot_tools..."
+	@export PATH="$$PATH:$(DEPOT_TOOLS_DIR)" && \
+		cd $(DEPOT_TOOLS_DIR) && \
+		./update_depot_tools && \
+		gclient --version
+	@echo "$(GREEN)depot_tools initialized$(NC)"
 
 deps: ## Install build dependencies
 	@echo "Installing build dependencies..."
@@ -89,9 +117,31 @@ cache-stats: ## Show cache statistics
 cache-clean: ## Clean build cache
 	@./scripts/setup-build-cache.sh clean
 
+prepare-build: ## Prepare Chromium source for Tungsten build
+	@if [ -z "$$CR_DIR" ] && [ -d "$$HOME/chromium/src" ]; then \
+		export CR_DIR=$$HOME/chromium/src; \
+	fi; \
+	if [ -z "$$CR_DIR" ]; then \
+		echo "$(RED)ERROR: CR_DIR not set and Chromium not found at $$HOME/chromium/src$(NC)"; \
+		echo "$(YELLOW)Run 'make fetch-chromium' first or set CR_DIR to your Chromium src directory$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(YELLOW)Preparing Chromium source for Tungsten...$(NC)"; \
+	./trunk.sh && \
+	./version.sh && \
+	./setup.sh --mac && \
+	echo "$(GREEN)Chromium prepared for Tungsten build!$(NC)"
+
 ## Building
 build: ## Build Tungsten (uses BUILD_TYPE variable)
+	@if [ ! -d "$$HOME/chromium/src" ] && [ -z "$$CR_DIR" ]; then \
+		echo "$(RED)ERROR: Chromium source not found!$(NC)"; \
+		echo "$(YELLOW)Run 'make fetch-chromium' first to download Chromium source$(NC)"; \
+		echo "$(YELLOW)Or set CR_DIR to your existing Chromium checkout$(NC)"; \
+		exit 1; \
+	fi
 	@echo "Building Tungsten ($(BUILD_TYPE))..."
+	@export PATH="$$PATH:$(DEPOT_TOOLS_DIR)" && \
 	$(BUILD_SCRIPT) --$(BUILD_TYPE) \
 		$(if $(filter-out auto,$(PLATFORM)),--platform=$(PLATFORM)) \
 		$(if $(filter-out auto,$(ARCH)),--arch=$(ARCH)) \
@@ -105,6 +155,7 @@ debug: ## Build debug version
 
 quick: ## Quick debug build (component build)
 	@echo "Building debug with component build..."
+	@export PATH="$$PATH:$(DEPOT_TOOLS_DIR)" && \
 	$(BUILD_SCRIPT) --debug --component-build \
 		$(if $(filter-out auto,$(PLATFORM)),--platform=$(PLATFORM)) \
 		$(if $(filter-out auto,$(ARCH)),--arch=$(ARCH))
@@ -136,12 +187,11 @@ all-platforms: ## Build for all platforms (CI only)
 ## Chromium Source
 fetch-chromium: ## Fetch Chromium source (requires depot_tools)
 	@echo "$(YELLOW)Fetching Chromium source - this will download ~30GB!$(NC)"
-	@echo "$(RED)This is not yet implemented in the Makefile.$(NC)"
-	@echo "Run the GitHub Actions workflow 'Cache Chromium Source' instead."
+	@./scripts/fetch-chromium.sh
 
 sync: ## Sync Chromium source
-	@if [ -d "chromium/src" ]; then \
-		cd chromium && gclient sync; \
+	@if [ -d "$$HOME/chromium/src" ]; then \
+		cd $$HOME/chromium && gclient sync --with_branch_heads --with_tags; \
 	else \
 		echo "$(RED)Chromium source not found. Run 'make fetch-chromium' first.$(NC)"; \
 	fi
@@ -226,8 +276,15 @@ examples: ## Show example commands
 	@echo "Example Commands:"
 	@echo "================="
 	@echo ""
-	@echo "# First-time setup:"
+	@echo "# First-time setup (without Chromium):"
 	@echo "  make setup"
+	@echo ""
+	@echo "# First-time setup (with Chromium - recommended):"
+	@echo "  make setup-full  # Downloads ~30GB Chromium source"
+	@echo ""
+	@echo "# Prepare Chromium for Tungsten build:"
+	@echo "  export CR_DIR=$$HOME/chromium/src"
+	@echo "  make prepare-build"
 	@echo ""
 	@echo "# Build release version:"
 	@echo "  make release"
