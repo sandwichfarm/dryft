@@ -67,7 +67,8 @@ bool NostrOperationRateLimiter::IsAllowed(const GURL& origin, OperationType oper
   }
 
   const auto& config = config_it->second;
-  auto& origin_data = origin_data_[origin.DeprecatedGetOriginAsURL().spec()];
+  const std::string& origin_spec = origin.DeprecatedGetOriginAsURL().spec();
+  auto& origin_data = origin_data_[origin_spec];
   auto& op_data = origin_data.operations[operation];
 
   UpdateTimeWindows(&op_data);

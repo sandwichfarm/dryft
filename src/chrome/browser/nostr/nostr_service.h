@@ -26,6 +26,7 @@ struct NostrRateLimitInfo;
 namespace nostr {
 
 class KeyStorage;
+class NostrOperationRateLimiter;
 class NostrPermissionManager;
 class NostrPassphraseManager;
 class NostrOperationRateLimiter;
@@ -319,6 +320,9 @@ class NostrService : public KeyedService {
   // Local relay components
   std::unique_ptr<local_relay::LocalRelayService> local_relay_service_;
   std::unique_ptr<local_relay::LocalRelayConfigManager> local_relay_config_;
+  
+  // Rate limiter for operations
+  std::unique_ptr<NostrOperationRateLimiter> rate_limiter_;
   
   // Current default key (cached)
   std::string default_public_key_;

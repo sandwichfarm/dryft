@@ -1,0 +1,67 @@
+name: Cache Chromium
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git python3 clang lld zstd jq gh
+
+      - name: Clone depot_tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+          echo "$HOME/depot_tools" >> "$GITHUB_PATH"   # export PATH for later steps
+
+      - name: Download chromium-src artifact
+        id: restore
+        env: 
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          RUN_ID=$(gh run list -w "${GITHUB_WORKFLOW}" -s success -L 1 --json databaseId | jq -r '.[0].databaseId')
+          if [[ "$RUN_ID" != "null" ]]; then
+            gh run download "$RUN_ID" -n chromium-src -D "$HOME" || true
+          fi
+          [[ -f "$HOME/chromium-src.tar.zst" ]] && echo "found=true" >>"$GITHUB_OUTPUT" || echo "found=false" >>"$GITHUB_OUTPUT"
+
+      - name: Extract snapshot
+        if: steps.restore.outputs.found == 'true'
+        run: |
+          mkdir -p "$HOME/chromium-src"
+          tar -I 'zstd -d' -xf "$HOME/chromium-src.tar.zst" -C "$HOME/chromium-src" --strip-components=1
+
+      - name: Fetch Chromium (shallow)
+        if: steps.restore.outputs.found != 'true'
+        run: |
+          # work outside the repo checkout to keep gclient happy
+          cd "$HOME"
+          rm -rf chromium || true               # clean up any leftovers
+          fetch --nohooks --no-history chromium # ~3-4 GiB download, zero git history
+          mv chromium chromium-src
+
+      - name: Re-pack snapshot
+        if: steps.restore.outputs.found != 'true'
+        run: |
+          tar -I 'zstd -19 -T0' -cf chromium-src.tar.zst -C "$HOME" chromium-src
+
+      - uses: actions/upload-artifact@v4
+        if: steps.restore.outputs.found != 'true'
+        with:
+          name: chromium-src
+          path: chromium-src.tar.zst
+          retention-days: 30
+
+      - name: Build
+        env: { PATH: $HOME/depot_tools:$PATH }
+        run: |
+          cd "$HOME/chromium-src/src"
+          gn gen out/Release --args='is_debug=false'
+          autoninja -C out/Release chrome  # change target if Thorium uses a custom one
