@@ -59,6 +59,15 @@ struct KeyIdentifier {
   
   // Whether this is the default key
   bool is_default;
+  
+  // Key rotation tracking
+  std::string rotated_from;    // Previous key this was rotated from
+  std::string rotated_to;      // New key this was rotated to
+  base::Time rotated_at;       // When rotation occurred
+  std::string rotation_reason; // Why the rotation happened
+  
+  // Usage tracking
+  int use_count = 0;           // Number of times key has been used
 };
 
 // Abstract interface for platform-specific key storage
@@ -95,6 +104,12 @@ class KeyStorage {
   
   // Set a key as the default
   virtual bool SetDefaultKey(const std::string& key_id) = 0;
+  
+  // Get detailed key information by ID
+  virtual std::optional<KeyIdentifier> GetKeyInfo(const std::string& key_id) = 0;
+  
+  // Update detailed key information
+  virtual bool UpdateKeyInfo(const std::string& key_id, const KeyIdentifier& info) = 0;
 };
 
 }  // namespace nostr

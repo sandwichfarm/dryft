@@ -590,6 +590,166 @@ bool NostrService::SetDefaultKey(const std::string& public_key_hex) {
   return false;
 }
 
+void NostrService::RotateKey(const std::string& public_key_hex,
+                             base::OnceCallback<void(const std::string& new_pubkey,
+                                                     const std::string& error)> callback) {
+  if (!key_storage_) {
+    std::move(callback).Run("", "Key storage not available");
+    return;
+  }
+
+  // Verify the key exists
+  if (!key_storage_->HasKey(public_key_hex)) {
+    std::move(callback).Run("", "Key not found");
+    return;
+  }
+
+  // Get the old key metadata
+  auto key_info = key_storage_->GetKeyInfo(public_key_hex);
+  if (!key_info) {
+    std::move(callback).Run("", "Failed to get key info");
+    return;
+  }
+
+  // Generate new keypair
+  std::vector<uint8_t> private_key_bytes(32);
+  crypto::RandBytes(private_key_bytes.data(), private_key_bytes.size());
+  
+  std::vector<uint8_t> public_key_bytes(32);
+  if (!GeneratePublicKey(private_key_bytes, public_key_bytes)) {
+    SecureClearVector(private_key_bytes);
+    std::move(callback).Run("", "Failed to generate new keypair");
+    return;
+  }
+  
+  std::string new_public_key_hex = BytesToHex(public_key_bytes);
+  
+  // Create new key identifier with rotation metadata
+  KeyIdentifier new_key_id;
+  new_key_id.id = new_public_key_hex;
+  new_key_id.name = key_info->name + " (rotated)";
+  new_key_id.public_key = new_public_key_hex;
+  new_key_id.created_at = base::Time::Now();
+  new_key_id.last_used_at = base::Time::Now();
+  new_key_id.is_default = key_info->is_default;
+  new_key_id.rotated_from = public_key_hex;
+  new_key_id.rotation_reason = "scheduled";
+  
+  // Request passphrase from user
+  ScopedPassphrase passphrase(RetrieveAndValidatePassphrase(
+      "Enter passphrase to encrypt your rotated Nostr key"));
+  if (passphrase.empty()) {
+    SecureClearVector(private_key_bytes);
+    std::move(callback).Run("", "Passphrase required");
+    return;
+  }
+  
+  // Encrypt and store new key
+  KeyEncryption key_encryption;
+  auto encrypted_key_opt = key_encryption.EncryptKey(private_key_bytes, passphrase.value());
+  SecureClearVector(private_key_bytes);
+  
+  if (!encrypted_key_opt) {
+    std::move(callback).Run("", "Failed to encrypt new key");
+    return;
+  }
+  
+  if (!key_storage_->StoreKey(new_key_id, *encrypted_key_opt)) {
+    std::move(callback).Run("", "Failed to store new key");
+    return;
+  }
+  
+  // Mark old key as rotated
+  key_info->rotated_to = new_public_key_hex;
+  key_info->rotated_at = base::Time::Now();
+  key_storage_->UpdateKeyInfo(public_key_hex, *key_info);
+  
+  // Update default if needed
+  if (key_info->is_default) {
+    SetDefaultKey(new_public_key_hex);
+  }
+  
+  LOG(INFO) << "Successfully rotated key from " << public_key_hex.substr(0, 8) 
+            << "... to " << new_public_key_hex.substr(0, 8) << "...";
+  
+  std::move(callback).Run(new_public_key_hex, "");
+}
+
+bool NostrService::NeedsKeyRotation(const std::string& public_key_hex) {
+  if (!key_storage_) {
+    return false;
+  }
+  
+  auto key_info = key_storage_->GetKeyInfo(public_key_hex);
+  if (!key_info) {
+    return false;
+  }
+  
+  // Check if already rotated
+  if (!key_info->rotated_to.empty()) {
+    return false;
+  }
+  
+  // Check age - rotate after 90 days
+  base::TimeDelta age = base::Time::Now() - key_info->created_at;
+  if (age > base::Days(90)) {
+    return true;
+  }
+  
+  // Check usage count - rotate after 10,000 uses
+  if (key_info->use_count > 10000) {
+    return true;
+  }
+  
+  return false;
+}
+
+base::Value::List NostrService::GetKeyRotationHistory(const std::string& public_key_hex) {
+  base::Value::List history;
+  
+  if (!key_storage_) {
+    return history;
+  }
+  
+  // Build rotation chain
+  std::string current_key = public_key_hex;
+  std::set<std::string> visited;  // Prevent cycles
+  
+  while (!current_key.empty() && visited.find(current_key) == visited.end()) {
+    visited.insert(current_key);
+    
+    auto key_info = key_storage_->GetKeyInfo(current_key);
+    if (!key_info) {
+      break;
+    }
+    
+    base::Value::Dict record;
+    record.Set("public_key", current_key);
+    record.Set("created_at", base::TimeToISO8601(key_info->created_at));
+    record.Set("name", key_info->name);
+    
+    if (!key_info->rotated_to.empty()) {
+      record.Set("rotated_to", key_info->rotated_to);
+      record.Set("rotated_at", base::TimeToISO8601(key_info->rotated_at));
+    }
+    
+    if (!key_info->rotated_from.empty()) {
+      record.Set("rotated_from", key_info->rotated_from);
+    }
+    
+    if (!key_info->rotation_reason.empty()) {
+      record.Set("rotation_reason", key_info->rotation_reason);
+    }
+    
+    history.Append(std::move(record));
+    
+    // Move to next in chain
+    current_key = key_info->rotated_to;
+  }
+  
+  return history;
+}
+
 base::Value::Dict NostrService::GetCurrentAccount() {
   base::Value::Dict account;
   
