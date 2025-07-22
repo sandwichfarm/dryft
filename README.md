@@ -1,3 +1,5 @@
+> NOTICE: Alpha! Build system incomplete. Development is driven from Tests and Docs; BDD. There _will_ be failing tests and docs _will_ be inaccurate.
+
 # Tungsten Browser
 
 A fork of [Thorium browser](https://github.com/Alex313031/thorium) with native Nostr protocol support built directly into the browser core.
