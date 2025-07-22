@@ -696,8 +696,8 @@ bool NostrService::NeedsKeyRotation(const std::string& public_key_hex) {
     return true;
   }
   
-  // Check usage count - rotate after 10,000 uses
-  if (key_info->use_count > 10000) {
+  // Check usage count - rotate after kMaxKeyUsesBeforeRotation uses
+  if (key_info->use_count > kMaxKeyUsesBeforeRotation) {
     return true;
   }
   
