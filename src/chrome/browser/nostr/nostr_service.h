@@ -29,7 +29,6 @@ class KeyStorage;
 class NostrOperationRateLimiter;
 class NostrPermissionManager;
 class NostrPassphraseManager;
-class NostrOperationRateLimiter;
 
 namespace local_relay {
 class LocalRelayService;
