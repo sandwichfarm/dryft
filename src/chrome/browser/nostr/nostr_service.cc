@@ -690,9 +690,9 @@ bool NostrService::NeedsKeyRotation(const std::string& public_key_hex) {
     return false;
   }
   
-  // Check age - rotate after 90 days
+  // Check age - rotate after the configured number of days
   base::TimeDelta age = base::Time::Now() - key_info->created_at;
-  if (age > base::Days(90)) {
+  if (age > base::Days(kKeyRotationDays)) {
     return true;
   }
   
