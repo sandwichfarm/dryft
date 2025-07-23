@@ -1,4 +1,4 @@
-> NOTICE: Alpha! Build system incomplete. There _will_ be failing tests and docs _will_ be inaccurate.
+> NOTICE: Alpha! Build system incomplete and project currently doesn't build. There _will_ be failing tests and docs _will_ be inaccurate. 
 
 # Tungsten Browser
 
