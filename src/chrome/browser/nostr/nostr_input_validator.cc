@@ -20,6 +20,12 @@ namespace nostr {
 
 namespace {
 
+// Bech32 character set: all alphanumeric except 1, b, i, o (to avoid confusion)
+constexpr std::array<char, 32> kValidBech32Chars = {'0', '2', '3', '4', '5', '6', '7', '8', '9', 
+                                                    'a', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 
+                                                    'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 
+                                                    'v', 'w', 'x', 'y', 'z'};
+
 // Allowed URL schemes for relays
 constexpr const char* kAllowedRelaySchemes[] = {
     url::kWsScheme,
@@ -60,10 +66,11 @@ bool NostrInputValidator::IsValidNpub(const std::string& npub) {
     return false;
   }
   
-  // Validate Bech32 characters (alphanumeric except 1, b, i, o)
+  // Validate Bech32 characters using the defined character set
+  std::string valid_chars(kValidBech32Chars);
   for (size_t i = 5; i < npub.length(); ++i) {
-    char c = npub[i];
-    if (!std::isalnum(c) || (c == '1' || c == 'b' || c == 'i' || c == 'o')) {
+    char c = std::tolower(npub[i]);
+    if (valid_chars.find(c) == std::string::npos) {
       return false;
     }
   }
@@ -123,8 +130,10 @@ bool NostrInputValidator::IsValidRelayUrl(const std::string& url) {
   // Reject private IP ranges
   if (gurl.HostIsIPAddress()) {
     net::IPAddress ip_address;
-    if (ip_address.AssignFromIPLiteral(gurl.host()) && ip_address.IsReserved()) {
-      return false;  // Reject private or reserved IP ranges
+    if (ip_address.AssignFromIPLiteral(gurl.host())) {
+      if (ip_address.IsReserved()) {
+        return false;  // Reject private or reserved IP ranges
+      }
     }
   }
   
@@ -428,7 +437,10 @@ std::string NostrInputValidator::RemoveDangerousCharacters(const std::string& st
   
   for (char c : str) {
     // Skip null bytes and control characters (except newline and tab)
-    if (c == '\0' || (IsControlCharacter(c) && c != '\n' && c != '\t')) {
+    if (c == '\0') {
+      continue;
+    }
+    if (IsControlCharacter(c) && c != '\n' && c != '\t') {
       continue;
     }
     result.push_back(c);
