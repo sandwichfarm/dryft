@@ -169,6 +169,29 @@ class NostrService : public KeyedService {
    */
   bool SetDefaultKey(const std::string& public_key_hex);
 
+  /**
+   * Rotate the key for an account, generating a new keypair and migrating data.
+   * @param public_key_hex Current public key of the account to rotate
+   * @param callback Called with new public key or error
+   */
+  void RotateKey(const std::string& public_key_hex,
+                 base::OnceCallback<void(const std::string& new_pubkey,
+                                         const std::string& error)> callback);
+
+  /**
+   * Check if a key needs rotation based on age and usage.
+   * @param public_key_hex Public key to check
+   * @return true if key should be rotated
+   */
+  bool NeedsKeyRotation(const std::string& public_key_hex);
+
+  /**
+   * Get key rotation history for an account.
+   * @param public_key_hex Current or past public key
+   * @return List of rotation records
+   */
+  base::Value::List GetKeyRotationHistory(const std::string& public_key_hex);
+
   // Account Management
 
   /**
@@ -325,6 +348,9 @@ class NostrService : public KeyedService {
   
   // Current default key (cached)
   std::string default_public_key_;
+  
+  // Rate limiter for operations
+  std::unique_ptr<NostrOperationRateLimiter> rate_limiter_;
   
   // Weak pointer factory for async callbacks
   base::WeakPtrFactory<NostrService> weak_factory_{this};

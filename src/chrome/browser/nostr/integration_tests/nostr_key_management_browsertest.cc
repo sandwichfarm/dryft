@@ -388,8 +388,8 @@ IN_PROC_BROWSER_TEST_F(NostrKeyManagementBrowserTest, ConcurrentKeyOperations) {
   EXPECT_EQ(kNumKeys, static_cast<int>(stored_keys.size()));
 }
 
-// Test key rotation scenario
-IN_PROC_BROWSER_TEST_F(NostrKeyManagementBrowserTest, KeyRotation) {
+// Test key switching scenario
+IN_PROC_BROWSER_TEST_F(NostrKeyManagementBrowserTest, KeySwitching) {
   // Create initial key
   std::string old_key = CreateAndStoreTestKey("Old Key", "old-password");
   
@@ -424,7 +424,7 @@ IN_PROC_BROWSER_TEST_F(NostrKeyManagementBrowserTest, KeyRotation) {
       "  .then(e => window.domAutomationController.send(e.sig));",
       &old_signature));
   
-  // Create new key for rotation
+  // Create new key for switching
   std::string new_key = CreateAndStoreTestKey("New Key", "new-password");
   
   // Switch to new key
@@ -479,6 +479,76 @@ IN_PROC_BROWSER_TEST_F(NostrKeyManagementBrowserTest, KeyRotation) {
   
   EXPECT_EQ(1u, final_keys.size());
   EXPECT_EQ(new_key, final_keys[0].public_key);
+}
+
+// Test actual key rotation functionality
+IN_PROC_BROWSER_TEST_F(NostrKeyManagementBrowserTest, KeyRotation) {
+  // Create initial key
+  std::string original_key = CreateAndStoreTestKey("Original Key", "password");
+  
+  // Set as active and unlock
+  base::RunLoop set_active_loop;
+  nostr_service()->SetActiveKey(
+      original_key,
+      base::BindLambdaForTesting([&](bool success) {
+        EXPECT_TRUE(success);
+        set_active_loop.Quit();
+      }));
+  set_active_loop.Run();
+  
+  base::RunLoop unlock_loop;
+  nostr_service()->UnlockKey(
+      original_key, "password",
+      base::BindLambdaForTesting([&](bool success) {
+        EXPECT_TRUE(success);
+        unlock_loop.Quit();
+      }));
+  unlock_loop.Run();
+  
+  // Test if key needs rotation (should be false for new key)
+  EXPECT_FALSE(nostr_service()->NeedsKeyRotation(original_key));
+  
+  // Perform key rotation
+  std::string new_key;
+  base::RunLoop rotate_loop;
+  nostr_service()->RotateKey(
+      original_key,
+      base::BindLambdaForTesting([&](const std::string& new_pubkey,
+                                     const std::string& error) {
+        EXPECT_FALSE(new_pubkey.empty());
+        EXPECT_TRUE(error.empty());
+        new_key = new_pubkey;
+        rotate_loop.Quit();
+      }));
+  rotate_loop.Run();
+  
+  // Verify new key is different
+  EXPECT_NE(original_key, new_key);
+  
+  // Check rotation history
+  auto history = nostr_service()->GetKeyRotationHistory(new_key);
+  EXPECT_EQ(2u, history.size());  // Both old and new key
+  
+  // Verify old key shows in history
+  bool found_old = false;
+  bool found_new = false;
+  for (const auto& record : history) {
+    const std::string* pubkey = record.GetDict().FindString("public_key");
+    ASSERT_TRUE(pubkey);
+    if (*pubkey == original_key) {
+      found_old = true;
+      EXPECT_TRUE(record.GetDict().FindString("rotated_to"));
+    } else if (*pubkey == new_key) {
+      found_new = true;
+      EXPECT_TRUE(record.GetDict().FindString("rotated_from"));
+    }
+  }
+  EXPECT_TRUE(found_old);
+  EXPECT_TRUE(found_new);
+  
+  // Verify new key is now default
+  std::string current_default = nostr_service()->GetDefaultKey();
+  EXPECT_EQ(new_key, current_default);
 }
 
 }  // namespace nostr

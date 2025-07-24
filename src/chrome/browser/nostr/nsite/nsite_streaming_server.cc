@@ -577,6 +577,23 @@ void NsiteStreamingServer::AddSecurityHeaders(net::HttpResponseHeaders* headers,
   
   // Add X-Npub header for origin identification
   headers->AddHeader("X-Npub", context.npub);
+  
+  // Add strict Content Security Policy
+  // This CSP removes unsafe-inline and unsafe-eval as required by G-6 security audit
+  headers->AddHeader("Content-Security-Policy",
+      "default-src 'self' https:; "
+      "script-src 'self' https: 'wasm-unsafe-eval'; "  // Allow WASM but no unsafe-inline/eval
+      "style-src 'self' https: 'unsafe-inline'; "  // Allow inline styles for now (can be tightened later)
+      "img-src 'self' https: data: blob:; "
+      "font-src 'self' https: data:; "
+      "connect-src 'self' https: wss:; "
+      "media-src 'self' https: blob:; "
+      "object-src 'none'; "
+      "frame-src 'none'; "
+      "frame-ancestors 'none'; "
+      "base-uri 'self'; "
+      "form-action 'self'; "
+      "upgrade-insecure-requests;");
 }
 
 std::string NsiteStreamingServer::GetOrCreateSession(
