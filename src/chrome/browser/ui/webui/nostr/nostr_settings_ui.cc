@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -22,7 +22,7 @@
 #include "services/network/public/mojom/content_security_policy.mojom.h"
 #include "url/gurl.h"
 
-namespace tungsten {
+namespace dryft {
 
 namespace {
 
@@ -879,4 +879,4 @@ NostrSettingsUI::NostrSettingsUI(content::WebUI* web_ui)
 
 NostrSettingsUI::~NostrSettingsUI() = default;
 
-}  // namespace tungsten
+}  // namespace dryft

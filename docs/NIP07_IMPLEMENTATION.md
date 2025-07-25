@@ -1,6 +1,6 @@
 # NIP-07 Implementation in Tungsten
 
-This document describes the implementation of NIP-07 (window.nostr capability) in Tungsten browser.
+This document describes the implementation of NIP-07 (window.nostr capability) in dryft browser.
 
 ## Overview
 

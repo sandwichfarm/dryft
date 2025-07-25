@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -27,7 +27,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "testing/perf/perf_result_reporter.h"
 
-namespace tungsten {
+namespace dryft {
 
 class LocalRelayPerformanceTest : public testing::Test {
  protected:
@@ -108,7 +108,7 @@ class LocalRelayPerformanceTest : public testing::Test {
   void SetupPerformanceBaselines() {
     // Set baselines from CLAUDE.md performance targets
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "Relay.EventQuery", TungstenPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds());
+        "Relay.EventQuery", DryftPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
         "Relay.EventInsert", 15.0);  // Slightly higher than query
     PerformanceRegressionDetector::LogPerformanceBaseline(
@@ -159,7 +159,7 @@ TEST_F(LocalRelayPerformanceTest, EventInsertPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kEventInsert);
+    SCOPED_DRYFT_TIMER(kEventInsert);
     
     // Insert a test event
     const nostr::NostrEvent& event = test_events_[i % test_events_.size()];
@@ -186,7 +186,7 @@ TEST_F(LocalRelayPerformanceTest, EventInsertPerformance) {
       "Relay.EventInsert", avg_time, 15.0, 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelayEventInsert");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelayEventInsert");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -196,7 +196,7 @@ TEST_F(LocalRelayPerformanceTest, EventQueryPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kEventQuery);
+    SCOPED_DRYFT_TIMER(kEventQuery);
     
     // Create test filter
     nostr::NostrFilter filter = CreateTestFilter();
@@ -215,17 +215,17 @@ TEST_F(LocalRelayPerformanceTest, EventQueryPerformance) {
   avg_time /= kIterations;
   
   // Check against performance target (10ms)
-  EXPECT_LT(avg_time, TungstenPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds())
+  EXPECT_LT(avg_time, DryftPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds())
       << "Event query took " << avg_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "Relay.EventQuery", avg_time, 
-      TungstenPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds(), 10.0));
+      DryftPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds(), 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelayEventQuery");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelayEventQuery");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -235,7 +235,7 @@ TEST_F(LocalRelayPerformanceTest, SubscriptionPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kSubscription);
+    SCOPED_DRYFT_TIMER(kSubscription);
     
     // Create test filter for subscription
     nostr::NostrFilter filter = CreateTestFilter();
@@ -263,7 +263,7 @@ TEST_F(LocalRelayPerformanceTest, SubscriptionPerformance) {
       "Relay.Subscription", avg_time, 12.0, 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelaySubscription");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelaySubscription");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -304,16 +304,16 @@ TEST_F(LocalRelayPerformanceTest, ConcurrentQueriesPerformance) {
       << "Achieved " << queries_per_second << " queries/s, expected > 1000 queries/s";
   
   // Average query time should still be reasonable
-  EXPECT_LT(avg_query_time, TungstenPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds())
+  EXPECT_LT(avg_query_time, DryftPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds())
       << "Average query time " << avg_query_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "Relay.QueriesPerSecond", queries_per_second, 1000.0, 10.0));
   
   // Log performance metrics
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelayConcurrentQueries");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelayConcurrentQueries");
   reporter.RegisterImportantMetric("QueriesPerSecond", "queries/s");
   reporter.RegisterImportantMetric("AvgQueryTime", "ms");
   reporter.AddResult("QueriesPerSecond", queries_per_second);
@@ -360,7 +360,7 @@ TEST_F(LocalRelayPerformanceTest, BulkEventInsertPerformance) {
       << "Average time per event " << avg_time_per_event << "ms, expected < 2ms";
   
   // Log performance metrics
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelayBulkInsert");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelayBulkInsert");
   reporter.RegisterImportantMetric("EventsPerSecond", "events/s");
   reporter.RegisterImportantMetric("AvgTimePerEvent", "ms");
   reporter.AddResult("EventsPerSecond", events_per_second);
@@ -389,10 +389,10 @@ TEST_F(LocalRelayPerformanceTest, DatabaseSizePerformance) {
       << "Each event uses " << bytes_per_event << " bytes, expected < 5KB";
   
   // Log database size
-  TungstenPerformanceMetrics::RecordDatabaseSize(final_db_size / (1024 * 1024));
+  DryftPerformanceMetrics::RecordDatabaseSize(final_db_size / (1024 * 1024));
   
   // Log performance metrics
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelayDatabaseSize");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelayDatabaseSize");
   reporter.RegisterImportantMetric("BytesPerEvent", "bytes");
   reporter.RegisterImportantMetric("TotalSizeMB", "MB");
   reporter.AddResult("BytesPerEvent", bytes_per_event);
@@ -404,7 +404,7 @@ TEST_F(LocalRelayPerformanceTest, ComplexQueryPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kEventQuery);
+    SCOPED_DRYFT_TIMER(kEventQuery);
     
     // Create complex filter
     nostr::NostrFilter filter;
@@ -433,7 +433,7 @@ TEST_F(LocalRelayPerformanceTest, ComplexQueryPerformance) {
       << "Complex query took " << avg_time << "ms, expected < 50ms";
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelayComplexQuery");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelayComplexQuery");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -462,14 +462,14 @@ TEST_F(LocalRelayPerformanceTest, MemoryUsageWithManyEvents) {
       << "Each event uses " << memory_per_event_kb << "KB, expected < 1KB";
   
   // Log memory usage
-  TungstenPerformanceMetrics::RecordRelayMemoryUsage(final_memory - initial_memory);
+  DryftPerformanceMetrics::RecordRelayMemoryUsage(final_memory - initial_memory);
   
   // Log performance metrics
-  perf_test::PerfResultReporter reporter("Tungsten", "LocalRelayMemoryUsage");
+  perf_test::PerfResultReporter reporter("dryft", "LocalRelayMemoryUsage");
   reporter.RegisterImportantMetric("MemoryPerEventKB", "KB");
   reporter.RegisterImportantMetric("TotalMemoryMB", "MB");
   reporter.AddResult("MemoryPerEventKB", memory_per_event_kb);
   reporter.AddResult("TotalMemoryMB", final_memory - initial_memory);
 }
 
-}  // namespace tungsten
+}  // namespace dryft

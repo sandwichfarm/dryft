@@ -19,17 +19,17 @@ The macOS implementation (`KeyStorageMac`) uses the macOS Keychain Services API 
 Each Nostr key is stored using multiple keychain items:
 
 1. **Key Item** (Account: `<key_id>`)
-   - Service: "Tungsten Browser - Nostr Keys"
+   - Service: "dryft browser - Nostr Keys"
    - Contains: Encrypted private key data (JSON)
    - Access: kSecAttrAccessibleWhenUnlocked
 
 2. **Metadata Item** (Account: `<key_id>_meta`)
-   - Service: "Tungsten Browser - Nostr Keys"
+   - Service: "dryft browser - Nostr Keys"
    - Contains: Key metadata (name, creation time, relays, etc.)
    - Access: kSecAttrAccessibleWhenUnlocked
 
 3. **Default Key Item** (Account: `_default_key`)
-   - Service: "Tungsten Browser - Nostr Keys"
+   - Service: "dryft browser - Nostr Keys"
    - Contains: ID of the default key
    - Access: kSecAttrAccessibleWhenUnlocked
 
@@ -146,19 +146,19 @@ When migrating from extension-based storage:
 
 1. Open `/Applications/Utilities/Keychain Access.app`
 2. Search for "Tungsten"
-3. Look for items with service "Tungsten Browser - Nostr Keys"
+3. Look for items with service "dryft browser - Nostr Keys"
 4. Double-click to view details (won't show encrypted data)
 
 ### Command Line Debugging
 
 List Tungsten keychain items:
 ```bash
-security find-generic-password -s "Tungsten Browser - Nostr Keys"
+security find-generic-password -s "dryft browser - Nostr Keys"
 ```
 
 Delete all Tungsten keys (WARNING: removes all keys):
 ```bash
-security delete-generic-password -s "Tungsten Browser - Nostr Keys"
+security delete-generic-password -s "dryft browser - Nostr Keys"
 ```
 
 ## Security Best Practices

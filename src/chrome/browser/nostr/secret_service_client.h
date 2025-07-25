@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -55,7 +55,7 @@ class SecretServiceClient : public KeyStorage {
   static constexpr char kAttrType[] = "type";  // "key", "metadata", or "default"
   
   // Collection name
-  static constexpr char kCollectionName[] = "Tungsten Nostr Keys";
+  static constexpr char kCollectionName[] = "dryft Nostr Keys";
   
   // Whether Secret Service is available
   bool is_available_;

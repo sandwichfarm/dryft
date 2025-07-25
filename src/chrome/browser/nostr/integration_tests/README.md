@@ -1,4 +1,4 @@
-# Tungsten Nostr Integration Tests
+# dryft Nostr Integration Tests
 
 This directory contains comprehensive integration tests for Tungsten's Nostr protocol support, including NIP-07 implementation, local relay, Blossom server, protocol handlers, and Nsite functionality.
 
@@ -184,7 +184,7 @@ out/Release/browser_tests \
 ### Use test helpers for debugging
 ```javascript
 // In DevTools console during test
-chrome.storage.local.set({'tungsten.dev.debug_logging': true});
+chrome.storage.local.set({'dryft.dev.debug_logging': true});
 console.log(window.nostr.relay);
 ```
 

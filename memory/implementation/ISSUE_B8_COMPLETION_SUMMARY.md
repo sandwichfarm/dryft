@@ -1,7 +1,7 @@
 # Issue B-8: Multi-Account Support - Completion Summary
 
 ## Overview
-Issue B-8 required implementing multi-account support for Nostr in Tungsten browser, allowing users to manage multiple Nostr identities, switch between them, and maintain proper account isolation.
+Issue B-8 required implementing multi-account support for Nostr in dryft browser, allowing users to manage multiple Nostr identities, switch between them, and maintain proper account isolation.
 
 ## What Was Implemented
 

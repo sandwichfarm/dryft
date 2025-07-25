@@ -1,5 +1,5 @@
 # Low Level Design Document: NIP-07 Implementation
-## Tungsten Browser
+## dryft browser
 
 ### 1. Component Overview
 

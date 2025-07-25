@@ -152,13 +152,13 @@ RAII timer for automatic performance measurement:
 
 ```cpp
 {
-    SCOPED_TUNGSTEN_TIMER(kGetPublicKey);
+    SCOPED_DRYFT_TIMER(kGetPublicKey);
     // Code to measure
 } // Automatically records timing when scope exits
 
 // With context
 {
-    SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, "ndk");
+    SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, "ndk");
     // Library loading code
 }
 ```
@@ -282,7 +282,7 @@ Use Chrome's built-in performance tools:
 
 ```bash
 # Enable debug logging
-chrome.storage.local.set({'tungsten.dev.debug_logging': true});
+chrome.storage.local.set({'dryft.dev.debug_logging': true});
 
 # View performance metrics in DevTools
 console.log(window.performance.getEntriesByType('measure'));

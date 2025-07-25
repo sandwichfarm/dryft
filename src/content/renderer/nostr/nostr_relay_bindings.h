@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -17,7 +17,7 @@ namespace content {
 class RenderFrame;
 }
 
-namespace tungsten {
+namespace dryft {
 
 // NostrRelayBindings implements the window.nostr.relay object that provides
 // local relay access to web pages.
@@ -106,6 +106,6 @@ class NostrRelayBindings : public gin::Wrappable<NostrRelayBindings>,
   base::WeakPtrFactory<NostrRelayBindings> weak_factory_{this};
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
 #endif  // CONTENT_RENDERER_NOSTR_NOSTR_RELAY_BINDINGS_H_

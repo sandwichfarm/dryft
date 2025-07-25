@@ -1,4 +1,4 @@
-# Tungsten Browser Implementation Tasks
+# dryft browser Implementation Tasks
 
 ## Milestone 1: Foundation
 
@@ -8,7 +8,7 @@
 **Dependencies**: None
 **Description**: Create initial fork structure from Thorium, setup build configuration
 - Fork Thorium repository
-- Add Tungsten-specific directories
+- Add dryft-specific directories
 - Create BUILD.gn files for Nostr components
 - Setup development environment
 

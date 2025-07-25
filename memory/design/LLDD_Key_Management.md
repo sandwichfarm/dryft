@@ -1,5 +1,5 @@
 # Low Level Design Document: Key Management
-## Tungsten Browser - Secure Nostr Key Storage and Management
+## dryft browser - Secure Nostr Key Storage and Management
 
 ### 1. Component Overview
 

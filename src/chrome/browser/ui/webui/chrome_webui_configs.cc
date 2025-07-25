@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -19,8 +19,8 @@ void RegisterChromeWebUIConfigs() {
 
 #if BUILDFLAG(ENABLE_NOSTR)
   // Register Nostr-related WebUI pages
-  map.AddWebUIConfig(std::make_unique<tungsten::NostrSettingsUIConfig>());
-  map.AddWebUIConfig(std::make_unique<tungsten::NostrMigrationUIConfig>());
+  map.AddWebUIConfig(std::make_unique<dryft::NostrSettingsUIConfig>());
+  map.AddWebUIConfig(std::make_unique<dryft::NostrMigrationUIConfig>());
 #endif
 
   // Add other WebUIConfig registrations here as needed

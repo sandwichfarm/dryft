@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# Copyright 2024 The Tungsten Authors
+# Copyright 2024 The dryft Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """
-Performance test runner for Tungsten Nostr features.
+Performance test runner for dryft Nostr features.
 
 This script runs the performance test suite and generates reports for CI/CD integration.
 """

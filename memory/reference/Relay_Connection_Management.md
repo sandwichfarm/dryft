@@ -1,5 +1,5 @@
 # Relay Connection Management Details
-## Tungsten Browser - Advanced Relay Connection Strategies
+## dryft browser - Advanced Relay Connection Strategies
 
 ### 1. Connection Pool Architecture
 

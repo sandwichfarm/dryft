@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -27,7 +27,7 @@ TEST_F(ChromeWebUIConfigsTest, NostrSettingsUIConfigIsRegistered) {
   RegisterChromeWebUIConfigs();
   
   // Check that NostrSettingsUIConfig is registered
-  GURL nostr_settings_url(tungsten::kChromeUINostrSettingsURL);
+  GURL nostr_settings_url(dryft::kChromeUINostrSettingsURL);
   auto& config_map = content::WebUIConfigMap::GetInstance();
   
   // GetConfig returns a WebUIConfig* if registered, nullptr otherwise
@@ -38,6 +38,6 @@ TEST_F(ChromeWebUIConfigsTest, NostrSettingsUIConfigIsRegistered) {
   if (config) {
     // Check that the scheme and host match
     EXPECT_EQ(content::kChromeUIScheme, config->scheme());
-    EXPECT_EQ(tungsten::kChromeUINostrSettingsHost, config->host());
+    EXPECT_EQ(dryft::kChromeUINostrSettingsHost, config->host());
   }
 }

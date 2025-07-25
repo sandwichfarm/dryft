@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -24,7 +24,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "testing/perf/perf_result_reporter.h"
 
-namespace tungsten {
+namespace dryft {
 
 class LibraryLoadingPerformanceTest : public testing::Test {
  protected:
@@ -111,7 +111,7 @@ TEST_F(LibraryLoadingPerformanceTest, NDKLibraryLoadingPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
+    SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
     
     // Simulate NDK library loading (largest library)
     SimulateLibraryLoad(library_name, 25);  // 25ms simulation
@@ -135,7 +135,7 @@ TEST_F(LibraryLoadingPerformanceTest, NDKLibraryLoadingPerformance) {
       "Library.ndk", avg_time, 100.0, 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryLoadingNDK");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryLoadingNDK");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -146,7 +146,7 @@ TEST_F(LibraryLoadingPerformanceTest, NostrToolsLibraryLoadingPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
+    SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
     
     // Simulate nostr-tools library loading
     SimulateLibraryLoad(library_name, 20);  // 20ms simulation
@@ -170,7 +170,7 @@ TEST_F(LibraryLoadingPerformanceTest, NostrToolsLibraryLoadingPerformance) {
       "Library.nostr-tools", avg_time, 80.0, 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryLoadingNostrTools");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryLoadingNostrTools");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -181,7 +181,7 @@ TEST_F(LibraryLoadingPerformanceTest, Secp256k1LibraryLoadingPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
+    SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
     
     // Simulate secp256k1 library loading (smallest library)
     SimulateLibraryLoad(library_name, 15);  // 15ms simulation
@@ -205,7 +205,7 @@ TEST_F(LibraryLoadingPerformanceTest, Secp256k1LibraryLoadingPerformance) {
       "Library.secp256k1", avg_time, 60.0, 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryLoadingSecp256k1");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryLoadingSecp256k1");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -216,7 +216,7 @@ TEST_F(LibraryLoadingPerformanceTest, ApplesauceLibraryLoadingPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
+    SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
     
     // Simulate applesauce library loading
     SimulateLibraryLoad(library_name, 22);  // 22ms simulation
@@ -240,7 +240,7 @@ TEST_F(LibraryLoadingPerformanceTest, ApplesauceLibraryLoadingPerformance) {
       "Library.applesauce", avg_time, 90.0, 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryLoadingApplesauce");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryLoadingApplesauce");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -251,7 +251,7 @@ TEST_F(LibraryLoadingPerformanceTest, AlbySDKLibraryLoadingPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
+    SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
     
     // Simulate alby-sdk library loading
     SimulateLibraryLoad(library_name, 21);  // 21ms simulation
@@ -275,7 +275,7 @@ TEST_F(LibraryLoadingPerformanceTest, AlbySDKLibraryLoadingPerformance) {
       "Library.alby-sdk", avg_time, 85.0, 10.0));
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryLoadingAlbySDK");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryLoadingAlbySDK");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
@@ -293,7 +293,7 @@ TEST_F(LibraryLoadingPerformanceTest, ConcurrentLibraryLoadingPerformance) {
     
     // Simulate concurrent library loading
     for (const auto& library : libraries) {
-      SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library);
+      SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library);
       
       // Simulate library loading with different complexities
       int complexity = (library == "ndk") ? 25 : 
@@ -319,7 +319,7 @@ TEST_F(LibraryLoadingPerformanceTest, ConcurrentLibraryLoadingPerformance) {
       << "Concurrent library loading took " << avg_total_time << "ms, expected < 400ms";
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryLoadingConcurrent");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryLoadingConcurrent");
   reporter.RegisterImportantMetric("TotalTime", "ms");
   reporter.RegisterImportantMetric("AvgTimePerLibrary", "ms");
   reporter.AddResult("TotalTime", avg_total_time);
@@ -336,14 +336,14 @@ TEST_F(LibraryLoadingPerformanceTest, LibraryLoadingCacheEffectiveness) {
   for (int i = 0; i < kIterations; ++i) {
     // First load (cold cache)
     {
-      SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
+      SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
       SimulateLibraryLoad(library_name, 25);  // Full load time
       first_load_times.push_back(timer.GetElapsedTime().InMilliseconds());
     }
     
     // Second load (warm cache)
     {
-      SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
+      SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, library_name);
       SimulateLibraryLoad(library_name, 5);   // Cached load time
       cached_load_times.push_back(timer.GetElapsedTime().InMilliseconds());
     }
@@ -375,7 +375,7 @@ TEST_F(LibraryLoadingPerformanceTest, LibraryLoadingCacheEffectiveness) {
       << avg_first_load << "ms";
   
   // Log performance metrics
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryLoadingCacheEffectiveness");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryLoadingCacheEffectiveness");
   reporter.RegisterImportantMetric("FirstLoadTime", "ms");
   reporter.RegisterImportantMetric("CachedLoadTime", "ms");
   reporter.RegisterImportantMetric("CacheImprovement", "%");
@@ -405,7 +405,7 @@ TEST_F(LibraryLoadingPerformanceTest, LibraryBundleSizeImpact) {
     std::vector<double> times;
     
     for (int i = 0; i < kIterations; ++i) {
-      SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, lib.name);
+      SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, lib.name);
       SimulateLibraryLoad(lib.name, lib.load_time_ms / 4);  // Scaled simulation
       times.push_back(timer.GetElapsedTime().InMilliseconds());
     }
@@ -426,7 +426,7 @@ TEST_F(LibraryLoadingPerformanceTest, LibraryBundleSizeImpact) {
         << " KB/ms, expected > 10 KB/ms";
     
     // Log performance metrics
-    perf_test::PerfResultReporter reporter("Tungsten", "LibraryBundleSize_" + lib.name);
+    perf_test::PerfResultReporter reporter("dryft", "LibraryBundleSize_" + lib.name);
     reporter.RegisterImportantMetric("LoadTime", "ms");
     reporter.RegisterImportantMetric("BundleSize", "KB");
     reporter.RegisterImportantMetric("Efficiency", "KB/ms");
@@ -477,7 +477,7 @@ TEST_F(LibraryLoadingPerformanceTest, LibraryExecutionOverhead) {
       << avg_load_time << "ms";
   
   // Log performance metrics
-  perf_test::PerfResultReporter reporter("Tungsten", "LibraryExecutionOverhead");
+  perf_test::PerfResultReporter reporter("dryft", "LibraryExecutionOverhead");
   reporter.RegisterImportantMetric("LoadTime", "ms");
   reporter.RegisterImportantMetric("ExecutionTime", "ms");
   reporter.RegisterImportantMetric("OverheadRatio", "%");
@@ -486,4 +486,4 @@ TEST_F(LibraryLoadingPerformanceTest, LibraryExecutionOverhead) {
   reporter.AddResult("OverheadRatio", (avg_execution_time / avg_load_time) * 100.0);
 }
 
-}  // namespace tungsten
+}  // namespace dryft

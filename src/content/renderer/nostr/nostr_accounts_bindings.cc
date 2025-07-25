@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -10,7 +10,7 @@
 #include "gin/dictionary.h"
 #include "gin/object_template_builder.h"
 
-namespace tungsten {
+namespace dryft {
 
 gin::WrapperInfo NostrAccountsBindings::kWrapperInfo = {gin::kEmbedderNativeGin};
 
@@ -125,4 +125,4 @@ v8::Local<v8::Promise> NostrAccountsBindings::Import(v8::Isolate* isolate,
       "Account import not yet implemented. Use browser settings to import accounts.");
 }
 
-}  // namespace tungsten
+}  // namespace dryft

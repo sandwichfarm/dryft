@@ -1,6 +1,6 @@
 # Nostr Key Storage Implementation
 
-This directory contains the implementation of secure key storage for Nostr private keys in Tungsten browser.
+This directory contains the implementation of secure key storage for Nostr private keys in dryft browser.
 
 ## Architecture
 

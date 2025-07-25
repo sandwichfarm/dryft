@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -434,13 +434,13 @@ bool SecretServiceClient::SetDefaultKey(const std::string& key_id) {
 std::string SecretServiceClient::GetSecretLabel(const std::string& key_id, 
                                                const std::string& type) const {
   if (type == "key") {
-    return "Tungsten Nostr Key: " + key_id;
+    return "dryft Nostr Key: " + key_id;
   } else if (type == "metadata") {
-    return "Tungsten Nostr Key Metadata: " + key_id;
+    return "dryft Nostr Key Metadata: " + key_id;
   } else if (type == "default") {
     return "Tungsten Default Nostr Key";
   }
-  return "Tungsten Nostr: " + key_id;
+  return "dryft Nostr: " + key_id;
 }
 
 std::string SecretServiceClient::SerializeEncryptedKey(const EncryptedKey& key) const {

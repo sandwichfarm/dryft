@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -35,7 +35,7 @@ class LocalRelayService;
 class LocalRelayConfigManager;
 }  // namespace local_relay
 
-// Main service for Nostr operations in Tungsten Browser
+// Main service for Nostr operations in dryft browser
 // Provides cryptographic operations, key management, and NIP-07 compliance
 class NostrService : public KeyedService {
  public:

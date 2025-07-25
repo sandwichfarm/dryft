@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -72,7 +72,7 @@ class KeyStorageMac : public KeyStorage {
 #endif
   
   // Service name for all keychain items
-  static constexpr char kServiceName[] = "Tungsten Browser - Nostr Keys";
+  static constexpr char kServiceName[] = "dryft browser - Nostr Keys";
   static constexpr char kDefaultKeyAccount[] = "_default_key";
   
   DISALLOW_COPY_AND_ASSIGN(KeyStorageMac);

@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -14,7 +14,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "url/gurl.h"
 
-namespace tungsten {
+namespace dryft {
 
 class AccountManagerBrowserTest : public InProcessBrowserTest {
  public:
@@ -344,4 +344,4 @@ IN_PROC_BROWSER_TEST_F(AccountManagerBrowserTest, AccountListDisplay) {
   EXPECT_TRUE(has_active_badge);
 }
 
-}  // namespace tungsten
+}  // namespace dryft

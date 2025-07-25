@@ -1,5 +1,5 @@
 # Low Level Design Document: Nsite Streaming Server
-## Tungsten Browser - Local HTTP Server for Nsite Content Delivery
+## dryft browser - Local HTTP Server for Nsite Content Delivery
 
 ### 1. Executive Summary
 

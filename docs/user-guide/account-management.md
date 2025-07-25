@@ -1,6 +1,6 @@
 # Account Management
 
-Tungsten Browser supports multiple Nostr accounts with seamless switching and granular privacy controls.
+dryft browser supports multiple Nostr accounts with seamless switching and granular privacy controls.
 
 ## Overview
 

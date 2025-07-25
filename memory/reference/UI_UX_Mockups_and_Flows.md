@@ -1,11 +1,11 @@
 # UI/UX Mockups and User Flows
-## Tungsten Browser - User Interface Design and Experience
+## dryft browser - User Interface Design and Experience
 
 ### 1. Core UI Components Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Tungsten Browser - Main Window                              │
+│ dryft browser - Main Window                              │
 ├─────────────────────────────────────────────────────────────┤
 │ ┌─────────────────────────────────────────────────────────┐ │
 │ │ ←  →  ⟳  🏠  [nostr://npub1a2b3c...         ] ⚡ 🔔 ⋮  │ │
@@ -65,7 +65,7 @@ Click Behavior:
 Welcome Screen:
 ┌─────────────────────────────────────────────────────────┐
 │                                                         │
-│              Welcome to Tungsten Browser                │
+│              Welcome to dryft browser                │
 │                                                         │
 │         Your gateway to the decentralized web           │
 │                                                         │
@@ -519,7 +519,7 @@ Step 1: Introduction
 │  ✓ No central authority                                    │
 │  ✓ Portable social graph                                   │
 │                                                             │
-│  Tungsten Browser makes it easy to use Nostr              │
+│  dryft browser makes it easy to use Nostr              │
 │  while browsing the web.                                   │
 │                                                             │
 │              [ Skip ]         [ Next → ]                    │

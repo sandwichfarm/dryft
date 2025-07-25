@@ -1,8 +1,8 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/nostr/performance/tungsten_performance_metrics.h"
+#include "chrome/browser/nostr/performance/dryft_performance_metrics.h"
 
 #include <memory>
 #include <vector>
@@ -24,9 +24,9 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "testing/perf/perf_result_reporter.h"
 
-namespace tungsten {
+namespace dryft {
 
-class TungstenPerformanceTest : public testing::Test {
+class DryftPerformanceTest : public testing::Test {
  protected:
   void SetUp() override {
     PerformanceRegressionDetector::ClearAllBaselines();
@@ -48,15 +48,15 @@ class TungstenPerformanceTest : public testing::Test {
   void SetupPerformanceBaselines() {
     // Record baselines based on targets from CLAUDE.md
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "BrowserStartup", TungstenPerformanceMetrics::kMaxStartupOverhead.InMilliseconds());
+        "BrowserStartup", DryftPerformanceMetrics::kMaxStartupOverhead.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "NIP07.GetPublicKey", TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
+        "NIP07.GetPublicKey", DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "NIP07.SignEvent", TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
+        "NIP07.SignEvent", DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "Relay.EventQuery", TungstenPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds());
+        "Relay.EventQuery", DryftPerformanceMetrics::kMaxLocalRelayQueryTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "Memory.BaseUsage", TungstenPerformanceMetrics::kMaxBaseMemoryUsageMB);
+        "Memory.BaseUsage", DryftPerformanceMetrics::kMaxBaseMemoryUsageMB);
   }
   
   // Helper to run performance test multiple times and get average
@@ -97,10 +97,10 @@ class TungstenPerformanceTest : public testing::Test {
 };
 
 // Startup Performance Tests
-class StartupPerformanceTest : public TungstenPerformanceTest {
+class StartupPerformanceTest : public DryftPerformanceTest {
  protected:
   void SetUp() override {
-    TungstenPerformanceTest::SetUp();
+    DryftPerformanceTest::SetUp();
   }
 };
 
@@ -120,7 +120,7 @@ TEST_F(StartupPerformanceTest, NostrServiceInitializationPerformance) {
     init_times.push_back(init_time_ms);
     
     // Record the metric
-    TungstenPerformanceMetrics::RecordNostrServiceInitTime(timer.Elapsed());
+    DryftPerformanceMetrics::RecordNostrServiceInitTime(timer.Elapsed());
   }
   
   // Calculate average
@@ -131,9 +131,9 @@ TEST_F(StartupPerformanceTest, NostrServiceInitializationPerformance) {
   avg_init_time /= kIterations;
   
   // Check against performance target
-  EXPECT_LT(avg_init_time, TungstenPerformanceMetrics::kMaxStartupOverhead.InMilliseconds())
+  EXPECT_LT(avg_init_time, DryftPerformanceMetrics::kMaxStartupOverhead.InMilliseconds())
       << "NostrService initialization took " << avg_init_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxStartupOverhead.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxStartupOverhead.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
@@ -154,7 +154,7 @@ TEST_F(StartupPerformanceTest, LocalRelayStartupPerformance) {
     double startup_time_ms = timer.Elapsed().InMilliseconds();
     startup_times.push_back(startup_time_ms);
     
-    TungstenPerformanceMetrics::RecordLocalRelayStartupTime(timer.Elapsed());
+    DryftPerformanceMetrics::RecordLocalRelayStartupTime(timer.Elapsed());
   }
   
   // Calculate average
@@ -165,16 +165,16 @@ TEST_F(StartupPerformanceTest, LocalRelayStartupPerformance) {
   avg_startup_time /= kIterations;
   
   // Check against performance target
-  EXPECT_LT(avg_startup_time, TungstenPerformanceMetrics::kMaxStartupOverhead.InMilliseconds())
+  EXPECT_LT(avg_startup_time, DryftPerformanceMetrics::kMaxStartupOverhead.InMilliseconds())
       << "LocalRelay startup took " << avg_startup_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxStartupOverhead.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxStartupOverhead.InMilliseconds() << "ms";
 }
 
 // Memory Performance Tests
-class MemoryPerformanceTest : public TungstenPerformanceTest {
+class MemoryPerformanceTest : public DryftPerformanceTest {
  protected:
   void SetUp() override {
-    TungstenPerformanceTest::SetUp();
+    DryftPerformanceTest::SetUp();
   }
 };
 
@@ -183,17 +183,17 @@ TEST_F(MemoryPerformanceTest, BaseMemoryUsage) {
   size_t current_memory_mb = MemoryUsageTracker::GetCurrentMemoryUsageMB();
   
   // Record the metric
-  TungstenPerformanceMetrics::RecordTotalMemoryUsage(current_memory_mb);
+  DryftPerformanceMetrics::RecordTotalMemoryUsage(current_memory_mb);
   
   // Check against performance target
-  EXPECT_LT(current_memory_mb, TungstenPerformanceMetrics::kMaxBaseMemoryUsageMB)
+  EXPECT_LT(current_memory_mb, DryftPerformanceMetrics::kMaxBaseMemoryUsageMB)
       << "Base memory usage is " << current_memory_mb << "MB, expected < "
-      << TungstenPerformanceMetrics::kMaxBaseMemoryUsageMB << "MB";
+      << DryftPerformanceMetrics::kMaxBaseMemoryUsageMB << "MB";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "BaseMemoryUsage", current_memory_mb, 
-      TungstenPerformanceMetrics::kMaxBaseMemoryUsageMB, 10.0));
+      DryftPerformanceMetrics::kMaxBaseMemoryUsageMB, 10.0));
 }
 
 TEST_F(MemoryPerformanceTest, NostrServiceMemoryUsage) {
@@ -207,7 +207,7 @@ TEST_F(MemoryPerformanceTest, NostrServiceMemoryUsage) {
   size_t nostr_memory_usage = memory_after - memory_before;
   
   // Record the metric
-  TungstenPerformanceMetrics::RecordNostrMemoryUsage(nostr_memory_usage);
+  DryftPerformanceMetrics::RecordNostrMemoryUsage(nostr_memory_usage);
   
   // NostrService should use less than 20MB
   EXPECT_LT(nostr_memory_usage, 20U)
@@ -225,7 +225,7 @@ TEST_F(MemoryPerformanceTest, LocalRelayMemoryUsage) {
   size_t relay_memory_usage = memory_after - memory_before;
   
   // Record the metric
-  TungstenPerformanceMetrics::RecordRelayMemoryUsage(relay_memory_usage);
+  DryftPerformanceMetrics::RecordRelayMemoryUsage(relay_memory_usage);
   
   // LocalRelay should use less than 15MB
   EXPECT_LT(relay_memory_usage, 15U)
@@ -257,10 +257,10 @@ TEST_F(MemoryPerformanceTest, MemoryUsageWithManyEvents) {
 }
 
 // Performance Regression Tests
-class PerformanceRegressionTest : public TungstenPerformanceTest {
+class PerformanceRegressionTest : public DryftPerformanceTest {
  protected:
   void SetUp() override {
-    TungstenPerformanceTest::SetUp();
+    DryftPerformanceTest::SetUp();
   }
 };
 
@@ -283,29 +283,29 @@ TEST_F(PerformanceRegressionTest, PerformanceBaselines) {
 }
 
 // Timer Tests
-class TimerPerformanceTest : public TungstenPerformanceTest {
+class TimerPerformanceTest : public DryftPerformanceTest {
  protected:
   void SetUp() override {
-    TungstenPerformanceTest::SetUp();
+    DryftPerformanceTest::SetUp();
   }
 };
 
 TEST_F(TimerPerformanceTest, ScopedTimerBasicUsage) {
   // Test basic timer usage
   {
-    SCOPED_TUNGSTEN_TIMER(kNostrServiceInit);
+    SCOPED_DRYFT_TIMER(kNostrServiceInit);
     base::PlatformThread::Sleep(base::Milliseconds(10));
   }
   
   // Test timer with context
   {
-    SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(kLibraryLoad, "ndk");
+    SCOPED_DRYFT_TIMER_WITH_CONTEXT(kLibraryLoad, "ndk");
     base::PlatformThread::Sleep(base::Milliseconds(5));
   }
   
   // Test manual timer
   {
-    ScopedTungstenTimer timer(ScopedTungstenTimer::Operation::kGetPublicKey);
+    ScopedDryftTimer timer(ScopedDryftTimer::Operation::kGetPublicKey);
     base::PlatformThread::Sleep(base::Milliseconds(1));
     
     // Check elapsed time
@@ -325,7 +325,7 @@ TEST_F(TimerPerformanceTest, MemoryUsageTracker) {
   
   // Allocate some memory
   std::vector<char> memory_buffer(1024 * 1024);  // 1MB
-  TungstenPerformanceMetrics::RecordTotalMemoryUsage(
+  DryftPerformanceMetrics::RecordTotalMemoryUsage(
       MemoryUsageTracker::GetCurrentMemoryUsageMB());
   
   size_t peak_after = MemoryUsageTracker::GetPeakMemoryUsageMB();
@@ -336,4 +336,4 @@ TEST_F(TimerPerformanceTest, MemoryUsageTracker) {
   EXPECT_FALSE(MemoryUsageTracker::IsMemoryUsageAcceptable(30, 20));
 }
 
-}  // namespace tungsten
+}  // namespace dryft

@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -15,7 +15,7 @@ namespace content {
 class RenderFrame;
 }
 
-namespace tungsten {
+namespace dryft {
 
 class NostrBindings;
 
@@ -61,6 +61,6 @@ class NostrAccountsBindings : public gin::Wrappable<NostrAccountsBindings> {
   NostrBindings* parent_bindings_;
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
 #endif  // CONTENT_RENDERER_NOSTR_NOSTR_ACCOUNTS_BINDINGS_H_

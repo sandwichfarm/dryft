@@ -1,10 +1,10 @@
 # Telemetry and Analytics Approach
-## Tungsten Browser - Privacy-Focused Metrics and Analytics
+## dryft browser - Privacy-Focused Metrics and Analytics
 
 ### 1. Privacy-First Telemetry Philosophy
 
 ```cpp
-namespace tungsten {
+namespace dryft {
 namespace telemetry {
 
 // Core principles for Tungsten telemetry
@@ -24,7 +24,7 @@ class TelemetryPolicy {
 };
 
 }  // namespace telemetry
-}  // namespace tungsten
+}  // namespace dryft
 ```
 
 ### 2. Telemetry Architecture

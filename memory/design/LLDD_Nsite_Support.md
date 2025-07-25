@@ -1,5 +1,5 @@
 # Low Level Design Document: Nsite Support
-## Tungsten Browser - Static Website Specification Implementation
+## dryft browser - Static Website Specification Implementation
 
 ### 1. Component Overview
 

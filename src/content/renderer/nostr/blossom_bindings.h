@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -16,7 +16,7 @@ namespace content {
 class RenderFrame;
 }
 
-namespace tungsten {
+namespace dryft {
 
 // BlossomBindings implements the window.blossom API, providing JavaScript
 // access to Blossom content-addressed storage functionality including
@@ -120,6 +120,6 @@ class BlossomBindings : public gin::Wrappable<BlossomBindings> {
   base::WeakPtrFactory<BlossomBindings> weak_factory_{this};
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
 #endif  // CONTENT_RENDERER_NOSTR_BLOSSOM_BINDINGS_H_

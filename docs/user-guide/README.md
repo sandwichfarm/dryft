@@ -1,6 +1,6 @@
-# Tungsten Browser User Guide
+# dryft browser User Guide
 
-Welcome to Tungsten Browser - the first browser with native Nostr protocol support built directly into the core.
+Welcome to dryft browser - the first browser with native Nostr protocol support built directly into the core.
 
 ## Quick Navigation
 
@@ -48,7 +48,7 @@ Tungsten is built on Thorium browser (a Chromium fork) with native Nostr protoco
 - [Troubleshooting Guide](../troubleshooting/README.md)
 - [FAQ](../troubleshooting/faq.md)
 - [Community Support](../troubleshooting/support.md)
-- [Report Issues](https://github.com/sandwichfarm/tungsten/issues)
+- [Report Issues](https://github.com/sandwichfarm/dryft/issues)
 
 ## For Developers
 

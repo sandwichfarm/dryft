@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -115,16 +115,16 @@ TEST_F(SecretServiceClientTest, GetSecretLabel) {
   std::string key_id = "test123";
   
   std::string key_label = client_->GetSecretLabel(key_id, "key");
-  EXPECT_EQ(key_label, "Tungsten Nostr Key: test123");
+  EXPECT_EQ(key_label, "dryft Nostr Key: test123");
   
   std::string metadata_label = client_->GetSecretLabel(key_id, "metadata");
-  EXPECT_EQ(metadata_label, "Tungsten Nostr Key Metadata: test123");
+  EXPECT_EQ(metadata_label, "dryft Nostr Key Metadata: test123");
   
   std::string default_label = client_->GetSecretLabel("default", "default");
   EXPECT_EQ(default_label, "Tungsten Default Nostr Key");
   
   std::string other_label = client_->GetSecretLabel(key_id, "other");
-  EXPECT_EQ(other_label, "Tungsten Nostr: test123");
+  EXPECT_EQ(other_label, "dryft Nostr: test123");
 }
 
 TEST_F(SecretServiceClientTest, DeserializeInvalidData) {

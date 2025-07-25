@@ -4,7 +4,7 @@ This document describes how Tungsten components are integrated into the Chromium
 
 ## Build Flags
 
-The following build flags control Tungsten features:
+The following build flags control dryft features:
 
 ```gn
 # Main toggle for all Nostr functionality
@@ -29,10 +29,10 @@ enable_nostr_hardware_wallet = false
 ## Directory Structure
 
 ```
-tungsten/
+dryft/
 ├── build/
 │   └── config/
-│       └── tungsten/
+│       └── dryft/
 │           ├── BUILD.gn              # Build flag header generation
 │           ├── tungsten.gni          # Build flag declarations
 │           └── tungsten_buildflags.h # C++ build flag macros

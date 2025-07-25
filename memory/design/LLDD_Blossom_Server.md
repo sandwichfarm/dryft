@@ -1,5 +1,5 @@
 # Low Level Design Document: Blossom Server
-## Tungsten Browser - Local Content-Addressed Storage Server
+## dryft browser - Local Content-Addressed Storage Server
 
 ### 1. Component Overview
 

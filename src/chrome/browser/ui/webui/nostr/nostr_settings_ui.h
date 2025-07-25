@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -13,7 +13,7 @@ namespace content {
 class WebUI;
 }
 
-namespace tungsten {
+namespace dryft {
 
 // WebUI message handler for Nostr settings page
 class NostrSettingsHandler : public content::WebUIMessageHandler {
@@ -71,6 +71,6 @@ class NostrSettingsUI : public content::WebUIController {
   NostrSettingsUI& operator=(const NostrSettingsUI&) = delete;
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
 #endif  // CHROME_BROWSER_UI_WEBUI_NOSTR_NOSTR_SETTINGS_UI_H_

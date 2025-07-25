@@ -1,5 +1,5 @@
 # High Level Design Document (HLDD)
-## Tungsten Browser - Nostr-Native Web Browser
+## dryft browser - Nostr-Native Web Browser
 
 ### 1. System Overview
 

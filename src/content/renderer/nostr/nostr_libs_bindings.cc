@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,7 +8,7 @@
 #include "gin/dictionary.h"
 #include "gin/object_template_builder.h"
 
-namespace tungsten {
+namespace dryft {
 
 gin::WrapperInfo NostrLibsBindings::kWrapperInfo = {gin::kEmbedderNativeGin};
 
@@ -70,4 +70,4 @@ v8::Local<v8::Object> NostrLibsBindings::GetVersions(v8::Isolate* isolate) const
   return versions.GetHandle();
 }
 
-}  // namespace tungsten
+}  // namespace dryft

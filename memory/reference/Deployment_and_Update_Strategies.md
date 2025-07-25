@@ -1,5 +1,5 @@
 # Deployment and Update Strategies
-## Tungsten Browser - Release, Distribution, and Update Management
+## dryft browser - Release, Distribution, and Update Management
 
 ### 1. Build and Release Pipeline
 
@@ -30,8 +30,8 @@ jobs:
           
       - name: Apply Tungsten Patches
         run: |
-          git apply tungsten/patches/*.patch
-          python tungsten/scripts/integrate_nostr.py
+          git apply dryft/patches/*.patch
+          python dryft/scripts/integrate_nostr.py
           
       - name: Build Tungsten
         run: |
@@ -50,7 +50,7 @@ jobs:
         run: |
           cd src/out/Release
           makensis.exe /DVERSION=${{ github.ref_name }} 
-            ../../../tungsten/installer/windows/tungsten.nsi
+            ../../../dryft/installer/windows/tungsten.nsi
           
       - name: Sign Binary
         env:
@@ -76,8 +76,8 @@ jobs:
       - name: Create DMG
         run: |
           create-dmg \
-            --volname "Tungsten Browser" \
-            --volicon "tungsten/assets/tungsten.icns" \
+            --volname "dryft browser" \
+            --volicon "dryft/assets/tungsten.icns" \
             --window-pos 200 120 \
             --window-size 800 400 \
             --icon-size 100 \
@@ -116,12 +116,12 @@ jobs:
           
       - name: Create DEB Package
         run: |
-          cd tungsten/packaging/debian
+          cd dryft/packaging/debian
           ./make_deb.sh ${{ github.ref_name }} ${{ matrix.arch }}
           
       - name: Create RPM Package  
         run: |
-          cd tungsten/packaging/rpm
+          cd dryft/packaging/rpm
           rpmbuild -bb \
             --define "_version ${{ github.ref_name }}" \
             --define "_arch ${{ matrix.arch }}" \
@@ -129,14 +129,14 @@ jobs:
             
       - name: Create AppImage
         run: |
-          cd tungsten/packaging/appimage
+          cd dryft/packaging/appimage
           ./make_appimage.sh ${{ github.ref_name }} ${{ matrix.arch }}
 ```
 
 ### 2. Update Mechanism Architecture
 
 ```cpp
-// chrome/browser/tungsten/update/update_manager.h
+// chrome/browser/dryft/update/update_manager.h
 class TungstenUpdateManager {
  public:
   enum UpdateChannel {
@@ -398,7 +398,7 @@ class RolloutController {
 <policyDefinitions>
   <policy name="TungstenUpdatePolicy">
     <parentCategory ref="tungsten"/>
-    <supportedOn ref="SUPPORTED_TUNGSTEN_1_0"/>
+    <supportedOn ref="SUPPORTED_DRYFT_1_0"/>
     <elements>
       <enum id="UpdateChannel" valueName="UpdateChannel">
         <item displayName="Stable" value="stable"/>
@@ -420,7 +420,7 @@ class RolloutController {
         key="Software\Policies\Tungsten\Nostr"
         valueName="Configuration">
   <parentCategory ref="tungsten-nostr"/>
-  <supportedOn ref="SUPPORTED_TUNGSTEN_1_0"/>
+  <supportedOn ref="SUPPORTED_DRYFT_1_0"/>
   <enabledValue>
     <decimal value="1"/>
   </enabledValue>

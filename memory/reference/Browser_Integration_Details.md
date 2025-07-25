@@ -1,5 +1,5 @@
 # Browser Integration Details
-## Tungsten Browser - Chromium/Thorium Integration Points
+## dryft browser - Chromium/Thorium Integration Points
 
 ### 1. Chromium Source Modifications
 

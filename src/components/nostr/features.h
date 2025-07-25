@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,7 +6,7 @@
 #define COMPONENTS_NOSTR_FEATURES_H_
 
 #include "base/feature_list.h"
-#include "build/config/tungsten/tungsten_buildflags.h"
+#include "build/config/dryft/tungsten_buildflags.h"
 
 namespace nostr {
 namespace features {

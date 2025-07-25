@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -16,7 +16,7 @@
 #include "v8/include/v8-object.h"
 #include "v8/include/v8-promise.h"
 
-namespace tungsten {
+namespace dryft {
 
 class NostrBindingsTest : public gin::V8Test {
  public:
@@ -178,4 +178,4 @@ TEST_F(NostrBindingsTest, Nip04ObjectHasMethods) {
   EXPECT_TRUE(decrypt->IsFunction());
 }
 
-}  // namespace tungsten
+}  // namespace dryft

@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -14,7 +14,7 @@
 #include "v8/include/v8-function.h"
 #include "v8/include/v8-object.h"
 
-namespace tungsten {
+namespace dryft {
 
 class NostrRelayIntegrationTest : public gin::V8Test {
  public:
@@ -169,4 +169,4 @@ TEST_F(NostrRelayIntegrationTest, JavaScriptAPIUsage) {
   // This would require running the microtask queue
 }
 
-}  // namespace tungsten
+}  // namespace dryft

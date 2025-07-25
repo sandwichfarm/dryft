@@ -1,10 +1,10 @@
 # API Reference
 
-Complete reference for Tungsten Browser's enhanced Nostr and Blossom APIs.
+Complete reference for dryft browser's enhanced Nostr and Blossom APIs.
 
 ## window.nostr API
 
-Tungsten implements the complete NIP-07 specification plus Tungsten-specific extensions.
+Tungsten implements the complete NIP-07 specification plus dryft-specific extensions.
 
 ### Standard NIP-07 Methods
 
@@ -530,7 +530,7 @@ interface BlossomMetadata {
 
 ## Browser Compatibility
 
-Tungsten APIs are only available in Tungsten Browser. For cross-browser compatibility:
+Tungsten APIs are only available in dryft browser. For cross-browser compatibility:
 
 ```javascript
 // Feature detection
@@ -542,7 +542,7 @@ if (hasNostr) {
   console.log('Nostr support available');
   
   if (hasTungstenFeatures) {
-    console.log('Running in Tungsten Browser');
+    console.log('Running in dryft browser');
   } else {
     console.log('Running with Nostr extension');
   }

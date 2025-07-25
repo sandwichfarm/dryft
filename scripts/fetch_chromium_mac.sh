@@ -76,17 +76,17 @@ if [ -d "tungsten_backup" ]; then
     cp -R tungsten_backup/nostr src/content/renderer/
     
     # Also restore BUILD.gn modifications if they exist
-    if [ -f "src_old_tungsten/chrome/browser/BUILD.gn" ]; then
-        cp src_old_tungsten/chrome/browser/BUILD.gn src/chrome/browser/
+    if [ -f "src_old_dryft/chrome/browser/BUILD.gn" ]; then
+        cp src_old_dryft/chrome/browser/BUILD.gn src/chrome/browser/
     fi
-    if [ -f "src_old_tungsten/chrome/browser/resources/BUILD.gn" ]; then
-        cp src_old_tungsten/chrome/browser/resources/BUILD.gn src/chrome/browser/resources/
+    if [ -f "src_old_dryft/chrome/browser/resources/BUILD.gn" ]; then
+        cp src_old_dryft/chrome/browser/resources/BUILD.gn src/chrome/browser/resources/
     fi
-    if [ -f "src_old_tungsten/chrome/common/BUILD.gn" ]; then
-        cp src_old_tungsten/chrome/common/BUILD.gn src/chrome/common/
+    if [ -f "src_old_dryft/chrome/common/BUILD.gn" ]; then
+        cp src_old_dryft/chrome/common/BUILD.gn src/chrome/common/
     fi
-    if [ -f "src_old_tungsten/chrome/test/BUILD.gn" ]; then
-        cp src_old_tungsten/chrome/test/BUILD.gn src/chrome/test/
+    if [ -f "src_old_dryft/chrome/test/BUILD.gn" ]; then
+        cp src_old_dryft/chrome/test/BUILD.gn src/chrome/test/
     fi
 fi
 

@@ -1,6 +1,6 @@
 # Configuration Guide
 
-Complete guide for configuring Tungsten Browser for individual users, enterprises, and developers.
+Complete guide for configuring dryft browser for individual users, enterprises, and developers.
 
 ## Quick Navigation
 
@@ -12,7 +12,7 @@ Complete guide for configuring Tungsten Browser for individual users, enterprise
 
 ## Overview
 
-Tungsten Browser uses a layered configuration system:
+dryft browser uses a layered configuration system:
 
 1. **Default Settings**: Built-in defaults for all features
 2. **User Preferences**: User-configurable settings in browser UI
@@ -49,8 +49,8 @@ Command Line Flags (session)
 
 ### Linux
 ```
-~/.config/tungsten/Default/Preferences
-~/.config/tungsten/Default/Local State
+~/.config/dryft/Default/Preferences
+~/.config/dryft/Default/Local State
 ```
 
 ## Core Configuration Areas
@@ -214,7 +214,7 @@ For macOS enterprise deployment:
 For Linux enterprise deployment:
 
 ```json
-// /etc/tungsten/policies/managed/corporate-policy.json
+// /etc/dryft/policies/managed/corporate-policy.json
 {
   "NostrAccountCreationAllowed": true,
   "LocalRelayEnabled": true,
@@ -290,7 +290,7 @@ tungsten --allow-insecure-nostr-origins=http://localhost:3000
   ],
   "tungsten.local_relay.enabled": true,
   "tungsten.blossom.enabled": true,
-  "tungsten.dev.debug_logging": true
+  "dryft.dev.debug_logging": true
 }
 ```
 
@@ -327,9 +327,9 @@ For high-performance scenarios:
 
 ```json
 {
-  "tungsten.local_relay.storage_path": "/var/lib/tungsten/relay",
-  "tungsten.blossom.storage_path": "/var/lib/tungsten/blossom",
-  "tungsten.accounts.storage_path": "/var/lib/tungsten/accounts"
+  "tungsten.local_relay.storage_path": "/var/lib/dryft/relay",
+  "tungsten.blossom.storage_path": "/var/lib/dryft/blossom",
+  "tungsten.accounts.storage_path": "/var/lib/dryft/accounts"
 }
 ```
 

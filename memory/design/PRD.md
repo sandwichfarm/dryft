@@ -1,5 +1,5 @@
 # Product Requirements Document (PRD)
-## Tungsten Browser - Nostr-Native Web Browser
+## dryft browser - Nostr-Native Web Browser
 
 ### 1. Executive Summary
 

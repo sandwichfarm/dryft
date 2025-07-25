@@ -1,6 +1,6 @@
 # Blossom Storage Implementation
 
-This directory contains the core storage implementation for the Blossom protocol in Tungsten browser.
+This directory contains the core storage implementation for the Blossom protocol in dryft browser.
 
 ## Overview
 

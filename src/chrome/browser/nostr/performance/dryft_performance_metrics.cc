@@ -1,8 +1,8 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/nostr/performance/tungsten_performance_metrics.h"
+#include "chrome/browser/nostr/performance/dryft_performance_metrics.h"
 
 #include <map>
 #include <memory>
@@ -18,19 +18,19 @@
 #include "base/time/time.h"
 #include "testing/perf/perf_result_reporter.h"
 
-namespace tungsten {
+namespace dryft {
 
 namespace {
 
 // UMA histogram names for performance metrics
-const char kStartupMetricPrefix[] = "Tungsten.Performance.Startup.";
-const char kNip07MetricPrefix[] = "Tungsten.Performance.NIP07.";
-const char kRelayMetricPrefix[] = "Tungsten.Performance.Relay.";
-const char kBlossomMetricPrefix[] = "Tungsten.Performance.Blossom.";
-const char kLibraryMetricPrefix[] = "Tungsten.Performance.Library.";
-const char kMemoryMetricPrefix[] = "Tungsten.Performance.Memory.";
-const char kCacheMetricPrefix[] = "Tungsten.Performance.Cache.";
-const char kNetworkMetricPrefix[] = "Tungsten.Performance.Network.";
+const char kStartupMetricPrefix[] = "dryft.Performance.Startup.";
+const char kNip07MetricPrefix[] = "dryft.Performance.NIP07.";
+const char kRelayMetricPrefix[] = "dryft.Performance.Relay.";
+const char kBlossomMetricPrefix[] = "dryft.Performance.Blossom.";
+const char kLibraryMetricPrefix[] = "dryft.Performance.Library.";
+const char kMemoryMetricPrefix[] = "dryft.Performance.Memory.";
+const char kCacheMetricPrefix[] = "dryft.Performance.Cache.";
+const char kNetworkMetricPrefix[] = "dryft.Performance.Network.";
 
 // Performance baseline storage
 base::Lock g_baseline_lock;
@@ -51,19 +51,19 @@ perf_test::PerfResultReporter CreatePerfReporter(const std::string& story_name,
 // Helper function to log performance metric
 void LogPerformanceMetric(const std::string& metric_name, 
                          base::TimeDelta duration) {
-  VLOG(1) << "Tungsten Performance: " << metric_name << " = " 
+  VLOG(1) << "dryft Performance: " << metric_name << " = " 
           << duration.InMilliseconds() << "ms";
   
   // Report to performance testing framework
-  auto reporter = CreatePerfReporter("Tungsten", metric_name);
+  auto reporter = CreatePerfReporter("dryft", metric_name);
   reporter.AddResult("", duration.InMilliseconds());
 }
 
 // Helper function to log memory metric
 void LogMemoryMetric(const std::string& metric_name, size_t memory_mb) {
-  VLOG(1) << "Tungsten Memory: " << metric_name << " = " << memory_mb << "MB";
+  VLOG(1) << "dryft Memory: " << metric_name << " = " << memory_mb << "MB";
   
-  perf_test::PerfResultReporter reporter("Tungsten", metric_name);
+  perf_test::PerfResultReporter reporter("dryft", metric_name);
   reporter.RegisterImportantMetric("", "MB");
   reporter.AddResult("", memory_mb);
 }
@@ -71,68 +71,68 @@ void LogMemoryMetric(const std::string& metric_name, size_t memory_mb) {
 }  // namespace
 
 // Startup metrics
-void TungstenPerformanceMetrics::RecordBrowserStartupTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordBrowserStartupTime(base::TimeDelta duration) {
   LogPerformanceMetric(kStartupMetricPrefix + std::string("BrowserStartup"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordNostrServiceInitTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordNostrServiceInitTime(base::TimeDelta duration) {
   LogPerformanceMetric(kStartupMetricPrefix + std::string("NostrServiceInit"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordLocalRelayStartupTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordLocalRelayStartupTime(base::TimeDelta duration) {
   LogPerformanceMetric(kStartupMetricPrefix + std::string("LocalRelayStartup"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordBlossomServerStartupTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordBlossomServerStartupTime(base::TimeDelta duration) {
   LogPerformanceMetric(kStartupMetricPrefix + std::string("BlossomServerStartup"), duration);
 }
 
 // NIP-07 operation metrics
-void TungstenPerformanceMetrics::RecordGetPublicKeyTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordGetPublicKeyTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNip07MetricPrefix + std::string("GetPublicKey"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordSignEventTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordSignEventTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNip07MetricPrefix + std::string("SignEvent"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordEncryptionTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordEncryptionTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNip07MetricPrefix + std::string("Encryption"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordDecryptionTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordDecryptionTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNip07MetricPrefix + std::string("Decryption"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordGetRelaysTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordGetRelaysTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNip07MetricPrefix + std::string("GetRelays"), duration);
 }
 
 // Local relay metrics
-void TungstenPerformanceMetrics::RecordEventQueryTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordEventQueryTime(base::TimeDelta duration) {
   LogPerformanceMetric(kRelayMetricPrefix + std::string("EventQuery"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordEventInsertTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordEventInsertTime(base::TimeDelta duration) {
   LogPerformanceMetric(kRelayMetricPrefix + std::string("EventInsert"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordSubscriptionTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordSubscriptionTime(base::TimeDelta duration) {
   LogPerformanceMetric(kRelayMetricPrefix + std::string("Subscription"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordDatabaseSize(size_t size_mb) {
+void DryftPerformanceMetrics::RecordDatabaseSize(size_t size_mb) {
   LogMemoryMetric(kRelayMetricPrefix + std::string("DatabaseSize"), size_mb);
 }
 
 // Library loading metrics
-void TungstenPerformanceMetrics::RecordLibraryLoadTime(const std::string& library_name, 
+void DryftPerformanceMetrics::RecordLibraryLoadTime(const std::string& library_name, 
                                                       base::TimeDelta duration) {
   LogPerformanceMetric(kLibraryMetricPrefix + library_name + ".LoadTime", duration);
 }
 
 // Memory metrics
-void TungstenPerformanceMetrics::RecordTotalMemoryUsage(size_t memory_mb) {
+void DryftPerformanceMetrics::RecordTotalMemoryUsage(size_t memory_mb) {
   LogMemoryMetric(kMemoryMetricPrefix + std::string("TotalUsage"), memory_mb);
   
   // Update peak tracking
@@ -142,151 +142,151 @@ void TungstenPerformanceMetrics::RecordTotalMemoryUsage(size_t memory_mb) {
   }
 }
 
-void TungstenPerformanceMetrics::RecordNostrMemoryUsage(size_t memory_mb) {
+void DryftPerformanceMetrics::RecordNostrMemoryUsage(size_t memory_mb) {
   LogMemoryMetric(kMemoryMetricPrefix + std::string("NostrUsage"), memory_mb);
 }
 
-void TungstenPerformanceMetrics::RecordRelayMemoryUsage(size_t memory_mb) {
+void DryftPerformanceMetrics::RecordRelayMemoryUsage(size_t memory_mb) {
   LogMemoryMetric(kMemoryMetricPrefix + std::string("RelayUsage"), memory_mb);
 }
 
-void TungstenPerformanceMetrics::RecordBlossomMemoryUsage(size_t memory_mb) {
+void DryftPerformanceMetrics::RecordBlossomMemoryUsage(size_t memory_mb) {
   LogMemoryMetric(kMemoryMetricPrefix + std::string("BlossomUsage"), memory_mb);
 }
 
 // Blossom server metrics
-void TungstenPerformanceMetrics::RecordBlossomUploadTime(base::TimeDelta duration, 
+void DryftPerformanceMetrics::RecordBlossomUploadTime(base::TimeDelta duration, 
                                                         size_t file_size_kb) {
   LogPerformanceMetric(kBlossomMetricPrefix + std::string("Upload"), duration);
   
   if (file_size_kb > 0) {
     double throughput_mbps = (file_size_kb * 8.0) / (duration.InMilliseconds() * 1024.0);
-    perf_test::PerfResultReporter reporter("Tungsten", "BlossomUploadThroughput");
+    perf_test::PerfResultReporter reporter("dryft", "BlossomUploadThroughput");
     reporter.RegisterImportantMetric("", "Mbps");
     reporter.AddResult("", throughput_mbps);
   }
 }
 
-void TungstenPerformanceMetrics::RecordBlossomDownloadTime(base::TimeDelta duration, 
+void DryftPerformanceMetrics::RecordBlossomDownloadTime(base::TimeDelta duration, 
                                                           size_t file_size_kb) {
   LogPerformanceMetric(kBlossomMetricPrefix + std::string("Download"), duration);
   
   if (file_size_kb > 0) {
     double throughput_mbps = (file_size_kb * 8.0) / (duration.InMilliseconds() * 1024.0);
-    perf_test::PerfResultReporter reporter("Tungsten", "BlossomDownloadThroughput");
+    perf_test::PerfResultReporter reporter("dryft", "BlossomDownloadThroughput");
     reporter.RegisterImportantMetric("", "Mbps");
     reporter.AddResult("", throughput_mbps);
   }
 }
 
-void TungstenPerformanceMetrics::RecordBlossomAuthTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordBlossomAuthTime(base::TimeDelta duration) {
   LogPerformanceMetric(kBlossomMetricPrefix + std::string("Auth"), duration);
 }
 
 // Cache metrics
-void TungstenPerformanceMetrics::RecordCacheHitTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordCacheHitTime(base::TimeDelta duration) {
   LogPerformanceMetric(kCacheMetricPrefix + std::string("Hit"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordCacheMissTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordCacheMissTime(base::TimeDelta duration) {
   LogPerformanceMetric(kCacheMetricPrefix + std::string("Miss"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordCacheSize(size_t size_mb) {
+void DryftPerformanceMetrics::RecordCacheSize(size_t size_mb) {
   LogMemoryMetric(kCacheMetricPrefix + std::string("Size"), size_mb);
 }
 
 // Network metrics
-void TungstenPerformanceMetrics::RecordRelayConnectionTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordRelayConnectionTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNetworkMetricPrefix + std::string("RelayConnection"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordEventPublishTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordEventPublishTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNetworkMetricPrefix + std::string("EventPublish"), duration);
 }
 
-void TungstenPerformanceMetrics::RecordEventFetchTime(base::TimeDelta duration) {
+void DryftPerformanceMetrics::RecordEventFetchTime(base::TimeDelta duration) {
   LogPerformanceMetric(kNetworkMetricPrefix + std::string("EventFetch"), duration);
 }
 
-// ScopedTungstenTimer implementation
-ScopedTungstenTimer::ScopedTungstenTimer(Operation operation) 
+// ScopedDryftTimer implementation
+ScopedDryftTimer::ScopedDryftTimer(Operation operation) 
     : operation_(operation), timer_() {}
 
-ScopedTungstenTimer::ScopedTungstenTimer(Operation operation, const std::string& context)
+ScopedDryftTimer::ScopedDryftTimer(Operation operation, const std::string& context)
     : operation_(operation), context_(context), timer_() {}
 
-ScopedTungstenTimer::~ScopedTungstenTimer() {
+ScopedDryftTimer::~ScopedDryftTimer() {
   base::TimeDelta elapsed = timer_.Elapsed();
   
   switch (operation_) {
     case Operation::kBrowserStartup:
-      TungstenPerformanceMetrics::RecordBrowserStartupTime(elapsed);
+      DryftPerformanceMetrics::RecordBrowserStartupTime(elapsed);
       break;
     case Operation::kNostrServiceInit:
-      TungstenPerformanceMetrics::RecordNostrServiceInitTime(elapsed);
+      DryftPerformanceMetrics::RecordNostrServiceInitTime(elapsed);
       break;
     case Operation::kLocalRelayStartup:
-      TungstenPerformanceMetrics::RecordLocalRelayStartupTime(elapsed);
+      DryftPerformanceMetrics::RecordLocalRelayStartupTime(elapsed);
       break;
     case Operation::kBlossomServerStartup:
-      TungstenPerformanceMetrics::RecordBlossomServerStartupTime(elapsed);
+      DryftPerformanceMetrics::RecordBlossomServerStartupTime(elapsed);
       break;
     case Operation::kGetPublicKey:
-      TungstenPerformanceMetrics::RecordGetPublicKeyTime(elapsed);
+      DryftPerformanceMetrics::RecordGetPublicKeyTime(elapsed);
       break;
     case Operation::kSignEvent:
-      TungstenPerformanceMetrics::RecordSignEventTime(elapsed);
+      DryftPerformanceMetrics::RecordSignEventTime(elapsed);
       break;
     case Operation::kEncryption:
-      TungstenPerformanceMetrics::RecordEncryptionTime(elapsed);
+      DryftPerformanceMetrics::RecordEncryptionTime(elapsed);
       break;
     case Operation::kDecryption:
-      TungstenPerformanceMetrics::RecordDecryptionTime(elapsed);
+      DryftPerformanceMetrics::RecordDecryptionTime(elapsed);
       break;
     case Operation::kGetRelays:
-      TungstenPerformanceMetrics::RecordGetRelaysTime(elapsed);
+      DryftPerformanceMetrics::RecordGetRelaysTime(elapsed);
       break;
     case Operation::kEventQuery:
-      TungstenPerformanceMetrics::RecordEventQueryTime(elapsed);
+      DryftPerformanceMetrics::RecordEventQueryTime(elapsed);
       break;
     case Operation::kEventInsert:
-      TungstenPerformanceMetrics::RecordEventInsertTime(elapsed);
+      DryftPerformanceMetrics::RecordEventInsertTime(elapsed);
       break;
     case Operation::kSubscription:
-      TungstenPerformanceMetrics::RecordSubscriptionTime(elapsed);
+      DryftPerformanceMetrics::RecordSubscriptionTime(elapsed);
       break;
     case Operation::kLibraryLoad:
-      TungstenPerformanceMetrics::RecordLibraryLoadTime(context_, elapsed);
+      DryftPerformanceMetrics::RecordLibraryLoadTime(context_, elapsed);
       break;
     case Operation::kBlossomUpload:
-      TungstenPerformanceMetrics::RecordBlossomUploadTime(elapsed, 0);
+      DryftPerformanceMetrics::RecordBlossomUploadTime(elapsed, 0);
       break;
     case Operation::kBlossomDownload:
-      TungstenPerformanceMetrics::RecordBlossomDownloadTime(elapsed, 0);
+      DryftPerformanceMetrics::RecordBlossomDownloadTime(elapsed, 0);
       break;
     case Operation::kBlossomAuth:
-      TungstenPerformanceMetrics::RecordBlossomAuthTime(elapsed);
+      DryftPerformanceMetrics::RecordBlossomAuthTime(elapsed);
       break;
     case Operation::kCacheHit:
-      TungstenPerformanceMetrics::RecordCacheHitTime(elapsed);
+      DryftPerformanceMetrics::RecordCacheHitTime(elapsed);
       break;
     case Operation::kCacheMiss:
-      TungstenPerformanceMetrics::RecordCacheMissTime(elapsed);
+      DryftPerformanceMetrics::RecordCacheMissTime(elapsed);
       break;
     case Operation::kRelayConnection:
-      TungstenPerformanceMetrics::RecordRelayConnectionTime(elapsed);
+      DryftPerformanceMetrics::RecordRelayConnectionTime(elapsed);
       break;
     case Operation::kEventPublish:
-      TungstenPerformanceMetrics::RecordEventPublishTime(elapsed);
+      DryftPerformanceMetrics::RecordEventPublishTime(elapsed);
       break;
     case Operation::kEventFetch:
-      TungstenPerformanceMetrics::RecordEventFetchTime(elapsed);
+      DryftPerformanceMetrics::RecordEventFetchTime(elapsed);
       break;
   }
 }
 
-base::TimeDelta ScopedTungstenTimer::GetElapsedTime() const {
+base::TimeDelta ScopedDryftTimer::GetElapsedTime() const {
   return timer_.Elapsed();
 }
 
@@ -367,4 +367,4 @@ bool MemoryUsageTracker::IsMemoryUsageAcceptable(size_t current_mb, size_t max_m
   return is_acceptable;
 }
 
-}  // namespace tungsten
+}  // namespace dryft

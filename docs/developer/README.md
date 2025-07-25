@@ -1,4 +1,4 @@
-# Tungsten Browser Developer Documentation
+# dryft browser Developer Documentation
 
 Build web applications that leverage Tungsten's native Nostr capabilities without requiring extensions.
 
@@ -13,7 +13,7 @@ Build web applications that leverage Tungsten's native Nostr capabilities withou
 
 ## Overview
 
-Tungsten Browser provides native Nostr protocol support through enhanced web APIs. Unlike browser extensions, these APIs are:
+dryft browser provides native Nostr protocol support through enhanced web APIs. Unlike browser extensions, these APIs are:
 
 - **Always Available**: No installation or enabling required
 - **Performant**: Direct browser integration, no extension overhead
@@ -32,9 +32,9 @@ if (window.nostr) {
   console.log('Nostr support available');
 }
 
-// Tungsten-specific detection
+// dryft-specific detection
 if (window.nostr?.relay?.url) {
-  console.log('Running in Tungsten Browser');
+  console.log('Running in dryft browser');
   console.log('Local relay:', window.nostr.relay.url);
 }
 ```
@@ -162,8 +162,8 @@ class NostrClient {
       this.nostr = window.nostr;
       
       if (window.nostr.relay?.url) {
-        // Tungsten-specific features
-        console.log('Enhanced Tungsten features available');
+        // dryft-specific features
+        console.log('Enhanced dryft features available');
         this.localRelay = window.nostr.relay;
       }
     } else {
@@ -304,7 +304,7 @@ describe('Nostr Integration', () => {
   beforeEach(() => {
     // Ensure we're testing in Tungsten
     if (!window.nostr?.relay?.url) {
-      throw new Error('Tests must run in Tungsten Browser');
+      throw new Error('Tests must run in dryft browser');
     }
   });
   
@@ -442,7 +442,7 @@ class RateLimitedClient {
 
 ## Getting Help
 
-- [GitHub Issues](https://github.com/sandwichfarm/tungsten/issues) - Bug reports and feature requests
+- [GitHub Issues](https://github.com/sandwichfarm/dryft/issues) - Bug reports and feature requests
 - [Developer Discord](https://discord.gg/tungsten-dev) - Real-time developer support
 - [API Documentation](api-reference.md) - Complete API reference
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/tungsten-browser) - Q&A with the community

@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -49,7 +49,7 @@ bool KeyStorageWindows::StoreKey(const KeyIdentifier& id,
   if (!WriteCredential(target_name, 
                       base::UTF8ToWide(id.public_key),
                       serialized_key,
-                      "Tungsten Nostr Key")) {
+                      "dryft Nostr Key")) {
     LOG(ERROR) << "Failed to store encrypted key";
     return false;
   }
@@ -62,7 +62,7 @@ bool KeyStorageWindows::StoreKey(const KeyIdentifier& id,
   if (!WriteCredential(meta_target,
                       base::UTF8ToWide(id.name),
                       meta_bytes,
-                      "Tungsten Nostr Key Metadata")) {
+                      "dryft Nostr Key Metadata")) {
     // Clean up the key if metadata storage fails
     DeleteCredential(target_name);
     LOG(ERROR) << "Failed to store key metadata";
@@ -178,7 +178,7 @@ bool KeyStorageWindows::UpdateKeyMetadata(const KeyIdentifier& id) {
   return WriteCredential(meta_target,
                         base::UTF8ToWide(updated.name),
                         updated_bytes,
-                        "Tungsten Nostr Key Metadata");
+                        "dryft Nostr Key Metadata");
 }
 
 bool KeyStorageWindows::HasKey(const std::string& key_id) {
@@ -216,7 +216,7 @@ bool KeyStorageWindows::SetDefaultKey(const std::string& key_id) {
   return WriteCredential(GetDefaultKeyTargetName(),
                         L"default",
                         id_bytes,
-                        "Tungsten Nostr Default Key");
+                        "dryft Nostr Default Key");
 }
 
 std::wstring KeyStorageWindows::GetCredentialTargetName(
@@ -438,7 +438,7 @@ std::vector<std::wstring> KeyStorageWindows::EnumerateCredentials() const {
   DWORD count = 0;
   
   // Enumerate all generic credentials
-  if (!CredEnumerateW(L"Tungsten_Nostr_*", 0, &count, &credentials)) {
+  if (!CredEnumerateW(L"dryft_Nostr_*", 0, &count, &credentials)) {
     DWORD error = GetLastError();
     if (error != ERROR_NOT_FOUND) {
       LOG(ERROR) << "Failed to enumerate credentials: " << error;

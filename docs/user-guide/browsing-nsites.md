@@ -1,6 +1,6 @@
 # Browsing Nsites
 
-Learn how to browse static websites hosted on Nostr using Tungsten Browser's native Nsite support.
+Learn how to browse static websites hosted on Nostr using dryft browser's native Nsite support.
 
 ## What are Nsites?
 
@@ -356,7 +356,7 @@ window.nsite?.cache?.setTTL(24 * 60 * 60 * 1000);   // 24 hours
 **Feedback and Suggestions**:
 - Report issues with specific Nsites
 - Suggest new features for Nsite browsing
-- Participate in Tungsten development discussions
+- Participate in dryft development discussions
 
 **Content Creation**:
 - Build your own Nsites

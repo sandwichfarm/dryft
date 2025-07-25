@@ -1,5 +1,5 @@
 # Low Level Design Document: Protocol Handler
-## Tungsten Browser - nostr:// URL Scheme Implementation
+## dryft browser - nostr:// URL Scheme Implementation
 
 ### 1. Component Overview
 

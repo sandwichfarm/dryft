@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -22,7 +22,7 @@ BASE_FEATURE(kNostrSupport, "NostrSupport", base::FEATURE_ENABLED_BY_DEFAULT);
 // Feature flag for Blossom support
 BASE_FEATURE(kBlossomSupport, "BlossomSupport", base::FEATURE_ENABLED_BY_DEFAULT);
 
-namespace tungsten {
+namespace dryft {
 
 // static
 void NostrInjection::DidCreateScriptContext(content::RenderFrame* render_frame,
@@ -92,4 +92,4 @@ bool NostrInjection::IsNostrEnabled() {
   return true;
 }
 
-}  // namespace tungsten
+}  // namespace dryft

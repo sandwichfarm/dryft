@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Comprehensive troubleshooting guide for Tungsten Browser and its Nostr features.
+Comprehensive troubleshooting guide for dryft browser and its Nostr features.
 
 ## Quick Navigation
 
@@ -171,7 +171,7 @@ Solution:
 
 ### macOS Installation Issues
 
-**"Tungsten Browser cannot be opened"**:
+**"dryft browser cannot be opened"**:
 ```
 Solution:
 1. Right-click Tungsten in Applications
@@ -182,10 +182,10 @@ Solution:
 **Quarantine Issues**:
 ```bash
 # Remove quarantine attribute
-xattr -dr com.apple.quarantine "/Applications/Tungsten Browser.app"
+xattr -dr com.apple.quarantine "/Applications/dryft browser.app"
 
 # Verify removal
-xattr -l "/Applications/Tungsten Browser.app"
+xattr -l "/Applications/dryft browser.app"
 ```
 
 **macOS Version Compatibility**:
@@ -305,7 +305,7 @@ telnet localhost 8081
 Symptoms: Queries fail or return no results
 Solutions:
 1. Settings → Advanced → "Reset Local Relay Database"
-2. Or manually delete: ~/.tungsten/Default/relay.db
+2. Or manually delete: ~/.dryft/Default/relay.db
 3. Restart browser to rebuild database
 ```
 
@@ -453,7 +453,7 @@ wscat -c wss://relay.damus.io
 **Local Relay Database**:
 ```bash
 # Examine database (requires sqlite3)
-sqlite3 ~/.tungsten/Default/relay.db
+sqlite3 ~/.dryft/Default/relay.db
 .tables
 .schema events
 SELECT COUNT(*) FROM events;
@@ -506,10 +506,10 @@ A: You'll need to use your private key backup to restore the account.
 
 ### Community Support
 
-- **GitHub Issues**: [Report bugs and request features](https://github.com/sandwichfarm/tungsten/issues)
-- **Discord**: Join the Tungsten community server
+- **GitHub Issues**: [Report bugs and request features](https://github.com/sandwichfarm/dryft/issues)
+- **Discord**: Join the dryft community server
 - **Reddit**: r/TungstenBrowser for community discussions
-- **Matrix**: #tungsten:matrix.org
+- **Matrix**: #dryft:matrix.org
 
 ### Professional Support
 

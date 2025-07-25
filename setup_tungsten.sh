@@ -1,13 +1,13 @@
 #!/bin/bash
-# Setup script for Tungsten Browser development
+# Setup script for dryft browser development
 
 set -e
 
-echo "Setting up Tungsten Browser development environment..."
+echo "Setting up dryft browser development environment..."
 
 # Check if we're in the right directory
 if [ ! -f "README.md" ] || [ ! -d "src" ]; then
-    echo "Error: This script must be run from the Tungsten root directory"
+    echo "Error: This script must be run from the dryft root directory"
     exit 1
 fi
 

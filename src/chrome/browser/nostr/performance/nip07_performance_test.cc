@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -26,7 +26,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "testing/perf/perf_result_reporter.h"
 
-namespace tungsten {
+namespace dryft {
 
 class NIP07PerformanceTest : public testing::Test {
  protected:
@@ -116,15 +116,15 @@ class NIP07PerformanceTest : public testing::Test {
   void SetupPerformanceBaselines() {
     // Set baselines from CLAUDE.md performance targets
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "NIP07.GetPublicKey", TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
+        "NIP07.GetPublicKey", DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "NIP07.SignEvent", TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
+        "NIP07.SignEvent", DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "NIP07.Encryption", TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
+        "NIP07.Encryption", DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "NIP07.Decryption", TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
+        "NIP07.Decryption", DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
     PerformanceRegressionDetector::LogPerformanceBaseline(
-        "NIP07.GetRelays", TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
+        "NIP07.GetRelays", DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds());
   }
   
   // Helper to run performance test multiple times and get average
@@ -167,7 +167,7 @@ TEST_F(NIP07PerformanceTest, GetPublicKeyPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kGetPublicKey);
+    SCOPED_DRYFT_TIMER(kGetPublicKey);
     
     // Simulate getPublicKey() operation
     std::string public_key = test_keys_[i % test_keys_.size()].public_key;
@@ -186,14 +186,14 @@ TEST_F(NIP07PerformanceTest, GetPublicKeyPerformance) {
   avg_time /= kIterations;
   
   // Check against performance target
-  EXPECT_LT(avg_time, TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
+  EXPECT_LT(avg_time, DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
       << "getPublicKey() took " << avg_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "NIP07.GetPublicKey", avg_time, 
-      TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
+      DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
 }
 
 TEST_F(NIP07PerformanceTest, SignEventPerformance) {
@@ -204,7 +204,7 @@ TEST_F(NIP07PerformanceTest, SignEventPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kSignEvent);
+    SCOPED_DRYFT_TIMER(kSignEvent);
     
     // Simulate signEvent() operation
     const TestKey& key = test_keys_[i % test_keys_.size()];
@@ -224,14 +224,14 @@ TEST_F(NIP07PerformanceTest, SignEventPerformance) {
   avg_time /= kIterations;
   
   // Check against performance target
-  EXPECT_LT(avg_time, TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
+  EXPECT_LT(avg_time, DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
       << "signEvent() took " << avg_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "NIP07.SignEvent", avg_time, 
-      TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
+      DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
 }
 
 TEST_F(NIP07PerformanceTest, EncryptionPerformance) {
@@ -241,7 +241,7 @@ TEST_F(NIP07PerformanceTest, EncryptionPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kEncryption);
+    SCOPED_DRYFT_TIMER(kEncryption);
     
     // Simulate nip04.encrypt() operation
     const TestKey& sender_key = test_keys_[i % test_keys_.size()];
@@ -262,14 +262,14 @@ TEST_F(NIP07PerformanceTest, EncryptionPerformance) {
   avg_time /= kIterations;
   
   // Check against performance target
-  EXPECT_LT(avg_time, TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
+  EXPECT_LT(avg_time, DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
       << "nip04.encrypt() took " << avg_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "NIP07.Encryption", avg_time, 
-      TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
+      DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
 }
 
 TEST_F(NIP07PerformanceTest, DecryptionPerformance) {
@@ -279,7 +279,7 @@ TEST_F(NIP07PerformanceTest, DecryptionPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kDecryption);
+    SCOPED_DRYFT_TIMER(kDecryption);
     
     // Simulate nip04.decrypt() operation
     const TestKey& sender_key = test_keys_[i % test_keys_.size()];
@@ -300,14 +300,14 @@ TEST_F(NIP07PerformanceTest, DecryptionPerformance) {
   avg_time /= kIterations;
   
   // Check against performance target
-  EXPECT_LT(avg_time, TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
+  EXPECT_LT(avg_time, DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
       << "nip04.decrypt() took " << avg_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "NIP07.Decryption", avg_time, 
-      TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
+      DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
 }
 
 TEST_F(NIP07PerformanceTest, GetRelaysPerformance) {
@@ -315,7 +315,7 @@ TEST_F(NIP07PerformanceTest, GetRelaysPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kGetRelays);
+    SCOPED_DRYFT_TIMER(kGetRelays);
     
     // Simulate getRelays() operation
     std::vector<std::string> relays = {
@@ -340,14 +340,14 @@ TEST_F(NIP07PerformanceTest, GetRelaysPerformance) {
   avg_time /= kIterations;
   
   // Check against performance target (should be faster than other operations)
-  EXPECT_LT(avg_time, TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
+  EXPECT_LT(avg_time, DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
       << "getRelays() took " << avg_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
   
   // Check for performance regression
   EXPECT_TRUE(PerformanceRegressionDetector::CheckPerformanceRegression(
       "NIP07.GetRelays", avg_time, 
-      TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
+      DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds(), 10.0));
 }
 
 TEST_F(NIP07PerformanceTest, ConcurrentOperationsPerformance) {
@@ -365,24 +365,24 @@ TEST_F(NIP07PerformanceTest, ConcurrentOperationsPerformance) {
     // Mix of different operations
     switch (i % 4) {
       case 0: {
-        SCOPED_TUNGSTEN_TIMER(kGetPublicKey);
+        SCOPED_DRYFT_TIMER(kGetPublicKey);
         std::string public_key = test_keys_[i % test_keys_.size()].public_key;
         base::PlatformThread::Sleep(base::Microseconds(100));
         break;
       }
       case 1: {
-        SCOPED_TUNGSTEN_TIMER(kSignEvent);
+        SCOPED_DRYFT_TIMER(kSignEvent);
         const nostr::NostrEvent& event = test_events_[i % test_events_.size()];
         base::PlatformThread::Sleep(base::Microseconds(500));
         break;
       }
       case 2: {
-        SCOPED_TUNGSTEN_TIMER(kEncryption);
+        SCOPED_DRYFT_TIMER(kEncryption);
         base::PlatformThread::Sleep(base::Microseconds(300));
         break;
       }
       case 3: {
-        SCOPED_TUNGSTEN_TIMER(kGetRelays);
+        SCOPED_DRYFT_TIMER(kGetRelays);
         base::PlatformThread::Sleep(base::Microseconds(50));
         break;
       }
@@ -404,7 +404,7 @@ TEST_F(NIP07PerformanceTest, ConcurrentOperationsPerformance) {
   double ops_per_second = (kConcurrentOperations * 1000.0) / total_time;
   
   // Log performance metrics
-  perf_test::PerfResultReporter reporter("Tungsten", "NIP07ConcurrentOperations");
+  perf_test::PerfResultReporter reporter("dryft", "NIP07ConcurrentOperations");
   reporter.RegisterImportantMetric("AvgTimePerOp", "ms");
   reporter.RegisterImportantMetric("OperationsPerSecond", "ops/s");
   reporter.AddResult("AvgTimePerOp", avg_time);
@@ -416,9 +416,9 @@ TEST_F(NIP07PerformanceTest, ConcurrentOperationsPerformance) {
       << " ops/s, expected > 100 ops/s";
   
   // Average operation time should still be reasonable
-  EXPECT_LT(avg_time, TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
+  EXPECT_LT(avg_time, DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds())
       << "Average operation time " << avg_time << "ms, expected < "
-      << TungstenPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
+      << DryftPerformanceMetrics::kMaxNip07OperationTime.InMilliseconds() << "ms";
 }
 
 TEST_F(NIP07PerformanceTest, LargeEventSigningPerformance) {
@@ -436,7 +436,7 @@ TEST_F(NIP07PerformanceTest, LargeEventSigningPerformance) {
   std::vector<double> times;
   
   for (int i = 0; i < kIterations; ++i) {
-    SCOPED_TUNGSTEN_TIMER(kSignEvent);
+    SCOPED_DRYFT_TIMER(kSignEvent);
     
     // Create large event
     nostr::NostrEvent large_event;
@@ -463,9 +463,9 @@ TEST_F(NIP07PerformanceTest, LargeEventSigningPerformance) {
       << "Large event signing took " << avg_time << "ms, expected < 50ms";
   
   // Log performance metric
-  perf_test::PerfResultReporter reporter("Tungsten", "NIP07LargeEventSigning");
+  perf_test::PerfResultReporter reporter("dryft", "NIP07LargeEventSigning");
   reporter.RegisterImportantMetric("", "ms");
   reporter.AddResult("", avg_time);
 }
 
-}  // namespace tungsten
+}  // namespace dryft

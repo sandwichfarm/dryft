@@ -43,8 +43,8 @@ On any website, open Developer Tools (F12) and test:
 // Check if Nostr is available
 console.log('Nostr available:', !!window.nostr);
 
-// Check for Tungsten-specific features
-console.log('Tungsten features:', Boolean(window.nostr?.relay?.url));
+// Check for dryft-specific features
+console.log('dryft features:', Boolean(window.nostr?.relay?.url));
 
 // List available methods
 console.log('Available methods:', Object.keys(window.nostr));
@@ -71,7 +71,7 @@ const event = {
   kind: 1,
   created_at: Math.floor(Date.now() / 1000),
   tags: [['t', 'tungsten'], ['t', 'nostr']],
-  content: 'Hello from Tungsten Browser! 🚀'
+  content: 'Hello from dryft browser! 🚀'
 };
 
 // Sign the event

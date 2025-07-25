@@ -1,4 +1,4 @@
-# Tungsten Browser
+# dryft browser
 
 Tungsten is a fork of Thorium browser that adds native Nostr protocol support.
 

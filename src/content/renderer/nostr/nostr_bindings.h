@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -16,7 +16,7 @@ namespace content {
 class RenderFrame;
 }
 
-namespace tungsten {
+namespace dryft {
 
 // NostrBindings implements the window.nostr object that provides
 // NIP-07 functionality to web pages.
@@ -123,6 +123,6 @@ class NostrBindings : public gin::Wrappable<NostrBindings>,
   base::WeakPtrFactory<NostrBindings> weak_factory_{this};
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
 #endif  // CONTENT_RENDERER_NOSTR_NOSTR_BINDINGS_H_

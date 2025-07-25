@@ -1,6 +1,6 @@
 # Tungsten Memory Directory
 
-This directory contains all documentation, specifications, and implementation records for the Tungsten browser project. Files are organized by purpose for easy navigation.
+This directory contains all documentation, specifications, and implementation records for the dryft browser project. Files are organized by purpose for easy navigation.
 
 ## Directory Structure
 

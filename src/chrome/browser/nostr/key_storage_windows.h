@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -73,16 +73,16 @@ class KeyStorageWindows : public KeyStorage {
   // Delete a credential
   bool DeleteCredential(const std::wstring& target_name);
   
-  // List all Tungsten Nostr credentials
+  // List all dryft Nostr credentials
   std::vector<std::wstring> EnumerateCredentials() const;
   
   // Profile for which we're storing keys
   Profile* profile_;
   
   // Prefix for all credential names
-  static constexpr wchar_t kCredentialPrefix[] = L"Tungsten_Nostr_";
-  static constexpr wchar_t kMetadataPrefix[] = L"Tungsten_Nostr_Meta_";
-  static constexpr wchar_t kDefaultKeyName[] = L"Tungsten_Nostr_Default";
+  static constexpr wchar_t kCredentialPrefix[] = L"dryft_Nostr_";
+  static constexpr wchar_t kMetadataPrefix[] = L"dryft_Nostr_Meta_";
+  static constexpr wchar_t kDefaultKeyName[] = L"dryft_Nostr_Default";
   
   DISALLOW_COPY_AND_ASSIGN(KeyStorageWindows);
 };

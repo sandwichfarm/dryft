@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -16,7 +16,7 @@
 #include "v8/include/v8-object.h"
 #include "v8/include/v8-promise.h"
 
-namespace tungsten {
+namespace dryft {
 
 class MultiAccountTest : public gin::V8Test {
  public:
@@ -168,7 +168,7 @@ TEST_F(MultiAccountTest, NonStandardMethodsIdentified) {
   
   // Note: listAccounts, getCurrentAccount, and switchAccount are NOT part
   // of the NIP-07 standard but are useful extensions for multi-account support.
-  // They should be clearly documented as Tungsten-specific extensions.
+  // They should be clearly documented as dryft-specific extensions.
   
   v8::Local<v8::Value> nostr_value = 
       NostrBindings::Create(isolate, render_frame_);
@@ -207,4 +207,4 @@ TEST_F(MultiAccountTest, AccountIsolationConcepts) {
   EXPECT_TRUE(true);  // Placeholder for conceptual test
 }
 
-}  // namespace tungsten
+}  // namespace dryft

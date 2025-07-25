@@ -1,6 +1,6 @@
-# Getting Started with Tungsten Browser
+# Getting Started with dryft browser
 
-This guide will help you install Tungsten Browser and get started with its native Nostr features.
+This guide will help you install dryft browser and get started with its native Nostr features.
 
 ## System Requirements
 
@@ -21,7 +21,7 @@ This guide will help you install Tungsten Browser and get started with its nativ
 
 ### Windows
 
-1. **Download**: Get the latest Tungsten installer from [releases page](https://github.com/sandwichfarm/tungsten/releases)
+1. **Download**: Get the latest Tungsten installer from [releases page](https://github.com/sandwichfarm/dryft/releases)
 2. **Run Installer**: Double-click `TungstenBrowserSetup.exe`
 3. **Admin Rights**: Click "Yes" when prompted for administrator permissions
 4. **Installation**: Follow the setup wizard (typically takes 2-3 minutes)
@@ -29,9 +29,9 @@ This guide will help you install Tungsten Browser and get started with its nativ
 
 ### macOS
 
-1. **Download**: Get `TungstenBrowser.dmg` from [releases page](https://github.com/sandwichfarm/tungsten/releases)
+1. **Download**: Get `TungstenBrowser.dmg` from [releases page](https://github.com/sandwichfarm/dryft/releases)
 2. **Mount DMG**: Double-click the downloaded file
-3. **Install**: Drag Tungsten Browser to your Applications folder
+3. **Install**: Drag dryft browser to your Applications folder
 4. **Security**: First launch requires right-click → "Open" due to macOS security
 5. **Launch**: Find Tungsten in Applications or Spotlight
 
@@ -40,7 +40,7 @@ This guide will help you install Tungsten Browser and get started with its nativ
 #### Debian/Ubuntu (DEB Package)
 ```bash
 # Download the .deb package
-wget https://github.com/sandwichfarm/tungsten/releases/latest/download/tungsten-browser_amd64.deb
+wget https://github.com/sandwichfarm/dryft/releases/latest/download/tungsten-browser_amd64.deb
 
 # Install
 sudo dpkg -i tungsten-browser_amd64.deb
@@ -53,7 +53,7 @@ tungsten-browser
 #### RPM-based Distributions
 ```bash
 # Download the .rpm package
-wget https://github.com/sandwichfarm/tungsten/releases/latest/download/tungsten-browser.x86_64.rpm
+wget https://github.com/sandwichfarm/dryft/releases/latest/download/tungsten-browser.x86_64.rpm
 
 # Install (Fedora/CentOS/RHEL)
 sudo rpm -i tungsten-browser.x86_64.rpm
@@ -65,7 +65,7 @@ tungsten-browser
 #### AppImage (Universal)
 ```bash
 # Download AppImage
-wget https://github.com/sandwichfarm/tungsten/releases/latest/download/TungstenBrowser.AppImage
+wget https://github.com/sandwichfarm/dryft/releases/latest/download/TungstenBrowser.AppImage
 
 # Make executable
 chmod +x TungstenBrowser.AppImage
@@ -107,7 +107,7 @@ Tungsten automatically configures local services:
 
 - **Local Relay**: Starts on `ws://localhost:8081`
 - **Blossom Server**: Starts on `http://localhost:8080`
-- **Storage Location**: Uses `~/.tungsten/` directory
+- **Storage Location**: Uses `~/.dryft/` directory
 
 You'll see a notification when services are ready (usually 10-15 seconds).
 
@@ -172,7 +172,7 @@ Now that Tungsten is installed and working:
 
 ### macOS Issues
 
-**"Tungsten Browser cannot be opened" dialog:**
+**"dryft browser cannot be opened" dialog:**
 - Right-click Tungsten in Applications
 - Select "Open" from context menu
 - Click "Open" in the security dialog
@@ -204,4 +204,4 @@ chmod +x tungsten-browser
 chmod +x TungstenBrowser.AppImage
 ```
 
-If you continue having issues, see the [Troubleshooting Guide](../troubleshooting/README.md) or [report an issue](https://github.com/sandwichfarm/tungsten/issues).
+If you continue having issues, see the [Troubleshooting Guide](../troubleshooting/README.md) or [report an issue](https://github.com/sandwichfarm/dryft/issues).

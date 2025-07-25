@@ -1,5 +1,5 @@
 # Performance Benchmarks and Targets
-## Tungsten Browser - Detailed Performance Specifications
+## dryft browser - Detailed Performance Specifications
 
 ### 1. Performance Target Overview
 

@@ -1,5 +1,5 @@
 # Browser API Extensions
-## Tungsten Browser - Extended Web APIs for Nostr, Blossom, and Developer Tools
+## dryft browser - Extended Web APIs for Nostr, Blossom, and Developer Tools
 
 ### 1. Extended window.nostr API
 

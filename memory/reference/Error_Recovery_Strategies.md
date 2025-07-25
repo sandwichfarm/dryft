@@ -1,5 +1,5 @@
 # Error Recovery Strategies
-## Tungsten Browser - Comprehensive Error Handling and Recovery
+## dryft browser - Comprehensive Error Handling and Recovery
 
 ### 1. Error Classification and Hierarchy
 

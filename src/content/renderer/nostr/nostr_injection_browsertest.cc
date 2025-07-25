@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -9,7 +9,7 @@
 #include "content/public/test/content_browser_test_utils.h"
 #include "net/test/embedded_test_server/embedded_test_server.h"
 
-namespace tungsten {
+namespace dryft {
 
 class NostrInjectionBrowserTest : public content::ContentBrowserTest {
  public:
@@ -407,4 +407,4 @@ IN_PROC_BROWSER_TEST_F(NostrInjectionBrowserTest, AccountsMethodsReturnPromises)
   EXPECT_EQ("rejected", import_result);  // Should reject as not implemented
 }
 
-}  // namespace tungsten
+}  // namespace dryft

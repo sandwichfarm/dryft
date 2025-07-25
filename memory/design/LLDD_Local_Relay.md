@@ -1,5 +1,5 @@
 # Low Level Design Document: Local Relay
-## Tungsten Browser - Built-in Nostr Relay Implementation
+## dryft browser - Built-in Nostr Relay Implementation
 
 ### 1. Component Overview
 

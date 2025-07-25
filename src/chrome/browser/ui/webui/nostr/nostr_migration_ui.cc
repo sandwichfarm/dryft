@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -20,7 +20,7 @@ NostrMigrationUI::NostrMigrationUI(content::WebUI* web_ui)
   
   // Create data source
   content::WebUIDataSource* source = content::WebUIDataSource::CreateAndAdd(
-      profile, tungsten::kChromeUINostrMigrationHost);
+      profile, dryft::kChromeUINostrMigrationHost);
   
   // Add resources
   webui::SetupWebUIDataSource(

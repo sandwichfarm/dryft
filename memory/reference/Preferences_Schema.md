@@ -1,5 +1,5 @@
 # Preferences Schema
-## Tungsten Browser - Comprehensive Configuration System
+## dryft browser - Comprehensive Configuration System
 
 ### 1. Preferences Overview
 
@@ -13,7 +13,7 @@ Tungsten uses a hierarchical preference system with:
 
 ```cpp
 // chrome/common/pref_names_tungsten.h
-namespace tungsten {
+namespace dryft {
 namespace prefs {
 
 // ============================================================================
@@ -171,17 +171,17 @@ struct NetworkPrefs {
 // ============================================================================
 struct DeveloperPrefs {
   // Developer mode
-  static constexpr char kDevModeEnabled[] = "tungsten.dev.enabled";
+  static constexpr char kDevModeEnabled[] = "dryft.dev.enabled";
   // Debug logging
-  static constexpr char kDebugLogging[] = "tungsten.dev.debug_logging";
-  static constexpr char kLogCategories[] = "tungsten.dev.log_categories";
+  static constexpr char kDebugLogging[] = "dryft.dev.debug_logging";
+  static constexpr char kLogCategories[] = "dryft.dev.log_categories";
   // Testing features
-  static constexpr char kTestRelayEnabled[] = "tungsten.dev.test_relay";
-  static constexpr char kMockDataEnabled[] = "tungsten.dev.mock_data";
+  static constexpr char kTestRelayEnabled[] = "dryft.dev.test_relay";
+  static constexpr char kMockDataEnabled[] = "dryft.dev.mock_data";
 };
 
 }  // namespace prefs
-}  // namespace tungsten
+}  // namespace dryft
 ```
 
 ### 3. Preference Types and Validation
@@ -481,14 +481,14 @@ class PreferenceSyncManager {
 <!-- Administrative template for enterprise deployment -->
 <policyDefinitions>
   <categories>
-    <category name="TungstenNostr" displayName="Tungsten Nostr Settings"/>
+    <category name="TungstenNostr" displayName="dryft Nostr Settings"/>
   </categories>
   
   <policies>
     <policy name="NostrEnabled" class="Both" displayName="Enable Nostr Features"
             explainText="Controls whether Nostr features are available">
       <parentCategory ref="TungstenNostr"/>
-      <supportedOn ref="SUPPORTED_TUNGSTEN_1_0"/>
+      <supportedOn ref="SUPPORTED_DRYFT_1_0"/>
       <enabledValue><decimal value="1"/></enabledValue>
       <disabledValue><decimal value="0"/></disabledValue>
     </policy>

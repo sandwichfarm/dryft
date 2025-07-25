@@ -1,11 +1,11 @@
 # Technical Specifications Document
-## Tungsten Browser - Nostr-Native Web Browser
+## dryft browser - Nostr-Native Web Browser
 
 ### 1. System Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Tungsten Browser                         │
+│                     dryft browser                         │
 ├─────────────────────────────────────────────────────────────┤
 │                    Chromium Core (Thorium)                   │
 ├─────────────────────────────────────────────────────────────┤

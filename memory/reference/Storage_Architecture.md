@@ -1,5 +1,5 @@
 # Storage Architecture
-## Tungsten Browser - Multi-Store Design for Different Components
+## dryft browser - Multi-Store Design for Different Components
 
 ### 1. Overview
 

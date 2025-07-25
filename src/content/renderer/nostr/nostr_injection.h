@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -11,7 +11,7 @@ namespace content {
 class RenderFrame;
 }
 
-namespace tungsten {
+namespace dryft {
 
 // NostrInjection handles injecting the window.nostr object into
 // web page contexts at the appropriate time.
@@ -31,6 +31,6 @@ class NostrInjection {
   ~NostrInjection() = delete;
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
 #endif  // CONTENT_RENDERER_NOSTR_NOSTR_INJECTION_H_

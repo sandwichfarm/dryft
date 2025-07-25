@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -10,7 +10,7 @@
 #include "content/public/browser/webui_config.h"
 #include "content/public/common/url_constants.h"
 
-namespace tungsten {
+namespace dryft {
 
 // WebUIConfig for chrome://nostr-migration
 class NostrMigrationUIConfig : public content::DefaultWebUIConfig<NostrMigrationUI> {
@@ -20,6 +20,6 @@ class NostrMigrationUIConfig : public content::DefaultWebUIConfig<NostrMigration
                           kChromeUINostrMigrationHost) {}
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
 #endif  // CHROME_BROWSER_UI_WEBUI_NOSTR_NOSTR_MIGRATION_UI_CONFIG_H_

@@ -1,10 +1,10 @@
-# Tungsten Browser Build Arguments
+# dryft browser Build Arguments
 # Copy this file to src/out/Release/args.gn
 
 # Base Thorium arguments
 import("//thorium_args.gn")
 
-# Enable Tungsten Nostr features
+# Enable dryft Nostr features
 enable_nostr = true
 enable_local_relay = true
 enable_blossom_server = true
