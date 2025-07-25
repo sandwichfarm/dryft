@@ -1,18 +1,18 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CHROME_BROWSER_NOSTR_PERFORMANCE_TUNGSTEN_PERFORMANCE_METRICS_H_
-#define CHROME_BROWSER_NOSTR_PERFORMANCE_TUNGSTEN_PERFORMANCE_METRICS_H_
+#ifndef CHROME_BROWSER_NOSTR_PERFORMANCE_DRYFT_PERFORMANCE_METRICS_H_
+#define CHROME_BROWSER_NOSTR_PERFORMANCE_DRYFT_PERFORMANCE_METRICS_H_
 
 #include <string>
 #include "base/time/time.h"
 #include "base/timer/elapsed_timer.h"
 
-namespace tungsten {
+namespace dryft {
 
-// Centralized performance metrics collection for Tungsten Nostr features
-class TungstenPerformanceMetrics {
+// Centralized performance metrics collection for dryft Nostr features
+class DryftPerformanceMetrics {
  public:
   // Startup metrics
   static void RecordBrowserStartupTime(base::TimeDelta duration);
@@ -67,7 +67,7 @@ class TungstenPerformanceMetrics {
 };
 
 // RAII timing helper for automatic performance measurement
-class ScopedTungstenTimer {
+class ScopedDryftTimer {
  public:
   enum class Operation {
     kBrowserStartup,
@@ -93,18 +93,18 @@ class ScopedTungstenTimer {
     kEventFetch
   };
   
-  explicit ScopedTungstenTimer(Operation operation);
-  explicit ScopedTungstenTimer(Operation operation, const std::string& context);
-  ~ScopedTungstenTimer();
+  explicit ScopedDryftTimer(Operation operation);
+  explicit ScopedDryftTimer(Operation operation, const std::string& context);
+  ~ScopedDryftTimer();
   
   // Get elapsed time without destroying the timer
   base::TimeDelta GetElapsedTime() const;
   
   // Disable copy and move operations
-  ScopedTungstenTimer(const ScopedTungstenTimer&) = delete;
-  ScopedTungstenTimer& operator=(const ScopedTungstenTimer&) = delete;
-  ScopedTungstenTimer(ScopedTungstenTimer&&) = delete;
-  ScopedTungstenTimer& operator=(ScopedTungstenTimer&&) = delete;
+  ScopedDryftTimer(const ScopedDryftTimer&) = delete;
+  ScopedDryftTimer& operator=(const ScopedDryftTimer&) = delete;
+  ScopedDryftTimer(ScopedDryftTimer&&) = delete;
+  ScopedDryftTimer& operator=(ScopedDryftTimer&&) = delete;
   
  private:
   Operation operation_;
@@ -113,11 +113,11 @@ class ScopedTungstenTimer {
 };
 
 // Convenience macros for common performance measurements
-#define SCOPED_TUNGSTEN_TIMER(operation) \
-  ScopedTungstenTimer timer(ScopedTungstenTimer::Operation::operation)
+#define SCOPED_DRYFT_TIMER(operation) \
+  ScopedDryftTimer timer(ScopedDryftTimer::Operation::operation)
 
-#define SCOPED_TUNGSTEN_TIMER_WITH_CONTEXT(operation, context) \
-  ScopedTungstenTimer timer(ScopedTungstenTimer::Operation::operation, context)
+#define SCOPED_DRYFT_TIMER_WITH_CONTEXT(operation, context) \
+  ScopedDryftTimer timer(ScopedDryftTimer::Operation::operation, context)
 
 // Performance regression detection
 class PerformanceRegressionDetector {
@@ -155,6 +155,6 @@ class MemoryUsageTracker {
   static bool IsMemoryUsageAcceptable(size_t current_mb, size_t max_mb);
 };
 
-}  // namespace tungsten
+}  // namespace dryft
 
-#endif  // CHROME_BROWSER_NOSTR_PERFORMANCE_TUNGSTEN_PERFORMANCE_METRICS_H_
+#endif  // CHROME_BROWSER_NOSTR_PERFORMANCE_DRYFT_PERFORMANCE_METRICS_H_

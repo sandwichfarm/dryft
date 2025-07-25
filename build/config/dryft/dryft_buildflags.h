@@ -1,9 +1,9 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef BUILD_CONFIG_TUNGSTEN_TUNGSTEN_BUILDFLAGS_H_
-#define BUILD_CONFIG_TUNGSTEN_TUNGSTEN_BUILDFLAGS_H_
+#ifndef BUILD_CONFIG_DRYFT_DRYFT_BUILDFLAGS_H_
+#define BUILD_CONFIG_DRYFT_DRYFT_BUILDFLAGS_H_
 
 #include "build/buildflag.h"
 
@@ -36,4 +36,4 @@
 #define NOSTR_RELAY_MAX_STORAGE_GB 10
 #define BLOSSOM_MAX_STORAGE_GB 50
 
-#endif  // BUILD_CONFIG_TUNGSTEN_TUNGSTEN_BUILDFLAGS_H_
+#endif  // BUILD_CONFIG_DRYFT_DRYFT_BUILDFLAGS_H_

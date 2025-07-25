@@ -1,6 +1,6 @@
 > NOTICE: Alpha! Build system incomplete and project currently doesn't build. There _will_ be failing tests and docs _will_ be inaccurate. 
 
-# Tungsten Browser
+# dryft browser
 
 A fork of [Thorium browser](https://github.com/Alex313031/thorium) with native Nostr protocol support built directly into the browser core.
 
@@ -22,8 +22,8 @@ A fork of [Thorium browser](https://github.com/Alex313031/thorium) with native N
 
 ## 🚀 Quick Start
 
-1. **[Download](https://github.com/sandwichfarm/tungsten/releases)** the latest release for your platform
-2. **Install** and launch Tungsten Browser
+1. **[Download](https://github.com/sandwichfarm/dryft/releases)** the latest release for your platform
+2. **Install** and launch dryft browser
 3. **Create or import** your Nostr account
 4. **Browse** any website - `window.nostr` is automatically available
 
@@ -51,7 +51,7 @@ await window.nostr.getPublicKey(); // Your public key
 
 ## 🏗️ Architecture
 
-Tungsten integrates Nostr support directly into the browser core with these key components:
+dryft integrates Nostr support directly into the browser core with these key components:
 
 - **Browser Process**: Manages services, key storage, and permissions
 - **Local Relay**: SQLite-backed WebSocket relay (`ws://localhost:8081`)
@@ -73,7 +73,7 @@ window.nostr = {
   nip04: { encrypt(), decrypt() },
   nip44: { encrypt(), decrypt() },
   
-  // Tungsten extensions
+  // dryft extensions
   relay: {
     url: "ws://localhost:8081",
     connected: boolean,
@@ -122,8 +122,8 @@ See the [Building Guide](docs/BUILDING.md) for complete instructions, or follow 
 ### Quick Build
 ```bash
 # 1. Clone and setup
-git clone https://github.com/sandwichfarm/tungsten.git
-cd tungsten
+git clone https://github.com/sandwichfarm/dryft.git
+cd dryft
 ./setup.sh
 
 # 2. Configure with Nostr features
@@ -142,8 +142,8 @@ autoninja -C out/Release chrome
 ## 🤝 Contributing
 
 - **[Development Guide](CLAUDE.md)** - Development workflow and standards
-- **[GitHub Issues](https://github.com/sandwichfarm/tungsten/issues)** - Bug reports and feature requests
-- **[Pull Requests](https://github.com/sandwichfarm/tungsten/pulls)** - Code contributions welcome
+- **[GitHub Issues](https://github.com/sandwichfarm/dryft/issues)** - Bug reports and feature requests
+- **[Pull Requests](https://github.com/sandwichfarm/dryft/pulls)** - Code contributions welcome
 
 ## 📄 License
 

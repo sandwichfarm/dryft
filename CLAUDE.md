@@ -1,7 +1,7 @@
-# CLAUDE.md - Tungsten Browser Development Guide
+# CLAUDE.md - dryft browser Development Guide
 
 ## Project Overview
-Tungsten is a fork of Thorium browser that adds native Nostr protocol support, including built-in NIP-07 interface, local relay, Blossom server, nostr:// scheme support, and Nsite static website hosting.
+dryft is a fork of Thorium browser that adds native Nostr protocol support, including built-in NIP-07 interface, local relay, Blossom server, nostr:// scheme support, and Nsite static website hosting.
 
 ## Development Workflow
 
@@ -121,7 +121,7 @@ Always implement in dependency order:
 ### 6. Common Commands
 
 ```bash
-# Build Tungsten
+# Build dryft
 cd src
 gn gen out/Release --args="is_official_build=true enable_nostr=true enable_local_relay=true enable_blossom_server=true"
 autoninja -C out/Release chrome
@@ -243,7 +243,7 @@ gh pr create \
 Enable debug logging:
 ```javascript
 // In DevTools console
-chrome.storage.local.set({'tungsten.dev.debug_logging': true});
+chrome.storage.local.set({'dryft.dev.debug_logging': true});
 ```
 
 View local relay status:

@@ -1,6 +1,6 @@
-# Tungsten Browser Documentation
+# dryft browser Documentation
 
-Complete documentation for Tungsten Browser - the first browser with native Nostr protocol support.
+Complete documentation for dryft browser - the first browser with native Nostr protocol support.
 
 ## 📖 Documentation Sections
 
@@ -12,7 +12,7 @@ Complete documentation for Tungsten Browser - the first browser with native Nost
   - [Privacy & Security](user-guide/privacy-security.md) - Security best practices
 
 ### For Developers  
-- **[Developer Documentation](developer/README.md)** - Build applications with Tungsten
+- **[Developer Documentation](developer/README.md)** - Build applications with dryft
   - [API Reference](developer/api-reference.md) - Complete API documentation
   - [Integration Guide](developer/integration-guide.md) - Step-by-step integration
   - [Code Examples](developer/examples/) - Working code samples
@@ -35,7 +35,7 @@ Complete documentation for Tungsten Browser - the first browser with native Nost
 ## 🚀 Quick References
 
 ### For New Users
-1. [Download and Install](user-guide/getting-started.md#installation) - Get Tungsten running
+1. [Download and Install](user-guide/getting-started.md#installation) - Get dryft running
 2. [Create Your First Account](user-guide/account-management.md#creating-your-first-account) - Set up Nostr identity
 3. [Test Basic Features](user-guide/nostr-features.md#basic-nostr-usage) - Verify everything works
 
@@ -64,15 +64,15 @@ Complete documentation for Tungsten Browser - the first browser with native Nost
 ## 🆘 Getting Help
 
 ### Community Support
-- **GitHub Issues**: [Report bugs and request features](https://github.com/sandwichfarm/tungsten/issues)
-- **Discussions**: [Community Q&A and discussions](https://github.com/sandwichfarm/tungsten/discussions)
-- **Discord**: Join the Tungsten community server
-- **Matrix**: #tungsten:matrix.org
+- **GitHub Issues**: [Report bugs and request features](https://github.com/sandwichfarm/dryft/issues)
+- **Discussions**: [Community Q&A and discussions](https://github.com/sandwichfarm/dryft/discussions)
+- **Discord**: Join the dryft community server
+- **Matrix**: #dryft:matrix.org
 
 ### Documentation Issues
 Found an error in the documentation or want to suggest improvements?
-- [Open a documentation issue](https://github.com/sandwichfarm/tungsten/issues/new?labels=documentation)
-- [Submit a documentation PR](https://github.com/sandwichfarm/tungsten/pulls)
+- [Open a documentation issue](https://github.com/sandwichfarm/dryft/issues/new?labels=documentation)
+- [Submit a documentation PR](https://github.com/sandwichfarm/dryft/pulls)
 
 ## 🤝 Contributing to Documentation
 
@@ -91,4 +91,4 @@ We welcome contributions to improve the documentation:
 
 ---
 
-*This documentation is maintained by the Tungsten development team and community contributors.*
+*This documentation is maintained by the dryft development team and community contributors.*

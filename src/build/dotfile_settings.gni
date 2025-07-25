@@ -1,0 +1,7 @@
+# Basic dotfile settings for dryft build
+# This is a minimal configuration to get the build started
+
+# Build directories to ignore
+build_dotfile_settings = {
+  exec_script_whitelist = []
+}
