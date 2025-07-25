@@ -1,5 +1,5 @@
 // nostr-tools v1.17.0
-// Simplified placeholder for Tungsten
+// Simplified placeholder for dryft
 // Full library: https://github.com/nbd-wtf/nostr-tools
 
 (function(global, factory) {

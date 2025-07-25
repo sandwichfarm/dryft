@@ -444,7 +444,7 @@ Invalid Nostr URL:
 ```
 Mobile View (360px width):
 ┌─────────────────────┐
-│ ≡  Tungsten    ⚡ ⋮ │
+│ ≡  dryft    ⚡ ⋮ │
 ├─────────────────────┤
 │ ┌─────────────────┐ │
 │ │ URL Bar         │ │
@@ -540,7 +540,7 @@ Step 2: Key Concepts
 │  Private Key (nsec...):                                    │
 │  • Your password to the Nostr network                      │
 │  • Never share this with anyone!                           │
-│  • Tungsten stores this securely for you                   │
+│  • dryft stores this securely for you                   │
 │                                                             │
 │           [ ← Back ]         [ Next → ]                    │
 │                                                             │

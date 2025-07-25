@@ -4,7 +4,7 @@
  
  import("//build/config/buildflags_paint_preview.gni")
  import("//build/config/features.gni")
-+import("//build/config/tungsten/tungsten.gni")
++import("//build/config/dryft/dryft.gni")
  import("//build/config/ui.gni")
  import("//build/config/compiler/compiler.gni")
  import("//components/nacl/features.gni")

@@ -238,7 +238,7 @@ def generate_report(results: Dict, output_dir: str) -> str:
     report_lines = []
     
     # Header
-    report_lines.append("# Tungsten Performance Test Report")
+    report_lines.append("# dryft Performance Test Report")
     report_lines.append("")
     report_lines.append(f"**Test Date:** {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(results['timestamp']))}")
     report_lines.append(f"**Build Directory:** {results['build_dir']}")
@@ -308,7 +308,7 @@ def generate_report(results: Dict, output_dir: str) -> str:
     return report_file
 
 def main():
-    parser = argparse.ArgumentParser(description='Run Tungsten performance tests')
+    parser = argparse.ArgumentParser(description='Run dryft performance tests')
     parser.add_argument('--build-dir', required=True, help='Build directory containing test binaries')
     parser.add_argument('--output-dir', default='.', help='Output directory for results')
     parser.add_argument('--categories', nargs='+', default=['startup', 'memory', 'nip07', 'relay', 'library'],

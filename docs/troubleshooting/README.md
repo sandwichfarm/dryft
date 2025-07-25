@@ -27,7 +27,7 @@ console.log('window.nostr available:', typeof window.nostr !== 'undefined');
 ```
 
 **Solution A: Check Origin**
-- Tungsten only injects `window.nostr` on `https://` and `http://localhost` origins
+- dryft only injects `window.nostr` on `https://` and `http://localhost` origins
 - Won't work on `chrome://`, `file://`, or other special schemes
 - Test on a real website: `https://nostrgram.co`
 
@@ -37,8 +37,8 @@ console.log('window.nostr available:', typeof window.nostr !== 'undefined');
 3. Check if the specific site is blocked
 
 **Solution C: Restart Browser**
-- Close all Tungsten windows completely
-- Restart Tungsten
+- Close all dryft windows completely
+- Restart dryft
 - Test on a fresh tab
 
 ### 2. Permission Denied Errors
@@ -103,7 +103,7 @@ lsof -ti:8081 | xargs kill -9  # Linux/macOS
 
 **Restart Services**:
 1. Settings → Advanced → Reset local services
-2. Or restart Tungsten completely
+2. Or restart dryft completely
 
 ### 4. Blossom Upload Failures
 
@@ -148,7 +148,7 @@ console.log('Storage limit:', window.blossom.storageLimit);
 Solution:
 1. Click "More info"
 2. Click "Run anyway"
-3. This happens because Tungsten is not yet code-signed
+3. This happens because dryft is not yet code-signed
 ```
 
 **Installation Fails with Error Code**:
@@ -174,7 +174,7 @@ Solution:
 **"dryft browser cannot be opened"**:
 ```
 Solution:
-1. Right-click Tungsten in Applications
+1. Right-click dryft in Applications
 2. Select "Open" from context menu
 3. Click "Open" in security dialog
 ```
@@ -288,7 +288,7 @@ try {
 **Service Won't Start**:
 ```bash
 # Check logs
-tungsten --enable-logging --vmodule=local_relay*=2
+dryft --enable-logging --vmodule=local_relay*=2
 
 # Check port availability
 telnet localhost 8081
@@ -338,7 +338,7 @@ curl http://localhost:8080/status
 **Diagnosis**:
 ```bash
 # Start with timing information
-tungsten --enable-logging --log-level=0 --vmodule=startup*=2
+dryft --enable-logging --log-level=0 --vmodule=startup*=2
 ```
 
 **Common causes**:
@@ -350,22 +350,22 @@ tungsten --enable-logging --log-level=0 --vmodule=startup*=2
 **Solutions**:
 1. Clean up local data: Settings → Advanced → Clear Browsing Data
 2. Reset local services: Settings → Advanced → Reset Local Services
-3. Use fresh profile: `tungsten --user-data-dir=/tmp/fresh-profile`
+3. Use fresh profile: `dryft --user-data-dir=/tmp/fresh-profile`
 
 ### High Memory Usage
 
 **Monitor memory usage**:
 1. Open Task Manager / Activity Monitor
-2. Look for multiple Tungsten processes
+2. Look for multiple dryft processes
 3. Check memory usage over time
 
 **Memory optimization**:
 ```json
 // In preferences
 {
-  "tungsten.local_relay.cache_size": 268435456,  // 256MB
-  "tungsten.blossom.cache_size": 536870912,      // 512MB
-  "tungsten.performance.lazy_load_accounts": true
+  "dryft.local_relay.cache_size": 268435456,  // 256MB
+  "dryft.blossom.cache_size": 536870912,      // 512MB
+  "dryft.performance.lazy_load_accounts": true
 }
 ```
 
@@ -398,23 +398,23 @@ async function benchmarkAPI() {
 **Command line flags**:
 ```bash
 # General debug logging
-tungsten --enable-logging --v=1
+dryft --enable-logging --v=1
 
 # Specific module logging
-tungsten --vmodule=nostr*=2,blossom*=2,local_relay*=2
+dryft --vmodule=nostr*=2,blossom*=2,local_relay*=2
 
 # Log to file
-tungsten --enable-logging --log-file=/tmp/tungsten.log
+dryft --enable-logging --log-file=/tmp/dryft.log
 ```
 
 **Runtime logging**:
 ```javascript
 // Enable in DevTools console
-localStorage.setItem('tungsten.debug', 'true');
+localStorage.setItem('dryft.debug', 'true');
 
 // Enable specific modules
-localStorage.setItem('tungsten.debug.nostr', 'true');
-localStorage.setItem('tungsten.debug.blossom', 'true');
+localStorage.setItem('dryft.debug.nostr', 'true');
+localStorage.setItem('dryft.debug.blossom', 'true');
 ```
 
 ### Check Browser State
@@ -462,20 +462,20 @@ SELECT COUNT(*) FROM events;
 **Browser Database**:
 1. Open DevTools → Application tab
 2. Check Local Storage, Session Storage, IndexedDB
-3. Look for tungsten-related entries
+3. Look for dryft-related entries
 
 ## FAQ
 
 ### General Questions
 
-**Q: Is Tungsten safe to use?**
-A: Yes, Tungsten is built on Chromium with enhanced security for Nostr features. Private keys are stored using your OS's secure storage system.
+**Q: Is dryft safe to use?**
+A: Yes, dryft is built on Chromium with enhanced security for Nostr features. Private keys are stored using your OS's secure storage system.
 
-**Q: Can I use Tungsten as my main browser?**
-A: Yes, Tungsten includes all standard browser features plus native Nostr support.
+**Q: Can I use dryft as my main browser?**
+A: Yes, dryft includes all standard browser features plus native Nostr support.
 
-**Q: Do I need a Nostr extension with Tungsten?**
-A: No, Tungsten has built-in Nostr support. Extensions may conflict and should be disabled.
+**Q: Do I need a Nostr extension with dryft?**
+A: No, dryft has built-in Nostr support. Extensions may conflict and should be disabled.
 
 ### Feature Questions
 
@@ -515,7 +515,7 @@ A: You'll need to use your private key backup to restore the account.
 
 - **Enterprise Support**: Available for business deployments
 - **Developer Support**: Technical support for application developers
-- **Training**: Available for teams adopting Tungsten
+- **Training**: Available for teams adopting dryft
 
 ### Before Reporting Issues
 
@@ -523,7 +523,7 @@ Please include:
 
 1. **Version Information**:
    ```
-   Tungsten version: (Help → About Tungsten)
+   dryft version: (Help → About dryft)
    Operating System: 
    Browser flags used:
    ```
@@ -536,8 +536,8 @@ Please include:
 3. **Debug Information**:
    ```bash
    # Generate debug info
-   tungsten --dump-config > config.txt
-   tungsten --log-file=debug.log --enable-logging --v=2
+   dryft --dump-config > config.txt
+   dryft --log-file=debug.log --enable-logging --v=2
    ```
 
 4. **Error Messages**:
@@ -547,16 +547,16 @@ Please include:
 
 ### Emergency Recovery
 
-**If Tungsten won't start**:
+**If dryft won't start**:
 ```bash
 # Reset to defaults
-tungsten --reset-settings --no-default-browser-check
+dryft --reset-settings --no-default-browser-check
 
 # Use safe mode
-tungsten --disable-extensions --disable-plugins --disable-background-mode
+dryft --disable-extensions --disable-plugins --disable-background-mode
 
 # Fresh profile
-tungsten --user-data-dir=/tmp/emergency-profile
+dryft --user-data-dir=/tmp/emergency-profile
 ```
 
 **If accounts are lost**:
@@ -566,5 +566,5 @@ tungsten --user-data-dir=/tmp/emergency-profile
 
 **If data is corrupted**:
 1. Export important data first if possible
-2. Settings → Advanced → Reset Tungsten to Defaults
+2. Settings → Advanced → Reset dryft to Defaults
 3. Re-import accounts and bookmarks

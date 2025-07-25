@@ -1,10 +1,10 @@
-# NIP-07 Implementation in Tungsten
+# NIP-07 Implementation in dryft
 
 This document describes the implementation of NIP-07 (window.nostr capability) in dryft browser.
 
 ## Overview
 
-NIP-07 defines a browser extension interface that provides signing capabilities to web pages. Tungsten implements this natively in the browser, eliminating the need for a separate extension.
+NIP-07 defines a browser extension interface that provides signing capabilities to web pages. dryft implements this natively in the browser, eliminating the need for a separate extension.
 
 ## Current Implementation Status
 

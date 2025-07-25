@@ -592,7 +592,7 @@ class ErrorMessageProvider {
           .description = "There was a problem with the network connection. "
                         "Please check your internet connection.",
           .action_button_text = "Retry",
-          .help_link = "tungsten://help/network-errors",
+          .help_link = "dryft://help/network-errors",
           .icon = ErrorIcon::ERROR
         };
     }

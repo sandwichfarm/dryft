@@ -43,7 +43,7 @@ Replaced all hardcoded passphrases with calls to the passphrase manager in:
 5. Add comprehensive security tests
 
 ## Security Impact
-This fix is critical for Tungsten's security:
+This fix is critical for dryft's security:
 - Prevents complete compromise of all user keys
 - Stops identity theft attacks
 - Protects NIP-04 encrypted messages

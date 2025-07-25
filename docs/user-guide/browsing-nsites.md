@@ -13,7 +13,7 @@ Nsites are static websites hosted directly on the Nostr network using kind 34128
 
 ## Supported URL Formats
 
-Tungsten supports several ways to access Nsites:
+dryft supports several ways to access Nsites:
 
 ### 1. nostr:// Protocol URLs
 
@@ -68,7 +68,7 @@ nostr://npub1example3...store/          # E-commerce demo
 
 ### Navigation
 
-Nsites behave like regular websites within Tungsten:
+Nsites behave like regular websites within dryft:
 
 - **Standard Navigation**: Use back/forward buttons, bookmarks, history
 - **Right-click Menu**: Save pages, view source, inspect elements
@@ -249,7 +249,7 @@ Enable enhanced debugging for Nsite development:
 
 ```javascript
 // Enable in DevTools console
-localStorage.setItem('tungsten.nsite.debug', 'true');
+localStorage.setItem('dryft.nsite.debug', 'true');
 
 // View Nsite metadata
 console.table(window.nsite?.metadata);
@@ -292,7 +292,7 @@ window.nsite?.cache?.setTTL(24 * 60 * 60 * 1000);   // 24 hours
 ### Social Integration
 
 **Share Nsites**:
-- Use Tungsten's built-in sharing to post Nsite links
+- Use dryft's built-in sharing to post Nsite links
 - Include descriptions and screenshots
 - Tag with #nsite for discovery
 
@@ -304,7 +304,7 @@ window.nsite?.cache?.setTTL(24 * 60 * 60 * 1000);   // 24 hours
 ### Content Updates
 
 **Automatic Updates**:
-- Tungsten checks for content updates periodically
+- dryft checks for content updates periodically
 - New versions downloaded automatically
 - Notification when updates are available
 

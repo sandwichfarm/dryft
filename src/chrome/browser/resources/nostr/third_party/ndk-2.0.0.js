@@ -1,5 +1,5 @@
 // NDK (Nostr Development Kit) v2.0.0
-// Simplified browser-compatible version for Tungsten
+// Simplified browser-compatible version for dryft
 // Full library available at: https://github.com/nostr-dev-kit/ndk
 
 (function(global, factory) {

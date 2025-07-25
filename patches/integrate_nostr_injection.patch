@@ -18,7 +18,7 @@
 +      
 +#if defined(ENABLE_NOSTR)
 +  // Inject window.nostr object
-+  tungsten::NostrInjection::DidCreateScriptContext(this, context, world_id);
++  dryft::NostrInjection::DidCreateScriptContext(this, context, world_id);
 +#endif
  }
  

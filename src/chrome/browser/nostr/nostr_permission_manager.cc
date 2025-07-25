@@ -18,9 +18,9 @@ namespace nostr {
 namespace {
 
 // Preference keys for permission storage
-constexpr char kNostrPermissionsKey[] = "tungsten.permissions.nip07";
-constexpr char kDefaultPolicyKey[] = "tungsten.permissions.default_policy";
-constexpr char kRememberDurationKey[] = "tungsten.permissions.remember_duration_days";
+constexpr char kNostrPermissionsKey[] = "dryft.permissions.nip07";
+constexpr char kDefaultPolicyKey[] = "dryft.permissions.default_policy";
+constexpr char kRememberDurationKey[] = "dryft.permissions.remember_duration_days";
 
 // Default values
 constexpr int kDefaultRememberDurationDays = 30;

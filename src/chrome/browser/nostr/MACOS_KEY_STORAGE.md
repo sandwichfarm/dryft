@@ -55,7 +55,7 @@ All data is serialized to JSON for storage:
    - Provides good balance of security and usability
 
 2. **Keychain Prompts**: First access may prompt user
-   - "Tungsten wants to use your confidential information..."
+   - "dryft wants to use your confidential information..."
    - User can choose "Always Allow" for convenience
 
 3. **No iCloud Sync**: Explicitly disabled
@@ -88,7 +88,7 @@ if (encrypted) {
 ### Keychain Access
 
 The keychain will automatically prompt for access on first use:
-- User sees app name "Tungsten"
+- User sees app name "dryft"
 - Can choose "Always Allow" to avoid future prompts
 - Keys are accessible when macOS is unlocked
 
@@ -121,7 +121,7 @@ macOS-specific tests verify:
 
 When migrating from extension-based storage:
 1. Export keys from extension
-2. Import into Tungsten (will store in keychain)
+2. Import into dryft (will store in keychain)
 3. First use will prompt for keychain access
 4. Verify all keys are accessible
 
@@ -129,7 +129,7 @@ When migrating from extension-based storage:
 
 ### Common Issues
 
-1. **"Tungsten wants to access your keychain"**
+1. **"dryft wants to access your keychain"**
    - Click "Always Allow" for convenience
    - Or click "Allow" to approve each time
 
@@ -145,18 +145,18 @@ When migrating from extension-based storage:
 ### Debug with Keychain Access App
 
 1. Open `/Applications/Utilities/Keychain Access.app`
-2. Search for "Tungsten"
+2. Search for "dryft"
 3. Look for items with service "dryft browser - Nostr Keys"
 4. Double-click to view details (won't show encrypted data)
 
 ### Command Line Debugging
 
-List Tungsten keychain items:
+List dryft keychain items:
 ```bash
 security find-generic-password -s "dryft browser - Nostr Keys"
 ```
 
-Delete all Tungsten keys (WARNING: removes all keys):
+Delete all dryft keys (WARNING: removes all keys):
 ```bash
 security delete-generic-password -s "dryft browser - Nostr Keys"
 ```

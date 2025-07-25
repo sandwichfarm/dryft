@@ -135,7 +135,7 @@ View stored credentials:
 cmdkey /list | findstr Tungsten_Nostr
 ```
 
-Remove all Tungsten credentials (WARNING: deletes all keys):
+Remove all dryft credentials (WARNING: deletes all keys):
 ```powershell
 for /f "tokens=1,2 delims= " %a in ('cmdkey /list ^| findstr Tungsten_Nostr') do cmdkey /delete:%b
 ```

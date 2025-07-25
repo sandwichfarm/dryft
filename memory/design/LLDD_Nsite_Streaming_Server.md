@@ -1052,7 +1052,7 @@ class NsiteServerMetrics {
 
 1. **WebSocket Support**: For real-time nsite features
 2. **Service Worker**: Enable offline functionality
-3. **P2P Sharing**: Share cached nsites between local Tungsten instances
+3. **P2P Sharing**: Share cached nsites between local dryft instances
 4. **Compression**: Support gzip/brotli for bandwidth efficiency
 5. **Partial Updates**: Only download changed files
 6. **CDN Integration**: Optional CDN fallback for popular nsites

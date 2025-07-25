@@ -64,7 +64,7 @@ done
 # Check if build directory exists
 if [ ! -d "$BUILD_DIR" ]; then
   echo -e "${RED}Error: Build directory $BUILD_DIR does not exist${NC}"
-  echo "Please build Tungsten first with:"
+  echo "Please build dryft first with:"
   echo "  gn gen $BUILD_DIR --args=\"is_official_build=true enable_nostr=true\""
   echo "  autoninja -C $BUILD_DIR chrome"
   exit 1

@@ -3,7 +3,7 @@
 
 ### 1. System Overview
 
-Tungsten extends the Thorium browser with native Nostr protocol support, creating a seamless bridge between traditional web browsing and decentralized social protocols. The system integrates at multiple levels of the browser architecture to provide transparent access to Nostr content while maintaining security and performance.
+dryft extends the Thorium browser with native Nostr protocol support, creating a seamless bridge between traditional web browsing and decentralized social protocols. The system integrates at multiple levels of the browser architecture to provide transparent access to Nostr content while maintaining security and performance.
 
 ### 2. Architectural Principles
 

@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Bundle Nostr JavaScript libraries for inclusion in Tungsten."""
+"""Bundle Nostr JavaScript libraries for inclusion in dryft."""
 
 import argparse
 import os

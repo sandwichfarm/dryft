@@ -17,7 +17,7 @@ class NostrProtocolAssociationsTest : public testing::Test {
   void SetUp() override {
     ASSERT_NO_FATAL_FAILURE(
         registry_override_.OverrideRegistry(HKEY_CURRENT_USER));
-    chrome_exe_ = L"C:\\Program Files\\Tungsten\\Application\\tungsten.exe";
+    chrome_exe_ = L"C:\\Program Files\\dryft\\Application\\dryft.exe";
   }
 
   // Checks if a registry key exists

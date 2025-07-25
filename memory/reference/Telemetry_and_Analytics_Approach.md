@@ -7,7 +7,7 @@
 namespace dryft {
 namespace telemetry {
 
-// Core principles for Tungsten telemetry
+// Core principles for dryft telemetry
 class TelemetryPolicy {
  public:
   static constexpr bool kDefaultOptIn = false;  // Opt-in by default
@@ -39,7 +39,7 @@ class TungstenTelemetryService {
     bool usage_stats_enabled = false;
     bool performance_monitoring_enabled = false;
     int upload_interval_minutes = 1440;  // Daily
-    std::string upload_url = "https://telemetry.tungsten-browser.org/v1/";
+    std::string upload_url = "https://telemetry.dryft-browser.org/v1/";
   };
   
   // Initialize with user consent
@@ -97,27 +97,27 @@ namespace browser_metrics {
 
 // Performance metrics
 void RecordStartupTime(base::TimeDelta startup_time) {
-  UMA_HISTOGRAM_TIMES("Tungsten.Startup.ColdStart", startup_time);
+  UMA_HISTOGRAM_TIMES("dryft.Startup.ColdStart", startup_time);
 }
 
 void RecordMemoryUsage() {
   base::ProcessMetrics* metrics = 
       base::ProcessMetrics::CreateCurrentProcessMetrics();
   
-  UMA_HISTOGRAM_MEMORY_MB("Tungsten.Memory.Browser",
+  UMA_HISTOGRAM_MEMORY_MB("dryft.Memory.Browser",
                          metrics->GetWorkingSetSize() / 1024 / 1024);
 }
 
 // Stability metrics
 void RecordCrash(CrashType type) {
-  UMA_HISTOGRAM_ENUMERATION("Tungsten.Stability.CrashType",
+  UMA_HISTOGRAM_ENUMERATION("dryft.Stability.CrashType",
                            type,
                            CrashType::kMaxValue);
 }
 
 // Feature usage (anonymous)
 void RecordFeatureUsage(Feature feature) {
-  UMA_HISTOGRAM_ENUMERATION("Tungsten.Features.Used",
+  UMA_HISTOGRAM_ENUMERATION("dryft.Features.Used",
                            feature,
                            Feature::kMaxValue);
 }
@@ -129,7 +129,7 @@ namespace nostr_metrics {
 
 // Only collect aggregate, non-identifying metrics
 void RecordNostrFeatureEnabled(bool enabled) {
-  UMA_HISTOGRAM_BOOLEAN("Tungsten.Nostr.Enabled", enabled);
+  UMA_HISTOGRAM_BOOLEAN("dryft.Nostr.Enabled", enabled);
 }
 
 void RecordRelayConnectionCount(int count) {
@@ -141,37 +141,37 @@ void RecordRelayConnectionCount(int count) {
   else if (count <= 10) bucketed_count = 10;
   else bucketed_count = 11;  // 11+
   
-  UMA_HISTOGRAM_SPARSE_SLOWLY("Tungsten.Nostr.RelayCount", 
+  UMA_HISTOGRAM_SPARSE_SLOWLY("dryft.Nostr.RelayCount", 
                              bucketed_count);
 }
 
 void RecordNIP07Usage(NIP07Method method) {
   // Only track method types, not content
-  UMA_HISTOGRAM_ENUMERATION("Tungsten.Nostr.NIP07.MethodUsed",
+  UMA_HISTOGRAM_ENUMERATION("dryft.Nostr.NIP07.MethodUsed",
                            method,
                            NIP07Method::kMaxValue);
 }
 
 void RecordLocalServiceUsage() {
-  UMA_HISTOGRAM_BOOLEAN("Tungsten.Nostr.LocalRelay.Enabled",
+  UMA_HISTOGRAM_BOOLEAN("dryft.Nostr.LocalRelay.Enabled",
                        prefs::GetBoolean(prefs::kNostrLocalRelayEnabled));
   
-  UMA_HISTOGRAM_BOOLEAN("Tungsten.Nostr.Blossom.Enabled",
+  UMA_HISTOGRAM_BOOLEAN("dryft.Nostr.Blossom.Enabled",
                        prefs::GetBoolean(prefs::kBlossomServerEnabled));
 }
 
 // Performance without identifying info
 void RecordEventProcessingTime(base::TimeDelta time) {
-  UMA_HISTOGRAM_TIMES("Tungsten.Nostr.EventProcessing.Time", time);
+  UMA_HISTOGRAM_TIMES("dryft.Nostr.EventProcessing.Time", time);
 }
 
 void RecordBandwidthUsage(size_t bytes, Direction direction) {
   // Log in buckets to prevent precise tracking
   size_t kb = bytes / 1024;
   if (direction == Direction::SENT) {
-    UMA_HISTOGRAM_COUNTS_1M("Tungsten.Nostr.Bandwidth.Sent.KB", kb);
+    UMA_HISTOGRAM_COUNTS_1M("dryft.Nostr.Bandwidth.Sent.KB", kb);
   } else {
-    UMA_HISTOGRAM_COUNTS_1M("Tungsten.Nostr.Bandwidth.Received.KB", kb);
+    UMA_HISTOGRAM_COUNTS_1M("dryft.Nostr.Bandwidth.Received.KB", kb);
   }
 }
 
@@ -188,16 +188,16 @@ class TelemetryConsentDialog {
     // Create consent dialog with clear explanation
     auto dialog = std::make_unique<views::DialogDelegate>();
     
-    dialog->SetTitle("Help Improve Tungsten");
+    dialog->SetTitle("Help Improve dryft");
     dialog->SetMessage(
-        "Tungsten can collect anonymous usage statistics to help "
+        "dryft can collect anonymous usage statistics to help "
         "improve the browser. This data:\n\n"
         "• Never includes personal information\n"
         "• Never includes your Nostr keys or identity\n"
         "• Never includes message content or relay URLs\n"
         "• Is processed using differential privacy\n"
         "• Can be disabled at any time in settings\n\n"
-        "Would you like to help improve Tungsten?");
+        "Would you like to help improve dryft?");
     
     dialog->SetButtons(ui::DIALOG_BUTTON_OK | ui::DIALOG_BUTTON_CANCEL);
     dialog->SetButtonLabel(ui::DIALOG_BUTTON_OK, "Yes, help improve");
@@ -238,7 +238,7 @@ class LocalAnalyticsDashboard : public content::WebUIController {
  public:
   explicit LocalAnalyticsDashboard(content::WebUI* web_ui)
       : WebUIController(web_ui) {
-    // Set up the tungsten://analytics page
+    // Set up the dryft://analytics page
     content::WebUIDataSource* source =
         content::WebUIDataSource::Create("analytics");
     
@@ -301,7 +301,7 @@ class TungstenCrashReporter {
       return;
     }
     
-    crash_reporter::InitializeCrashpad(true, "Tungsten");
+    crash_reporter::InitializeCrashpad(true, "dryft");
     
     // Set crash keys that don't identify users
     static crash_reporter::CrashKeyString<32> version_key("version");
@@ -361,7 +361,7 @@ class ExperimentTelemetry {
     // Hash experiment + group to prevent correlation
     uint64_t hash = base::PersistentHash(experiment_name + "|" + group);
     
-    UMA_HISTOGRAM_SPARSE_SLOWLY("Tungsten.Experiments.Exposure",
+    UMA_HISTOGRAM_SPARSE_SLOWLY("dryft.Experiments.Exposure",
                                hash % 1000000);  // Truncate for privacy
   }
   
@@ -373,7 +373,7 @@ class ExperimentTelemetry {
     
     // Record with experiment context
     base::StringPiece histogram_name = base::StringPrintf(
-        "Tungsten.Experiments.%s.%s",
+        "dryft.Experiments.%s.%s",
         SanitizeExperimentName(experiment_name).c_str(),
         SanitizeMetricName(metric_name).c_str());
     
@@ -465,7 +465,7 @@ class BehaviorAnalytics {
   // Track feature discovery
   void RecordFeatureDiscovery(Feature feature) {
     // Only track that feature was discovered, not how
-    UMA_HISTOGRAM_ENUMERATION("Tungsten.Discovery.Feature",
+    UMA_HISTOGRAM_ENUMERATION("dryft.Discovery.Feature",
                              feature,
                              Feature::kMaxValue);
   }
@@ -473,7 +473,7 @@ class BehaviorAnalytics {
   // Track user journeys (anonymous)
   void RecordUserJourney(JourneyType journey, bool completed) {
     UMA_HISTOGRAM_BOOLEAN(
-        base::StringPrintf("Tungsten.Journey.%s.Completed",
+        base::StringPrintf("dryft.Journey.%s.Completed",
                           JourneyToString(journey)),
         completed);
   }
@@ -486,13 +486,13 @@ class BehaviorAnalytics {
     metrics.nostr_interactions = nostr_interaction_count_;
     
     // Only record bucketed values
-    UMA_HISTOGRAM_CUSTOM_TIMES("Tungsten.Session.Duration",
+    UMA_HISTOGRAM_CUSTOM_TIMES("dryft.Session.Duration",
                               metrics.duration,
                               base::Seconds(1),
                               base::Hours(24),
                               50);
     
-    UMA_HISTOGRAM_COUNTS_100("Tungsten.Session.PageViews",
+    UMA_HISTOGRAM_COUNTS_100("dryft.Session.PageViews",
                             std::min(metrics.page_views, 100));
   }
 };
@@ -506,18 +506,18 @@ class ErrorTelemetry {
  public:
   void RecordError(ErrorType type, ErrorCode code) {
     // Generic error tracking
-    UMA_HISTOGRAM_ENUMERATION("Tungsten.Errors.Type",
+    UMA_HISTOGRAM_ENUMERATION("dryft.Errors.Type",
                              type,
                              ErrorType::kMaxValue);
     
     // Specific error codes (anonymized)
-    UMA_HISTOGRAM_SPARSE_SLOWLY("Tungsten.Errors.Code",
+    UMA_HISTOGRAM_SPARSE_SLOWLY("dryft.Errors.Code",
                                static_cast<int>(code));
   }
   
   void RecordNostrError(NostrErrorType type) {
     // Only track error types, never content
-    UMA_HISTOGRAM_ENUMERATION("Tungsten.Nostr.Errors",
+    UMA_HISTOGRAM_ENUMERATION("dryft.Nostr.Errors",
                              type,
                              NostrErrorType::kMaxValue);
   }
@@ -529,7 +529,7 @@ class ErrorTelemetry {
     
     // Only record periodically to prevent spam
     if (count == 1 || count == 10 || count == 100 || count % 1000 == 0) {
-      UMA_HISTOGRAM_COUNTS_1M("Tungsten.Errors.Frequency",
+      UMA_HISTOGRAM_COUNTS_1M("dryft.Errors.Frequency",
                              count);
     }
   }
@@ -610,7 +610,7 @@ class TelemetrySettingsPage extends React.Component {
               checked={this.props.settings.enabled}
               onChange={e => this.updateSetting('enabled', e.target.checked)}
             />
-            Help improve Tungsten with anonymous usage data
+            Help improve dryft with anonymous usage data
           </label>
           <p className="description">
             Collects anonymous statistics about feature usage and performance.

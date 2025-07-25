@@ -3,7 +3,7 @@
 
 ### 1. Preferences Overview
 
-Tungsten uses a hierarchical preference system with:
+dryft uses a hierarchical preference system with:
 - **User Preferences**: Stored per-profile
 - **Policy Preferences**: Set by administrators
 - **Default Preferences**: Built-in defaults
@@ -21,13 +21,13 @@ namespace prefs {
 // ============================================================================
 struct AccountPrefs {
   // List of all Nostr accounts
-  static constexpr char kAccounts[] = "tungsten.nostr.accounts";
+  static constexpr char kAccounts[] = "dryft.nostr.accounts";
   // Currently active account pubkey
-  static constexpr char kActiveAccount[] = "tungsten.nostr.active_account";
+  static constexpr char kActiveAccount[] = "dryft.nostr.active_account";
   // Per-account settings (dict keyed by pubkey)
-  static constexpr char kAccountSettings[] = "tungsten.nostr.account_settings";
+  static constexpr char kAccountSettings[] = "dryft.nostr.account_settings";
   // Account creation defaults
-  static constexpr char kAccountDefaults[] = "tungsten.nostr.account_defaults";
+  static constexpr char kAccountDefaults[] = "dryft.nostr.account_defaults";
 };
 
 // ============================================================================
@@ -35,17 +35,17 @@ struct AccountPrefs {
 // ============================================================================
 struct PermissionPrefs {
   // Per-origin permissions (nested dict)
-  static constexpr char kNIP07Permissions[] = "tungsten.permissions.nip07";
+  static constexpr char kNIP07Permissions[] = "dryft.permissions.nip07";
   // Default permission policy: "ask" | "deny" | "allow"
-  static constexpr char kDefaultPolicy[] = "tungsten.permissions.default_policy";
+  static constexpr char kDefaultPolicy[] = "dryft.permissions.default_policy";
   // Remember permission decisions
-  static constexpr char kRememberDuration[] = "tungsten.permissions.remember_duration_days";
+  static constexpr char kRememberDuration[] = "dryft.permissions.remember_duration_days";
   // Require password for signing
-  static constexpr char kRequirePassword[] = "tungsten.permissions.require_password";
+  static constexpr char kRequirePassword[] = "dryft.permissions.require_password";
   // Per-kind signing permissions
-  static constexpr char kKindPermissions[] = "tungsten.permissions.kind_permissions";
+  static constexpr char kKindPermissions[] = "dryft.permissions.kind_permissions";
   // Rate limiting
-  static constexpr char kRateLimits[] = "tungsten.permissions.rate_limits";
+  static constexpr char kRateLimits[] = "dryft.permissions.rate_limits";
 };
 
 // ============================================================================
@@ -53,35 +53,35 @@ struct PermissionPrefs {
 // ============================================================================
 struct LocalRelayPrefs {
   // Enable/disable local relay
-  static constexpr char kEnabled[] = "tungsten.relay.enabled";
+  static constexpr char kEnabled[] = "dryft.relay.enabled";
   // Network settings
-  static constexpr char kPort[] = "tungsten.relay.port";
-  static constexpr char kInterface[] = "tungsten.relay.interface";
-  static constexpr char kExternalAccess[] = "tungsten.relay.external_access";
+  static constexpr char kPort[] = "dryft.relay.port";
+  static constexpr char kInterface[] = "dryft.relay.interface";
+  static constexpr char kExternalAccess[] = "dryft.relay.external_access";
   
   // Storage settings
-  static constexpr char kMaxStorageGB[] = "tungsten.relay.max_storage_gb";
-  static constexpr char kMaxEvents[] = "tungsten.relay.max_events";
-  static constexpr char kRetentionDays[] = "tungsten.relay.retention_days";
-  static constexpr char kCompressionEnabled[] = "tungsten.relay.compression";
+  static constexpr char kMaxStorageGB[] = "dryft.relay.max_storage_gb";
+  static constexpr char kMaxEvents[] = "dryft.relay.max_events";
+  static constexpr char kRetentionDays[] = "dryft.relay.retention_days";
+  static constexpr char kCompressionEnabled[] = "dryft.relay.compression";
   
   // Performance settings
-  static constexpr char kMaxConnections[] = "tungsten.relay.max_connections";
-  static constexpr char kMaxSubscriptionsPerConnection[] = "tungsten.relay.max_subs_per_conn";
-  static constexpr char kMessageQueueSize[] = "tungsten.relay.message_queue_size";
-  static constexpr char kWorkerThreads[] = "tungsten.relay.worker_threads";
+  static constexpr char kMaxConnections[] = "dryft.relay.max_connections";
+  static constexpr char kMaxSubscriptionsPerConnection[] = "dryft.relay.max_subs_per_conn";
+  static constexpr char kMessageQueueSize[] = "dryft.relay.message_queue_size";
+  static constexpr char kWorkerThreads[] = "dryft.relay.worker_threads";
   
   // Filtering
-  static constexpr char kAllowedKinds[] = "tungsten.relay.allowed_kinds";
-  static constexpr char kBlockedKinds[] = "tungsten.relay.blocked_kinds";
-  static constexpr char kBlockedPubkeys[] = "tungsten.relay.blocked_pubkeys";
-  static constexpr char kRequiredPOW[] = "tungsten.relay.required_pow";
-  static constexpr char kMaxEventSize[] = "tungsten.relay.max_event_size";
+  static constexpr char kAllowedKinds[] = "dryft.relay.allowed_kinds";
+  static constexpr char kBlockedKinds[] = "dryft.relay.blocked_kinds";
+  static constexpr char kBlockedPubkeys[] = "dryft.relay.blocked_pubkeys";
+  static constexpr char kRequiredPOW[] = "dryft.relay.required_pow";
+  static constexpr char kMaxEventSize[] = "dryft.relay.max_event_size";
   
   // Access control
-  static constexpr char kAllowedOrigins[] = "tungsten.relay.allowed_origins";
-  static constexpr char kRequireAuth[] = "tungsten.relay.require_auth";
-  static constexpr char kAuthMethods[] = "tungsten.relay.auth_methods";
+  static constexpr char kAllowedOrigins[] = "dryft.relay.allowed_origins";
+  static constexpr char kRequireAuth[] = "dryft.relay.require_auth";
+  static constexpr char kAuthMethods[] = "dryft.relay.auth_methods";
 };
 
 // ============================================================================
@@ -89,30 +89,30 @@ struct LocalRelayPrefs {
 // ============================================================================
 struct BlossomPrefs {
   // Enable/disable Blossom
-  static constexpr char kEnabled[] = "tungsten.blossom.enabled";
+  static constexpr char kEnabled[] = "dryft.blossom.enabled";
   // Local server settings
-  static constexpr char kLocalServerEnabled[] = "tungsten.blossom.local_server";
-  static constexpr char kLocalServerPort[] = "tungsten.blossom.local_port";
+  static constexpr char kLocalServerEnabled[] = "dryft.blossom.local_server";
+  static constexpr char kLocalServerPort[] = "dryft.blossom.local_port";
   
   // Storage settings
-  static constexpr char kMaxStorageGB[] = "tungsten.blossom.max_storage_gb";
-  static constexpr char kCacheDuration[] = "tungsten.blossom.cache_duration_days";
-  static constexpr char kShardingEnabled[] = "tungsten.blossom.sharding";
+  static constexpr char kMaxStorageGB[] = "dryft.blossom.max_storage_gb";
+  static constexpr char kCacheDuration[] = "dryft.blossom.cache_duration_days";
+  static constexpr char kShardingEnabled[] = "dryft.blossom.sharding";
   
   // Upload settings
-  static constexpr char kMaxFileSizeMB[] = "tungsten.blossom.max_file_size_mb";
-  static constexpr char kAllowedMimeTypes[] = "tungsten.blossom.allowed_types";
-  static constexpr char kAutoCompress[] = "tungsten.blossom.auto_compress";
-  static constexpr char kCompressionThreshold[] = "tungsten.blossom.compress_threshold_kb";
+  static constexpr char kMaxFileSizeMB[] = "dryft.blossom.max_file_size_mb";
+  static constexpr char kAllowedMimeTypes[] = "dryft.blossom.allowed_types";
+  static constexpr char kAutoCompress[] = "dryft.blossom.auto_compress";
+  static constexpr char kCompressionThreshold[] = "dryft.blossom.compress_threshold_kb";
   
   // Server list (BUD-03)
-  static constexpr char kUserServers[] = "tungsten.blossom.user_servers";
-  static constexpr char kTrustedServers[] = "tungsten.blossom.trusted_servers";
+  static constexpr char kUserServers[] = "dryft.blossom.user_servers";
+  static constexpr char kTrustedServers[] = "dryft.blossom.trusted_servers";
   
   // Mirroring
-  static constexpr char kAutoMirror[] = "tungsten.blossom.auto_mirror";
-  static constexpr char kMirrorServers[] = "tungsten.blossom.mirror_servers";
-  static constexpr char kMirrorRedundancy[] = "tungsten.blossom.mirror_redundancy";
+  static constexpr char kAutoMirror[] = "dryft.blossom.auto_mirror";
+  static constexpr char kMirrorServers[] = "dryft.blossom.mirror_servers";
+  static constexpr char kMirrorRedundancy[] = "dryft.blossom.mirror_redundancy";
 };
 
 // ============================================================================
@@ -120,13 +120,13 @@ struct BlossomPrefs {
 // ============================================================================
 struct LibraryPrefs {
   // Enable/disable library injection
-  static constexpr char kEnabled[] = "tungsten.libs.enabled";
+  static constexpr char kEnabled[] = "dryft.libs.enabled";
   // Which libraries to load
-  static constexpr char kEnabledLibs[] = "tungsten.libs.enabled_list";
+  static constexpr char kEnabledLibs[] = "dryft.libs.enabled_list";
   // Library versions
-  static constexpr char kLibVersions[] = "tungsten.libs.versions";
+  static constexpr char kLibVersions[] = "dryft.libs.versions";
   // Whitelist origins that can use libs
-  static constexpr char kWhitelistedOrigins[] = "tungsten.libs.whitelist";
+  static constexpr char kWhitelistedOrigins[] = "dryft.libs.whitelist";
 };
 
 // ============================================================================
@@ -134,19 +134,19 @@ struct LibraryPrefs {
 // ============================================================================
 struct SecurityPrefs {
   // Key management
-  static constexpr char kKeyUnlockTimeout[] = "tungsten.security.key_timeout_minutes";
-  static constexpr char kRequireAuthForSigning[] = "tungsten.security.require_auth";
-  static constexpr char kAuthMethod[] = "tungsten.security.auth_method";
-  static constexpr char kHardwareWalletEnabled[] = "tungsten.security.hardware_wallet";
+  static constexpr char kKeyUnlockTimeout[] = "dryft.security.key_timeout_minutes";
+  static constexpr char kRequireAuthForSigning[] = "dryft.security.require_auth";
+  static constexpr char kAuthMethod[] = "dryft.security.auth_method";
+  static constexpr char kHardwareWalletEnabled[] = "dryft.security.hardware_wallet";
   
   // Audit logging
-  static constexpr char kAuditEnabled[] = "tungsten.security.audit_enabled";
-  static constexpr char kAuditRetentionDays[] = "tungsten.security.audit_retention";
-  static constexpr char kAuditEvents[] = "tungsten.security.audit_events";
+  static constexpr char kAuditEnabled[] = "dryft.security.audit_enabled";
+  static constexpr char kAuditRetentionDays[] = "dryft.security.audit_retention";
+  static constexpr char kAuditEvents[] = "dryft.security.audit_events";
   
   // Content security
-  static constexpr char kStrictCSP[] = "tungsten.security.strict_csp";
-  static constexpr char kBlockMixedContent[] = "tungsten.security.block_mixed";
+  static constexpr char kStrictCSP[] = "dryft.security.strict_csp";
+  static constexpr char kBlockMixedContent[] = "dryft.security.block_mixed";
 };
 
 // ============================================================================
@@ -154,16 +154,16 @@ struct SecurityPrefs {
 // ============================================================================
 struct NetworkPrefs {
   // Default relays
-  static constexpr char kDefaultRelays[] = "tungsten.network.default_relays";
+  static constexpr char kDefaultRelays[] = "dryft.network.default_relays";
   // Per-relay settings
-  static constexpr char kRelaySettings[] = "tungsten.network.relay_settings";
+  static constexpr char kRelaySettings[] = "dryft.network.relay_settings";
   // Proxy configuration
-  static constexpr char kProxyEnabled[] = "tungsten.network.proxy_enabled";
-  static constexpr char kProxySettings[] = "tungsten.network.proxy_settings";
+  static constexpr char kProxyEnabled[] = "dryft.network.proxy_enabled";
+  static constexpr char kProxySettings[] = "dryft.network.proxy_settings";
   // WebRTC
-  static constexpr char kWebRTCPolicy[] = "tungsten.network.webrtc_policy";
+  static constexpr char kWebRTCPolicy[] = "dryft.network.webrtc_policy";
   // DNS
-  static constexpr char kDNSOverHTTPS[] = "tungsten.network.dns_over_https";
+  static constexpr char kDNSOverHTTPS[] = "dryft.network.dns_over_https";
 };
 
 // ============================================================================
@@ -419,7 +419,7 @@ class PreferenceSyncManager {
     // Version info
     export_data.Set("version", "1.0");
     export_data.Set("timestamp", base::Time::Now().ToJsTime());
-    export_data.Set("browser", "Tungsten");
+    export_data.Set("browser", "dryft");
     
     // Export each category
     export_data.Set("accounts", ExportAccountPrefs());
@@ -499,14 +499,14 @@ class PreferenceSyncManager {
         <boolean id="Enabled" valueName="LocalRelayEnabled"/>
         <decimal id="Port" valueName="LocalRelayPort" minValue="1024" maxValue="65535"/>
         <decimal id="MaxStorageGB" valueName="MaxStorage" minValue="0.1" maxValue="100"/>
-        <list id="AllowedOrigins" key="Software\Policies\Tungsten\LocalRelay\AllowedOrigins"/>
+        <list id="AllowedOrigins" key="Software\Policies\dryft\LocalRelay\AllowedOrigins"/>
       </elements>
     </policy>
     
     <policy name="MandatoryRelays" class="Both" displayName="Mandatory Relay List">
       <parentCategory ref="TungstenNostr"/>
       <elements>
-        <list id="RelayList" key="Software\Policies\Tungsten\Nostr\MandatoryRelays"/>
+        <list id="RelayList" key="Software\Policies\dryft\Nostr\MandatoryRelays"/>
       </elements>
     </policy>
   </policies>

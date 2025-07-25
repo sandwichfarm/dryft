@@ -1,5 +1,5 @@
 // alby-sdk v3.0.0
-// Placeholder for Tungsten
+// Placeholder for dryft
 // Full library: https://github.com/getAlby/sdk
 
 (function(global, factory) {

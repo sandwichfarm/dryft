@@ -52,7 +52,7 @@ window.nostr.getRelays()
 window.nostr.nip04.encrypt(pubkey, plaintext)
 window.nostr.nip04.decrypt(pubkey, ciphertext)
 
-// Tungsten Extensions for Multi-Account Support
+// dryft Extensions for Multi-Account Support
 window.nostr.listAccounts()        // Returns array of account objects
 window.nostr.getCurrentAccount()   // Returns current account object
 window.nostr.switchAccount(pubkey) // Switch to different account
@@ -86,7 +86,7 @@ window.nostr.switchAccount(pubkey) // Switch to different account
 - **API Availability**: Verify all account methods exist on window.nostr
 - **Promise Returns**: Ensure all methods return promises
 - **Parameter Validation**: Test pubkey format validation for switchAccount
-- **Standard Compliance**: Document that account methods are Tungsten extensions
+- **Standard Compliance**: Document that account methods are dryft extensions
 
 #### Service-Level Tests (`multi_account_service_test.cc`):
 - **Account Creation**: Test GenerateNewKey and ImportKey with names
@@ -184,7 +184,7 @@ While this implementation focuses on the core service and JavaScript API, future
 ### NIP-07 Compatibility
 - **Core Methods Unchanged**: All standard NIP-07 methods maintain their exact API
 - **Transparent Operation**: Account switching transparently changes which key is used for signing
-- **Extension Methods**: Account management methods are clearly identified as Tungsten extensions
+- **Extension Methods**: Account management methods are clearly identified as dryft extensions
 
 ### Extension Method Naming
 - **`listAccounts()`** - Returns array of account objects
@@ -211,4 +211,4 @@ These methods are **not part of NIP-07** but provide valuable multi-account func
 - **Edge Case Testing**: Account deletion safety, non-existent account handling
 - **Security Testing**: Permission validation and input sanitization
 
-Issue B-8 is **COMPLETE** - Tungsten now provides comprehensive multi-account support with a clean JavaScript API, secure account management, and proper isolation between accounts while maintaining full NIP-07 compatibility.
+Issue B-8 is **COMPLETE** - dryft now provides comprehensive multi-account support with a clean JavaScript API, secure account management, and proper isolation between accounts while maintaining full NIP-07 compatibility.

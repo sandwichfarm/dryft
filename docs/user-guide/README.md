@@ -12,9 +12,9 @@ Welcome to dryft browser - the first browser with native Nostr protocol support 
 - [Privacy and Security](privacy-security.md) - Protecting your keys and data
 - [Settings Reference](settings-reference.md) - Complete settings guide
 
-## What Makes Tungsten Special?
+## What Makes dryft Special?
 
-Tungsten is built on Thorium browser (a Chromium fork) with native Nostr protocol integration:
+dryft is built on Thorium browser (a Chromium fork) with native Nostr protocol integration:
 
 ### ✨ Key Features
 
@@ -52,4 +52,4 @@ Tungsten is built on Thorium browser (a Chromium fork) with native Nostr protoco
 
 ## For Developers
 
-If you're building applications that integrate with Tungsten, see the [Developer Documentation](../developer/README.md).
+If you're building applications that integrate with dryft, see the [Developer Documentation](../developer/README.md).

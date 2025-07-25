@@ -66,9 +66,9 @@ fetch --nohooks --no-history chromium
 echo "Running gclient hooks for macOS..."
 gclient runhooks
 
-# Restore Tungsten modifications
+# Restore dryft modifications
 if [ -d "tungsten_backup" ]; then
-    echo "Restoring Tungsten modifications..."
+    echo "Restoring dryft modifications..."
     cp -R tungsten_backup/nostr src/chrome/browser/
     cp -R tungsten_backup/blossom src/chrome/browser/
     cp -R tungsten_backup/nsite src/chrome/browser/
@@ -92,7 +92,7 @@ fi
 
 echo
 echo "=== Setup Complete ==="
-echo "You can now build Tungsten with:"
+echo "You can now build dryft with:"
 echo "  cd src"
 echo "  gn gen out/Release --args='is_official_build=true enable_nostr=true enable_local_relay=true enable_blossom_server=true target_cpu=\"x64\"'"
 echo "  autoninja -C out/Release chrome"

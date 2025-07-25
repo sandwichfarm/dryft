@@ -499,7 +499,7 @@ void RecordNostrProtocolNavigation() {
 - (BOOL)storeKey:(NSString*)key forAccount:(NSString*)account {
   NSMutableDictionary* query = [NSMutableDictionary dictionary];
   [query setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
-  [query setObject:@"com.tungsten.browser.nostr" forKey:(id)kSecAttrService];
+  [query setObject:@"com.dryft.browser.nostr" forKey:(id)kSecAttrService];
   [query setObject:account forKey:(id)kSecAttrAccount];
   [query setObject:[key dataUsingEncoding:NSUTF8StringEncoding] 
             forKey:(id)kSecValueData];

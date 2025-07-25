@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# CI/CD integration script for Tungsten performance tests
+# CI/CD integration script for dryft performance tests
 
 set -e
 
@@ -13,7 +13,7 @@ BUILD_DIR="${1:-out/Release}"
 OUTPUT_DIR="${2:-performance_results}"
 CATEGORIES="${3:-startup memory nip07 relay library}"
 
-echo "Starting Tungsten performance testing..."
+echo "Starting dryft performance testing..."
 echo "Build directory: $BUILD_DIR"
 echo "Output directory: $OUTPUT_DIR"
 echo "Test categories: $CATEGORIES"

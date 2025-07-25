@@ -1,6 +1,6 @@
 # Blossom File Sharing
 
-Learn how to use Tungsten's built-in Blossom server for content-addressed file storage and sharing.
+Learn how to use dryft's built-in Blossom server for content-addressed file storage and sharing.
 
 ## What is Blossom?
 
@@ -11,9 +11,9 @@ Blossom is a content-addressed file storage protocol for Nostr that provides:
 - **Integrity Verification**: Content cannot be tampered with
 - **Efficient Sharing**: Deduplication across the network
 
-## Tungsten's Blossom Integration
+## dryft's Blossom Integration
 
-Tungsten includes a built-in Blossom server and client:
+dryft includes a built-in Blossom server and client:
 
 - **Local Server**: Runs on `http://localhost:8080` 
 - **File Storage**: Direct file system storage with sharding

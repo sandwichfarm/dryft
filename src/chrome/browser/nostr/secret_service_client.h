@@ -48,7 +48,7 @@ class SecretServiceClient : public KeyStorage {
   
  private:
   // Schema name for our secrets
-  static constexpr char kSchemaName[] = "org.tungsten.NostrKey";
+  static constexpr char kSchemaName[] = "org.dryft.NostrKey";
   
   // Attribute names
   static constexpr char kAttrKeyId[] = "key_id";

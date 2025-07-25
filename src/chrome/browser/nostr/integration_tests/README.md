@@ -1,6 +1,6 @@
 # dryft Nostr Integration Tests
 
-This directory contains comprehensive integration tests for Tungsten's Nostr protocol support, including NIP-07 implementation, local relay, Blossom server, protocol handlers, and Nsite functionality.
+This directory contains comprehensive integration tests for dryft's Nostr protocol support, including NIP-07 implementation, local relay, Blossom server, protocol handlers, and Nsite functionality.
 
 ## Test Structure
 
@@ -53,7 +53,7 @@ out/Release/browser_tests --gtest_filter="NostrE2EBrowserTest.CompleteNostrWorkf
 ```
 
 ### Build Requirements
-Before running tests, ensure Tungsten is built with Nostr support:
+Before running tests, ensure dryft is built with Nostr support:
 ```bash
 gn gen out/Release --args="is_official_build=true enable_nostr=true enable_local_relay=true enable_blossom_server=true"
 autoninja -C out/Release chrome

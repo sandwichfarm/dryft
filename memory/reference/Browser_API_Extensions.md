@@ -14,7 +14,7 @@ interface WindowNostr {
     decrypt(pubkey: string, ciphertext: string): Promise<string>;
   };
   
-  // Tungsten Extensions
+  // dryft Extensions
   relay: {
     // Local relay URL (read-only)
     readonly url: string;  // e.g., "ws://localhost:8081"
@@ -766,7 +766,7 @@ class SettingsMigration {
     const settings = {
       version: '1.0',
       timestamp: Date.now(),
-      browser: 'Tungsten',
+      browser: 'dryft',
       data: {
         accounts: await this.exportAccounts(),
         permissions: await this.exportPermissions(),

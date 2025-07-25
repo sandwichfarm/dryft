@@ -333,7 +333,7 @@ std::string FileFallbackStorage::GetOSUserKey() const {
   std::string uid_str = std::to_string(getuid());
   
   // Combine profile path and UID for the key
-  return "tungsten-nostr-" + uid_str + "-" + profile_path;
+  return "dryft-nostr-" + uid_str + "-" + profile_path;
 }
 
 bool FileFallbackStorage::StoreKey(const KeyIdentifier& id,

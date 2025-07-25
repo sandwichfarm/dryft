@@ -21,11 +21,11 @@ This guide will help you install dryft browser and get started with its native N
 
 ### Windows
 
-1. **Download**: Get the latest Tungsten installer from [releases page](https://github.com/sandwichfarm/dryft/releases)
+1. **Download**: Get the latest dryft installer from [releases page](https://github.com/sandwichfarm/dryft/releases)
 2. **Run Installer**: Double-click `TungstenBrowserSetup.exe`
 3. **Admin Rights**: Click "Yes" when prompted for administrator permissions
 4. **Installation**: Follow the setup wizard (typically takes 2-3 minutes)
-5. **Launch**: Tungsten will start automatically after installation
+5. **Launch**: dryft will start automatically after installation
 
 ### macOS
 
@@ -33,33 +33,33 @@ This guide will help you install dryft browser and get started with its native N
 2. **Mount DMG**: Double-click the downloaded file
 3. **Install**: Drag dryft browser to your Applications folder
 4. **Security**: First launch requires right-click → "Open" due to macOS security
-5. **Launch**: Find Tungsten in Applications or Spotlight
+5. **Launch**: Find dryft in Applications or Spotlight
 
 ### Linux
 
 #### Debian/Ubuntu (DEB Package)
 ```bash
 # Download the .deb package
-wget https://github.com/sandwichfarm/dryft/releases/latest/download/tungsten-browser_amd64.deb
+wget https://github.com/sandwichfarm/dryft-browser_amd64.deb
 
 # Install
-sudo dpkg -i tungsten-browser_amd64.deb
+sudo dpkg -i dryft-browser_amd64.deb
 sudo apt-get install -f  # Fix any dependency issues
 
 # Launch
-tungsten-browser
+dryft-browser
 ```
 
 #### RPM-based Distributions
 ```bash
 # Download the .rpm package
-wget https://github.com/sandwichfarm/dryft/releases/latest/download/tungsten-browser.x86_64.rpm
+wget https://github.com/sandwichfarm/dryft-browser.x86_64.rpm
 
 # Install (Fedora/CentOS/RHEL)
-sudo rpm -i tungsten-browser.x86_64.rpm
+sudo rpm -i dryft-browser.x86_64.rpm
 
 # Launch
-tungsten-browser
+dryft-browser
 ```
 
 #### AppImage (Universal)
@@ -77,33 +77,33 @@ chmod +x TungstenBrowser.AppImage
 ## First Launch Setup
 
 ### 1. Welcome Screen
-On first launch, you'll see the Tungsten welcome screen:
+On first launch, you'll see the dryft welcome screen:
 - **Import Data**: Option to import bookmarks/passwords from other browsers
-- **Set as Default**: Option to make Tungsten your default browser
+- **Set as Default**: Option to make dryft your default browser
 - **Privacy Settings**: Quick privacy configuration
 
 ### 2. Nostr Account Setup
-Tungsten will guide you through Nostr account setup:
+dryft will guide you through Nostr account setup:
 
 **Option A: Create New Account**
 1. Click "Create New Nostr Account"
 2. Choose a display name
-3. Tungsten generates a secure key pair
+3. dryft generates a secure key pair
 4. Your public key (npub) and private key are shown
 5. **IMPORTANT**: Back up your private key securely
 
 **Option B: Import Existing Account**
 1. Click "Import Existing Account"
 2. Enter your private key (nsec format)
-3. Tungsten will derive your public key
+3. dryft will derive your public key
 4. Confirm the account details
 
 **Option C: Skip for Now**
-1. Click "Skip" to use Tungsten without Nostr features
+1. Click "Skip" to use dryft without Nostr features
 2. You can set up accounts later in Settings
 
 ### 3. Local Services Setup
-Tungsten automatically configures local services:
+dryft automatically configures local services:
 
 - **Local Relay**: Starts on `ws://localhost:8081`
 - **Blossom Server**: Starts on `http://localhost:8080`
@@ -137,7 +137,7 @@ You'll see a notification when services are ready (usually 10-15 seconds).
 Try visiting a Nostr-enabled website:
 
 1. **Navigate** to `https://nostrgram.co` or `https://primal.net`
-2. **Connect Wallet**: These sites should automatically detect Tungsten's built-in Nostr support
+2. **Connect Wallet**: These sites should automatically detect dryft's built-in Nostr support
 3. **No Extension Needed**: The sites work immediately without installing extensions
 
 ### Browse an Nsite
@@ -145,12 +145,12 @@ Try visiting a Nostr-enabled website:
 Try browsing a static website hosted on Nostr:
 
 1. **Find an Nsite**: Look for `nostr://npub...` URLs on Nostr social networks
-2. **Direct Navigation**: Paste the URL into Tungsten's address bar
+2. **Direct Navigation**: Paste the URL into dryft's address bar
 3. **Subdomain Format**: Some sites use `npub123.nsite.example.com` format
 
 ## Next Steps
 
-Now that Tungsten is installed and working:
+Now that dryft is installed and working:
 
 1. **[Account Management](account-management.md)**: Learn to manage multiple Nostr accounts
 2. **[Nostr Features](nostr-features.md)**: Explore all the built-in Nostr capabilities
@@ -163,7 +163,7 @@ Now that Tungsten is installed and working:
 
 **"Windows protected your PC" dialog:**
 - Click "More info" then "Run anyway"
-- This happens because Tungsten is not yet signed with Microsoft's expensive certificate
+- This happens because dryft is not yet signed with Microsoft's expensive certificate
 
 **Installation fails:**
 - Run installer as Administrator
@@ -173,14 +173,14 @@ Now that Tungsten is installed and working:
 ### macOS Issues
 
 **"dryft browser cannot be opened" dialog:**
-- Right-click Tungsten in Applications
+- Right-click dryft in Applications
 - Select "Open" from context menu
 - Click "Open" in the security dialog
 
 **Quarantine issues:**
 ```bash
 # Remove quarantine attribute
-xattr -dr com.apple.quarantine /Applications/Tungsten\ Browser.app
+xattr -dr com.apple.quarantine /Applications/dryft\ Browser.app
 ```
 
 ### Linux Issues
@@ -198,7 +198,7 @@ sudo dnf install nss atk at-spi2-atk libXcomposite libXrandr libXss gtk3
 **Permission issues:**
 ```bash
 # Ensure executable permissions
-chmod +x tungsten-browser
+chmod +x dryft-browser
 
 # For AppImage
 chmod +x TungstenBrowser.AppImage

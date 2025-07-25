@@ -1,4 +1,4 @@
-// Copyright 2024 The Tungsten Authors
+// Copyright 2024 The dryft Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -31,7 +31,7 @@
     (__bridge id)kSecAttrAccount: account,
     (__bridge id)kSecValueData: data,
     (__bridge id)kSecAttrAccessible: (__bridge id)kSecAttrAccessibleWhenUnlocked,
-    (__bridge id)kSecAttrLabel: @"Tungsten Nostr Key",
+    (__bridge id)kSecAttrLabel: @"dryft Nostr Key",
     (__bridge id)kSecAttrDescription: @"Encrypted Nostr private key",
     (__bridge id)kSecAttrSynchronizable: @NO  // Don't sync to iCloud
   };

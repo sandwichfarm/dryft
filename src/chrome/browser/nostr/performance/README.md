@@ -1,10 +1,10 @@
-# Tungsten Performance Testing Suite
+# dryft Performance Testing Suite
 
-This directory contains the comprehensive performance testing suite for Tungsten's Nostr features.
+This directory contains the comprehensive performance testing suite for dryft's Nostr features.
 
 ## Overview
 
-The performance testing suite measures and monitors the performance of Tungsten's Nostr implementation across several key areas:
+The performance testing suite measures and monitors the performance of dryft's Nostr implementation across several key areas:
 
 - **Startup Performance**: Browser startup impact and service initialization times
 - **Memory Usage**: Memory consumption and leak detection
@@ -87,7 +87,7 @@ performance/
 
 ### Prerequisites
 
-1. Build Tungsten with performance tests enabled:
+1. Build dryft with performance tests enabled:
 ```bash
 cd src
 gn gen out/Release --args="is_official_build=true enable_nostr=true enable_local_relay=true enable_blossom_server=true"
@@ -206,7 +206,7 @@ jobs:
       run: |
         # Setup depot_tools, etc.
         
-    - name: Build Tungsten
+    - name: Build dryft
       run: |
         gn gen out/Release --args="is_official_build=true enable_nostr=true"
         autoninja -C out/Release chrome/browser/nostr/performance:performance_tests
@@ -308,4 +308,4 @@ The performance testing suite integrates with Chromium's performance monitoring 
 - **CI/CD Integration**: Automated performance testing on every commit
 - **Historical Tracking**: Performance trends over time
 
-This ensures that Tungsten maintains excellent performance characteristics while adding powerful Nostr functionality.
+This ensures that dryft maintains excellent performance characteristics while adding powerful Nostr functionality.

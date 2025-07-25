@@ -1,5 +1,5 @@
 // applesauce-core v0.3.4
-// Placeholder for Tungsten
+// Placeholder for dryft
 // Full library: https://github.com/hzrd149/applesauce
 
 export const version = '0.3.4';

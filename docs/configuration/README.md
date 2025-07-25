@@ -37,14 +37,14 @@ Command Line Flags (session)
 
 ### Windows
 ```
-%USERPROFILE%\AppData\Local\Tungsten\User Data\Default\Preferences
-%USERPROFILE%\AppData\Local\Tungsten\User Data\Default\Local State
+%USERPROFILE%\AppData\Local\dryft\User Data\Default\Preferences
+%USERPROFILE%\AppData\Local\dryft\User Data\Default\Local State
 ```
 
 ### macOS
 ```
-~/Library/Application Support/Tungsten/Default/Preferences
-~/Library/Application Support/Tungsten/Default/Local State
+~/Library/Application Support/dryft/Default/Preferences
+~/Library/Application Support/dryft/Default/Local State
 ```
 
 ### Linux
@@ -59,7 +59,7 @@ Command Line Flags (session)
 
 ```json
 {
-  "tungsten.nostr.accounts": [
+  "dryft.nostr.accounts": [
     {
       "pubkey": "a1b2c3d4e5f6...",
       "display_name": "Personal Account",
@@ -68,8 +68,8 @@ Command Line Flags (session)
       "active": true
     }
   ],
-  "tungsten.nostr.active_account": "a1b2c3d4e5f6...",
-  "tungsten.nostr.account_defaults": {
+  "dryft.nostr.active_account": "a1b2c3d4e5f6...",
+  "dryft.nostr.account_defaults": {
     "auto_backup": true,
     "require_passphrase": false,
     "passphrase_timeout": 300
@@ -86,7 +86,7 @@ Command Line Flags (session)
 
 ```json
 {
-  "tungsten.permissions.nip07": {
+  "dryft.permissions.nip07": {
     "example.com": {
       "getPublicKey": "allow",
       "signEvent": "ask",
@@ -98,9 +98,9 @@ Command Line Flags (session)
       "*": "allow"
     }
   },
-  "tungsten.permissions.default_policy": "ask",
-  "tungsten.permissions.remember_duration_days": 30,
-  "tungsten.permissions.require_password": false
+  "dryft.permissions.default_policy": "ask",
+  "dryft.permissions.remember_duration_days": 30,
+  "dryft.permissions.require_password": false
 }
 ```
 
@@ -114,24 +114,24 @@ Command Line Flags (session)
 
 ```json
 {
-  "tungsten.local_relay.enabled": true,
-  "tungsten.local_relay.port": 8081,
-  "tungsten.local_relay.bind_address": "127.0.0.1",
-  "tungsten.local_relay.max_events": 100000,
-  "tungsten.local_relay.storage_path": "",
-  "tungsten.local_relay.sync_enabled": true,
-  "tungsten.local_relay.sync_relays": [
+  "dryft.local_relay.enabled": true,
+  "dryft.local_relay.port": 8081,
+  "dryft.local_relay.bind_address": "127.0.0.1",
+  "dryft.local_relay.max_events": 100000,
+  "dryft.local_relay.storage_path": "",
+  "dryft.local_relay.sync_enabled": true,
+  "dryft.local_relay.sync_relays": [
     "wss://relay.damus.io",
     "wss://nos.lol"
   ],
   
-  "tungsten.blossom.enabled": true,
-  "tungsten.blossom.port": 8080,
-  "tungsten.blossom.bind_address": "127.0.0.1",
-  "tungsten.blossom.storage_path": "",
-  "tungsten.blossom.max_file_size": 104857600,
-  "tungsten.blossom.max_storage": 10737418240,
-  "tungsten.blossom.cleanup_policy": "lru"
+  "dryft.blossom.enabled": true,
+  "dryft.blossom.port": 8080,
+  "dryft.blossom.bind_address": "127.0.0.1",
+  "dryft.blossom.storage_path": "",
+  "dryft.blossom.max_file_size": 104857600,
+  "dryft.blossom.max_storage": 10737418240,
+  "dryft.blossom.cleanup_policy": "lru"
 }
 ```
 
@@ -139,11 +139,11 @@ Command Line Flags (session)
 
 ```json
 {
-  "tungsten.security.key_storage_backend": "platform",
-  "tungsten.security.require_secure_context": true,
-  "tungsten.security.allow_insecure_origins": [],
-  "tungsten.security.csp_enforcement": "strict",
-  "tungsten.security.rate_limits": {
+  "dryft.security.key_storage_backend": "platform",
+  "dryft.security.require_secure_context": true,
+  "dryft.security.allow_insecure_origins": [],
+  "dryft.security.csp_enforcement": "strict",
+  "dryft.security.rate_limits": {
     "getPublicKey": { "requests": 10, "window": 60 },
     "signEvent": { "requests": 100, "window": 60 },
     "blossom.upload": { "requests": 50, "window": 300 }
@@ -167,14 +167,14 @@ Most settings can be configured through the browser interface:
 For enterprise deployment, use Windows Registry or Group Policy:
 
 ```registry
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Tungsten]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\dryft]
 "NostrAccountCreationAllowed"=dword:00000001
 "DefaultRelayList"="wss://corporate-relay.company.com"
 "LocalRelayEnabled"=dword:00000001
 "BlossomEnabled"=dword:00000000
 "RequireKeyPassphrase"=dword:00000001
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Tungsten\PermissionDefaults]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\dryft\PermissionDefaults]
 "corporate-app.company.com"="allow"
 "*.company.com"="ask"
 "*"="deny"
@@ -192,7 +192,7 @@ For macOS enterprise deployment:
     <array>
         <dict>
             <key>PayloadType</key>
-            <string>com.tungsten.browser</string>
+            <string>com.dryft.browser</string>
             <key>NostrAccountCreationAllowed</key>
             <true/>
             <key>LocalRelayEnabled</key>
@@ -234,19 +234,19 @@ For testing and development:
 
 ```bash
 # Enable debug logging
-tungsten --enable-logging --v=1 --vmodule=nostr*=2
+dryft --enable-logging --v=1 --vmodule=nostr*=2
 
 # Use custom ports
-tungsten --nostr-relay-port=9081 --blossom-port=9080
+dryft --nostr-relay-port=9081 --blossom-port=9080
 
 # Disable services
-tungsten --disable-local-relay --disable-blossom
+dryft --disable-local-relay --disable-blossom
 
 # Use custom data directory
-tungsten --user-data-dir=/tmp/tungsten-test
+dryft --user-data-dir=/tmp/dryft-test
 
 # Allow insecure origins (development only)
-tungsten --allow-insecure-nostr-origins=http://localhost:3000
+dryft --allow-insecure-nostr-origins=http://localhost:3000
 ```
 
 ## Common Configuration Scenarios
@@ -255,12 +255,12 @@ tungsten --allow-insecure-nostr-origins=http://localhost:3000
 
 ```json
 {
-  "tungsten.permissions.default_policy": "ask",
-  "tungsten.permissions.remember_duration_days": 1,
-  "tungsten.security.require_secure_context": true,
-  "tungsten.local_relay.sync_enabled": false,
-  "tungsten.telemetry.enabled": false,
-  "tungsten.nostr.account_defaults.require_passphrase": true
+  "dryft.permissions.default_policy": "ask",
+  "dryft.permissions.remember_duration_days": 1,
+  "dryft.security.require_secure_context": true,
+  "dryft.local_relay.sync_enabled": false,
+  "dryft.telemetry.enabled": false,
+  "dryft.nostr.account_defaults.require_passphrase": true
 }
 ```
 
@@ -268,14 +268,14 @@ tungsten --allow-insecure-nostr-origins=http://localhost:3000
 
 ```json
 {
-  "tungsten.permissions.default_policy": "deny",
-  "tungsten.permissions.nip07": {
+  "dryft.permissions.default_policy": "deny",
+  "dryft.permissions.nip07": {
     "corporate-app.company.com": { "*": "allow" },
     "*.company.com": { "getPublicKey": "allow", "signEvent": "ask" }
   },
-  "tungsten.local_relay.sync_relays": ["wss://corporate-relay.company.com"],
-  "tungsten.blossom.enabled": false,
-  "tungsten.security.allow_insecure_origins": []
+  "dryft.local_relay.sync_relays": ["wss://corporate-relay.company.com"],
+  "dryft.blossom.enabled": false,
+  "dryft.security.allow_insecure_origins": []
 }
 ```
 
@@ -283,13 +283,13 @@ tungsten --allow-insecure-nostr-origins=http://localhost:3000
 
 ```json
 {
-  "tungsten.permissions.default_policy": "allow",
-  "tungsten.security.allow_insecure_origins": [
+  "dryft.permissions.default_policy": "allow",
+  "dryft.security.allow_insecure_origins": [
     "http://localhost:3000",
     "http://localhost:8000"
   ],
-  "tungsten.local_relay.enabled": true,
-  "tungsten.blossom.enabled": true,
+  "dryft.local_relay.enabled": true,
+  "dryft.blossom.enabled": true,
   "dryft.dev.debug_logging": true
 }
 ```
@@ -298,11 +298,11 @@ tungsten --allow-insecure-nostr-origins=http://localhost:3000
 
 ```json
 {
-  "tungsten.nostr.account_creation_allowed": false,
-  "tungsten.permissions.default_policy": "deny",
-  "tungsten.local_relay.enabled": false,
-  "tungsten.blossom.enabled": false,
-  "tungsten.accounts.max_accounts": 0
+  "dryft.nostr.account_creation_allowed": false,
+  "dryft.permissions.default_policy": "deny",
+  "dryft.local_relay.enabled": false,
+  "dryft.blossom.enabled": false,
+  "dryft.accounts.max_accounts": 0
 }
 ```
 
@@ -314,12 +314,12 @@ For high-performance scenarios:
 
 ```json
 {
-  "tungsten.local_relay.max_connections": 1000,
-  "tungsten.local_relay.query_timeout": 5000,
-  "tungsten.local_relay.cache_size": 536870912,
-  "tungsten.blossom.cache_size": 1073741824,
-  "tungsten.performance.preload_libraries": true,
-  "tungsten.performance.lazy_load_accounts": false
+  "dryft.local_relay.max_connections": 1000,
+  "dryft.local_relay.query_timeout": 5000,
+  "dryft.local_relay.cache_size": 536870912,
+  "dryft.blossom.cache_size": 1073741824,
+  "dryft.performance.preload_libraries": true,
+  "dryft.performance.lazy_load_accounts": false
 }
 ```
 
@@ -327,9 +327,9 @@ For high-performance scenarios:
 
 ```json
 {
-  "tungsten.local_relay.storage_path": "/var/lib/dryft/relay",
-  "tungsten.blossom.storage_path": "/var/lib/dryft/blossom",
-  "tungsten.accounts.storage_path": "/var/lib/dryft/accounts"
+  "dryft.local_relay.storage_path": "/var/lib/dryft/relay",
+  "dryft.blossom.storage_path": "/var/lib/dryft/blossom",
+  "dryft.accounts.storage_path": "/var/lib/dryft/accounts"
 }
 ```
 
@@ -337,11 +337,11 @@ For high-performance scenarios:
 
 ```json
 {
-  "tungsten.network.relay_timeout": 10000,
-  "tungsten.network.max_concurrent_connections": 20,
-  "tungsten.network.retry_attempts": 3,
-  "tungsten.network.user_agent": "TungstenBrowser/1.0",
-  "tungsten.network.proxy_settings": {
+  "dryft.network.relay_timeout": 10000,
+  "dryft.network.max_concurrent_connections": 20,
+  "dryft.network.retry_attempts": 3,
+  "dryft.network.user_agent": "TungstenBrowser/1.0",
+  "dryft.network.proxy_settings": {
     "type": "socks5",
     "host": "127.0.0.1",
     "port": 9050
@@ -353,36 +353,36 @@ For high-performance scenarios:
 
 ### Validate Configuration
 
-Use Tungsten's built-in configuration validator:
+Use dryft's built-in configuration validator:
 
 ```bash
-tungsten --validate-config --config-file=tungsten-config.json
+dryft --validate-config --config-file=dryft-config.json
 ```
 
 ### Test Configuration
 
 ```bash
 # Test with specific config
-tungsten --config-test-mode --user-data-dir=/tmp/test
+dryft --config-test-mode --user-data-dir=/tmp/test
 
 # Check current settings
-tungsten --dump-config
+dryft --dump-config
 
 # Verify policies are applied
-tungsten --list-policies
+dryft --list-policies
 ```
 
 ### Debug Configuration Issues
 
 ```bash
 # Enable verbose policy logging
-tungsten --enable-logging --vmodule=policy*=2
+dryft --enable-logging --vmodule=policy*=2
 
 # Show configuration source
-tungsten --log-config-source
+dryft --log-config-source
 
 # Reset to defaults
-tungsten --reset-configuration
+dryft --reset-configuration
 ```
 
 ## Troubleshooting
@@ -396,7 +396,7 @@ tungsten --reset-configuration
 4. Restart browser after policy changes
 
 **Permission errors:**
-1. Check `tungsten.permissions.nip07` configuration
+1. Check `dryft.permissions.nip07` configuration
 2. Verify origin matches exactly (including protocol)
 3. Clear stored permissions and test again
 
@@ -410,13 +410,13 @@ tungsten --reset-configuration
 
 ```bash
 # Show all available settings
-tungsten --help-config
+dryft --help-config
 
 # Show current configuration
-tungsten --show-config
+dryft --show-config
 
 # Export current settings
-tungsten --export-config=tungsten-backup.json
+dryft --export-config=dryft-backup.json
 ```
 
 For more help, see the [Troubleshooting Guide](../troubleshooting/README.md).

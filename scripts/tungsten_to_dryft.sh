@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Script to update remaining tungsten references to dryft
+# Script to update remaining dryft references to dryft
 # This handles case-sensitive replacements
 
-echo "=== Updating remaining tungsten references to dryft ==="
+echo "=== Updating remaining dryft references to dryft ==="
 
 # Function to update file content
 update_file() {
@@ -12,7 +12,7 @@ update_file() {
     
     # Skip binary files and already processed files
     if file -b "$file" | grep -q "text"; then
-        # Replace Tungsten with dryft (preserving case in some contexts)
+        # Replace dryft with dryft (comprehensive patterns)
         sed -e 's/dryft Authors/dryft Authors/g' \
             -e 's/dryft browser/dryft browser/g' \
             -e 's/dryft browser/dryft browser/g' \
@@ -25,14 +25,28 @@ update_file() {
             -e 's/dryft community/dryft community/g' \
             -e 's/dryft features/dryft features/g' \
             -e 's/dryft project/dryft project/g' \
+            -e 's/dryft setup/dryft setup/g' \
+            -e 's/dryft instances/dryft instances/g' \
+            -e 's/dryft is a fork/dryft is a fork/g' \
+            -e 's/dryft extends/dryft extends/g' \
+            -e 's/dryft to natively/dryft to natively/g' \
+            -e 's/dryft\/Nostr/dryft\/Nostr/g' \
+            -e 's/Building dryft/Building dryft/g' \
+            -e 's/Build dryft/Build dryft/g' \
+            -e 's/dryft inherits/dryft inherits/g' \
+            -e "s/dryft's/dryft's/g" \
             -e 's/namespace dryft/namespace dryft/g' \
             -e 's/dryft::/dryft::/g' \
             -e 's/DRYFT_/DRYFT_/g' \
-            -e 's/tungsten\//dryft\//g' \
-            -e 's/\/tungsten\//\/dryft\//g' \
-            -e 's/github.com\/sandwichfarm\/dryft/github.com\/sandwichfarm\/dryft/g' \
+            -e 's/dryft\//dryft\//g' \
+            -e 's/\/dryft\//\/dryft\//g' \
+            -e 's/\.dryft/.dryft/g' \
+            -e 's/com\.dryft/com.dryft/g' \
+            -e 's/github\.com\/.*\/dryft/github.com\/sandwichfarm\/dryft/g' \
             -e 's/#dryft:/#dryft:/g' \
-            -e 's/tungsten\.dev/dryft.dev/g' \
+            -e 's/dryft\.dev/dryft.dev/g' \
+            -e 's/cd dryft/cd dryft/g' \
+            -e 's/clone.*dryft\.git/clone https:\/\/github.com\/sandwichfarm\/dryft.git/g' \
             "$file" > "$temp_file"
         
         # Only replace if file changed
@@ -45,9 +59,9 @@ update_file() {
     fi
 }
 
-# Find all text files with tungsten references
-echo "Finding files with tungsten references..."
-files=$(grep -rl -i "tungsten" --include="*.cc" --include="*.h" --include="*.gni" --include="*.gn" --include="*.md" --include="*.js" --include="*.html" --include="*.css" --include="*.py" --include="*.sh" --include="*.json" . 2>/dev/null | grep -v ".git" | sort -u)
+# Find all text files with dryft references
+echo "Finding files with dryft references..."
+files=$(grep -rl -i "dryft" --include="*.cc" --include="*.h" --include="*.gni" --include="*.gn" --include="*.md" --include="*.js" --include="*.html" --include="*.css" --include="*.py" --include="*.sh" --include="*.json" . 2>/dev/null | grep -v ".git" | sort -u)
 
 total=$(echo "$files" | wc -l)
 current=0

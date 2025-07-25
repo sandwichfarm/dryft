@@ -663,7 +663,7 @@ const RelaySettingsManager = {
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'tungsten-relay-config.json';
+    a.download = 'dryft-relay-config.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

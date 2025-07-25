@@ -1,6 +1,6 @@
-# Tungsten Build System Integration
+# dryft Build System Integration
 
-This document describes how Tungsten components are integrated into the Chromium build system.
+This document describes how dryft components are integrated into the Chromium build system.
 
 ## Build Flags
 
@@ -34,7 +34,7 @@ dryft/
 │   └── config/
 │       └── dryft/
 │           ├── BUILD.gn              # Build flag header generation
-│           ├── tungsten.gni          # Build flag declarations
+│           ├── dryft.gni          # Build flag declarations
 │           └── tungsten_buildflags.h # C++ build flag macros
 ├── src/
 │   ├── chrome/
@@ -75,7 +75,7 @@ dryft/
 2. **`//chrome/browser/nostr:nostr_browser_tests`** - Browser tests
 3. **`//chrome/common:nostr_messages_unittests`** - IPC tests
 
-## Building Tungsten
+## Building dryft
 
 ### Development Build
 

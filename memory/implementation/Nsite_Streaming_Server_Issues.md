@@ -1,6 +1,6 @@
 # Nsite Streaming Server Issues
 
-Following Tungsten's issue creation template for Group D (Protocol Handlers).
+Following dryft's issue creation template for Group D (Protocol Handlers).
 
 ---
 

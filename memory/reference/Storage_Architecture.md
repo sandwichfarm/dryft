@@ -3,7 +3,7 @@
 
 ### 1. Overview
 
-Tungsten uses different storage solutions optimized for each component's specific needs:
+dryft uses different storage solutions optimized for each component's specific needs:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

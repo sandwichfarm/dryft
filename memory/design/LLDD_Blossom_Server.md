@@ -1050,7 +1050,7 @@ class BlossomConfig {
   
   static base::FilePath GetDefaultStoragePath() {
     return base::GetHomeDir()
-        .Append(".tungsten")
+        .Append(".dryft")
         .Append("blossom");
   }
 };

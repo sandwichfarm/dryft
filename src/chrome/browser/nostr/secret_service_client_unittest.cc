@@ -121,7 +121,7 @@ TEST_F(SecretServiceClientTest, GetSecretLabel) {
   EXPECT_EQ(metadata_label, "dryft Nostr Key Metadata: test123");
   
   std::string default_label = client_->GetSecretLabel("default", "default");
-  EXPECT_EQ(default_label, "Tungsten Default Nostr Key");
+  EXPECT_EQ(default_label, "dryft Default Nostr Key");
   
   std::string other_label = client_->GetSecretLabel(key_id, "other");
   EXPECT_EQ(other_label, "dryft Nostr: test123");

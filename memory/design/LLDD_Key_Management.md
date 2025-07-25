@@ -89,7 +89,7 @@ class MacKeychainStorage : public SecureKeyStorage {
  public:
   bool StoreKey(const std::string& account_id,
                const std::string& encrypted_key) override {
-    CFStringRef service = CFSTR("com.tungsten.browser.nostr");
+    CFStringRef service = CFSTR("com.dryft.browser.nostr");
     CFStringRef account = CFStringCreateWithCString(
         kCFAllocatorDefault, account_id.c_str(), 
         kCFStringEncodingUTF8);
@@ -126,7 +126,7 @@ class MacKeychainStorage : public SecureKeyStorage {
   
   bool RetrieveKey(const std::string& account_id,
                   std::string* encrypted_key) override {
-    CFStringRef service = CFSTR("com.tungsten.browser.nostr");
+    CFStringRef service = CFSTR("com.dryft.browser.nostr");
     CFStringRef account = CFStringCreateWithCString(
         kCFAllocatorDefault, account_id.c_str(),
         kCFStringEncodingUTF8);
@@ -171,7 +171,7 @@ class WindowsCredentialStorage : public SecureKeyStorage {
  public:
   bool StoreKey(const std::string& account_id,
                const std::string& encrypted_key) override {
-    std::wstring target = L"Tungsten/Nostr/" + 
+    std::wstring target = L"dryft/Nostr/" + 
                          base::UTF8ToWide(account_id);
     
     CREDENTIALW cred = {0};
@@ -188,7 +188,7 @@ class WindowsCredentialStorage : public SecureKeyStorage {
   
   bool RetrieveKey(const std::string& account_id,
                   std::string* encrypted_key) override {
-    std::wstring target = L"Tungsten/Nostr/" + 
+    std::wstring target = L"dryft/Nostr/" + 
                          base::UTF8ToWide(account_id);
     
     PCREDENTIALW cred = nullptr;
@@ -231,7 +231,7 @@ class LinuxSecretServiceStorage : public SecureKeyStorage {
     
     g_hash_table_insert(attributes,
                        g_strdup("application"),
-                       g_strdup("Tungsten"));
+                       g_strdup("dryft"));
     g_hash_table_insert(attributes,
                        g_strdup("account"),
                        g_strdup(account_id.c_str()));

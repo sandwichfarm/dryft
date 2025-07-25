@@ -1,6 +1,6 @@
 # Local Relay UI Integration Guide
 
-This document describes how to integrate the Local Relay configuration UI into Tungsten's settings page when the settings infrastructure is available.
+This document describes how to integrate the Local Relay configuration UI into dryft's settings page when the settings infrastructure is available.
 
 ## Current Implementation Status
 
@@ -14,23 +14,23 @@ This document describes how to integrate the Local Relay configuration UI into T
 
 2. **Preference Keys** - All preferences are registered and ready:
    ```cpp
-   tungsten.relay.enabled
-   tungsten.relay.port
-   tungsten.relay.interface
-   tungsten.relay.external_access
-   tungsten.relay.max_storage_gb
-   tungsten.relay.max_events
-   tungsten.relay.retention_days
-   tungsten.relay.max_connections
-   tungsten.relay.max_subs_per_conn
-   tungsten.relay.max_message_size
-   tungsten.relay.max_event_size
-   tungsten.relay.max_events_per_minute
-   tungsten.relay.max_req_per_minute
-   tungsten.relay.allowed_origins
-   tungsten.relay.require_auth
-   tungsten.relay.blocked_pubkeys
-   tungsten.relay.allowed_kinds
+   dryft.relay.enabled
+   dryft.relay.port
+   dryft.relay.interface
+   dryft.relay.external_access
+   dryft.relay.max_storage_gb
+   dryft.relay.max_events
+   dryft.relay.retention_days
+   dryft.relay.max_connections
+   dryft.relay.max_subs_per_conn
+   dryft.relay.max_message_size
+   dryft.relay.max_event_size
+   dryft.relay.max_events_per_minute
+   dryft.relay.max_req_per_minute
+   dryft.relay.allowed_origins
+   dryft.relay.require_auth
+   dryft.relay.blocked_pubkeys
+   dryft.relay.allowed_kinds
    ```
 
 3. **NostrService Integration** - Methods ready for UI:
@@ -56,12 +56,12 @@ Local Services ─────────────────────�
 1. **Basic Settings Section**
    ```html
    <settings-toggle-button 
-     pref="tungsten.relay.enabled"
+     pref="dryft.relay.enabled"
      label="Enable Local Relay">
    </settings-toggle-button>
    
    <settings-input
-     pref="tungsten.relay.port"
+     pref="dryft.relay.port"
      type="number"
      min="1024"
      max="65535"
@@ -123,7 +123,7 @@ class SettingsLocalRelaySection extends PolymerElement {
   }
 
   onToggleRelay_() {
-    if (this.prefs.tungsten.relay.enabled.value) {
+    if (this.prefs.dryft.relay.enabled.value) {
       chrome.nostr.startLocalRelay();
     } else {
       chrome.nostr.stopLocalRelay();

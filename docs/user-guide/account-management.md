@@ -4,7 +4,7 @@ dryft browser supports multiple Nostr accounts with seamless switching and granu
 
 ## Overview
 
-Tungsten's account system provides:
+dryft's account system provides:
 - **Multiple Accounts**: Manage different identities for different purposes
 - **Secure Storage**: Keys stored in platform-native secure storage
 - **Account Switching**: Quick switching between accounts per website
@@ -37,7 +37,7 @@ Tungsten's account system provides:
 
 ### Supported Key Formats
 
-Tungsten accepts private keys in multiple formats:
+dryft accepts private keys in multiple formats:
 
 ```
 # nsec format (bech32)
@@ -59,7 +59,7 @@ The account switcher appears in the browser toolbar when you have multiple accou
 1. **Current Account**: Shows the active account's display name and avatar
 2. **Switch Accounts**: Click to see all available accounts
 3. **Quick Switch**: Click any account to switch immediately
-4. **Per-Site Memory**: Tungsten remembers your preferred account per website
+4. **Per-Site Memory**: dryft remembers your preferred account per website
 
 ### Account Organization
 
@@ -84,7 +84,7 @@ Configure which account is used by default:
 
 ### Private Key Protection
 
-Tungsten stores private keys securely:
+dryft stores private keys securely:
 
 **Windows**: Windows Credential Manager
 - Keys encrypted with DPAPI
@@ -121,7 +121,7 @@ Tungsten stores private keys securely:
 
 #### Recovery Process
 
-1. **Fresh Installation**: Install Tungsten on new device
+1. **Fresh Installation**: Install dryft on new device
 2. **Import Account**: Settings → Nostr Accounts → Import
 3. **Select Backup**: Choose your backup file or enter private key
 4. **Decrypt**: Enter backup password if using encrypted export
@@ -184,7 +184,7 @@ View and modify permissions per website:
 
 ### Account Profiles and Metadata
 
-Tungsten supports rich account profiles:
+dryft supports rich account profiles:
 
 **Profile Information** (NIP-05):
 - Display name and bio
@@ -251,6 +251,6 @@ Sync account settings across devices:
 1. **File Format**: Ensure using supported formats (nsec, hex, mnemonic)
 2. **Password Issues**: Double-check backup password
 3. **File Corruption**: Try a different backup if available
-4. **Browser Permissions**: Ensure Tungsten can access the file system
+4. **Browser Permissions**: Ensure dryft can access the file system
 
 For more help, see the [Troubleshooting Guide](../troubleshooting/README.md).

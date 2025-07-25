@@ -414,7 +414,7 @@ bool SecretServiceClient::SetDefaultKey(const std::string& key_id) {
   gboolean result = secret_password_store_sync(
       GetSecretSchema(),
       kCollectionName,
-      "Tungsten Default Nostr Key",
+      "dryft Default Nostr Key",
       key_id.c_str(),
       nullptr,  // cancellable
       &error,
@@ -438,7 +438,7 @@ std::string SecretServiceClient::GetSecretLabel(const std::string& key_id,
   } else if (type == "metadata") {
     return "dryft Nostr Key Metadata: " + key_id;
   } else if (type == "default") {
-    return "Tungsten Default Nostr Key";
+    return "dryft Default Nostr Key";
   }
   return "dryft Nostr: " + key_id;
 }

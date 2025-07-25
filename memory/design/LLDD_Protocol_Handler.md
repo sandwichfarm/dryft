@@ -3,7 +3,7 @@
 
 ### 1. Component Overview
 
-The Protocol Handler component enables Tungsten to natively handle nostr:// URLs, providing seamless navigation to Nostr content. It parses various Nostr identifier formats, resolves content from relays, and renders appropriate views.
+The Protocol Handler component enables dryft to natively handle nostr:// URLs, providing seamless navigation to Nostr content. It parses various Nostr identifier formats, resolves content from relays, and renders appropriate views.
 
 ### 2. Detailed Architecture
 

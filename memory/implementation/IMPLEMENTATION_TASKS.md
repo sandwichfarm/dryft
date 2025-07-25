@@ -4,7 +4,7 @@
 
 ### Group A: Core Browser Integration
 
-#### A-1: Setup Tungsten Fork Structure
+#### A-1: Setup dryft Fork Structure
 **Dependencies**: None
 **Description**: Create initial fork structure from Thorium, setup build configuration
 - Fork Thorium repository
@@ -30,10 +30,10 @@
 
 #### A-4: Integrate with Chromium Build System
 **Dependencies**: A-1
-**Description**: Modify Chromium build files to include Tungsten
+**Description**: Modify Chromium build files to include dryft
 - Update chrome/browser/BUILD.gn
 - Update content/renderer/BUILD.gn
-- Add Tungsten feature flags
+- Add dryft feature flags
 - Create resource bundle for libraries
 
 ## Milestone 2: Nostr Core

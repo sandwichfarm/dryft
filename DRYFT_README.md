@@ -1,6 +1,6 @@
 # dryft browser
 
-Tungsten is a fork of Thorium browser that adds native Nostr protocol support.
+dryft is a fork of Thorium browser that adds native Nostr protocol support.
 
 ## Features
 
@@ -11,7 +11,7 @@ Tungsten is a fork of Thorium browser that adds native Nostr protocol support.
 - **Nsite Support**: Browse static websites hosted on Nostr (kind 34128 events)
 - **Pre-loaded Libraries**: Popular Nostr libraries available at `window.nostr.libs`
 
-## Building Tungsten
+## Building dryft
 
 ### Prerequisites
 
@@ -21,8 +21,8 @@ Follow the standard Chromium build prerequisites for your platform.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/tungsten.git
-cd tungsten
+git clone https://github.com/sandwichfarm/dryft.git
+cd dryft
 ```
 
 2. Set up the build environment:
@@ -41,7 +41,7 @@ gn gen out/Release --args='
 '
 ```
 
-4. Build Tungsten:
+4. Build dryft:
 ```bash
 autoninja -C out/Release chrome
 ```
@@ -68,4 +68,4 @@ See [CLAUDE.md](CLAUDE.md) for development guidelines and workflow.
 
 ## License
 
-Tungsten inherits Thorium's BSD-style license. See LICENSE file for details.
+dryft inherits Thorium's BSD-style license. See LICENSE file for details.

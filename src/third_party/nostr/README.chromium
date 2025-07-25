@@ -9,7 +9,7 @@ Shipped: Yes
 
 Description:
 This directory contains JavaScript libraries for Nostr protocol support in
-Tungsten browser. These libraries are bundled and served via chrome:// URLs
+dryft browser. These libraries are bundled and served via chrome:// URLs
 to provide a secure, consistent API for web applications.
 
 Libraries included:

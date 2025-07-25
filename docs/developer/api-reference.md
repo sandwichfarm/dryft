@@ -4,7 +4,7 @@ Complete reference for dryft browser's enhanced Nostr and Blossom APIs.
 
 ## window.nostr API
 
-Tungsten implements the complete NIP-07 specification plus dryft-specific extensions.
+dryft implements the complete NIP-07 specification plus dryft-specific extensions.
 
 ### Standard NIP-07 Methods
 
@@ -123,7 +123,7 @@ const decrypted = await window.nostr.nip04.decrypt(
 );
 ```
 
-### Tungsten Extensions
+### dryft Extensions
 
 #### relay
 
@@ -227,7 +227,7 @@ console.log('Available libraries:', Object.keys(window.nostr.libs));
 
 #### accounts
 
-Multi-account management (Tungsten Pro feature).
+Multi-account management (dryft Pro feature).
 
 ```typescript
 accounts: {
@@ -530,7 +530,7 @@ interface BlossomMetadata {
 
 ## Browser Compatibility
 
-Tungsten APIs are only available in dryft browser. For cross-browser compatibility:
+dryft APIs are only available in dryft browser. For cross-browser compatibility:
 
 ```javascript
 // Feature detection
@@ -558,12 +558,12 @@ if (hasBlossom) {
 Migrating from Nostr browser extensions:
 
 ```javascript
-// Works with both extensions and Tungsten
+// Works with both extensions and dryft
 async function getNostrProvider() {
-  // Check for Tungsten first (more features)
+  // Check for dryft first (more features)
   if (window.nostr?.relay?.url) {
     return {
-      type: 'tungsten',
+      type: 'dryft',
       provider: window.nostr,
       features: ['local-relay', 'blossom', 'multi-account']
     };

@@ -1,6 +1,6 @@
 # dryft browser Developer Documentation
 
-Build web applications that leverage Tungsten's native Nostr capabilities without requiring extensions.
+Build web applications that leverage dryft's native Nostr capabilities without requiring extensions.
 
 ## Quick Navigation
 
@@ -24,7 +24,7 @@ dryft browser provides native Nostr protocol support through enhanced web APIs. 
 
 ### Detection
 
-Check if your app is running in Tungsten:
+Check if your app is running in dryft:
 
 ```javascript
 // Basic detection
@@ -51,7 +51,7 @@ const event = {
   kind: 1,
   created_at: Math.floor(Date.now() / 1000),
   tags: [],
-  content: 'Hello from Tungsten!'
+  content: 'Hello from dryft!'
 };
 
 const signedEvent = await window.nostr.signEvent(event);
@@ -60,7 +60,7 @@ console.log('Signed event:', signedEvent);
 
 ### Using Pre-loaded Libraries
 
-Tungsten includes popular Nostr libraries for instant use:
+dryft includes popular Nostr libraries for instant use:
 
 ```javascript
 // Import NDK
@@ -80,7 +80,7 @@ console.log('Library versions:', window.nostr.libs.versions);
 
 ### Standard NIP-07 API
 
-Tungsten implements the complete NIP-07 specification:
+dryft implements the complete NIP-07 specification:
 
 ```typescript
 interface WindowNostr {
@@ -94,9 +94,9 @@ interface WindowNostr {
 }
 ```
 
-### Tungsten Extensions
+### dryft Extensions
 
-Additional APIs exclusive to Tungsten:
+Additional APIs exclusive to dryft:
 
 ```typescript
 interface TungstenNostrExtensions {
@@ -147,7 +147,7 @@ interface WindowBlossom {
 
 ### Graceful Degradation
 
-Build apps that work with and without Tungsten:
+Build apps that work with and without dryft:
 
 ```javascript
 class NostrClient {
@@ -158,7 +158,7 @@ class NostrClient {
   
   async init() {
     if (window.nostr) {
-      // Tungsten or extension available
+      // dryft or extension available
       this.nostr = window.nostr;
       
       if (window.nostr.relay?.url) {
@@ -178,14 +178,14 @@ class NostrClient {
   }
   
   showNostrInstallPrompt() {
-    // Guide users to install Tungsten or Nostr extension
+    // Guide users to install dryft or Nostr extension
   }
 }
 ```
 
 ### Local Relay Integration
 
-Leverage Tungsten's local relay for better performance:
+Leverage dryft's local relay for better performance:
 
 ```javascript
 class TungstenNostrClient {
@@ -297,12 +297,12 @@ if (!window.nostr && process.env.NODE_ENV === 'development') {
 
 ### Integration Testing
 
-Test with real Tungsten instance:
+Test with real dryft instance:
 
 ```javascript
 describe('Nostr Integration', () => {
   beforeEach(() => {
-    // Ensure we're testing in Tungsten
+    // Ensure we're testing in dryft
     if (!window.nostr?.relay?.url) {
       throw new Error('Tests must run in dryft browser');
     }
@@ -385,7 +385,7 @@ class PermissionAwareClient {
 
 ### Rate Limiting
 
-Respect Tungsten's built-in rate limits:
+Respect dryft's built-in rate limits:
 
 ```javascript
 class RateLimitedClient {
@@ -436,13 +436,13 @@ class RateLimitedClient {
 
 - [NIP-07 Specification](https://github.com/nostr-protocol/nips/blob/master/07.md)
 - [Nostr Protocol Documentation](https://github.com/nostr-protocol/nips)
-- [Tungsten API Reference](api-reference.md)
+- [dryft API Reference](api-reference.md)
 - [Code Examples](examples/)
-- [Community Discord](https://discord.gg/tungsten)
+- [Community Discord](https://discord.gg/dryft)
 
 ## Getting Help
 
 - [GitHub Issues](https://github.com/sandwichfarm/dryft/issues) - Bug reports and feature requests
-- [Developer Discord](https://discord.gg/tungsten-dev) - Real-time developer support
+- [Developer Discord](https://discord.gg/dryft-dev) - Real-time developer support
 - [API Documentation](api-reference.md) - Complete API reference
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/tungsten-browser) - Q&A with the community
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/dryft-browser) - Q&A with the community

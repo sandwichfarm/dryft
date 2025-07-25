@@ -1,4 +1,4 @@
-# Tungsten Memory Directory
+# dryft Memory Directory
 
 This directory contains all documentation, specifications, and implementation records for the dryft browser project. Files are organized by purpose for easy navigation.
 
@@ -21,7 +21,7 @@ High-level and low-level design documents that define the system architecture:
 - **[LLDD_Protocol_Handler.md](design/LLDD_Protocol_Handler.md)** - nostr:// URL scheme handling
 
 ### 📋 `/specifications/` - Protocol & Format Specifications
-External protocol and format specifications that Tungsten implements:
+External protocol and format specifications that dryft implements:
 
 - **[BUD-00.md](specifications/BUD-00.md)** - Blossom Upload Descriptor Base
 - **[BUD-01.md](specifications/BUD-01.md)** - Blossom Upload Descriptor v1

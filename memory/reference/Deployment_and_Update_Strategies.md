@@ -5,7 +5,7 @@
 
 ```yaml
 # .github/workflows/release.yml
-name: Tungsten Release Pipeline
+name: dryft Release Pipeline
 
 on:
   push:
@@ -28,12 +28,12 @@ jobs:
           choco install visualstudio2022buildtools
           choco install windows-sdk-10
           
-      - name: Apply Tungsten Patches
+      - name: Apply dryft Patches
         run: |
           git apply dryft/patches/*.patch
           python dryft/scripts/integrate_nostr.py
           
-      - name: Build Tungsten
+      - name: Build dryft
         run: |
           cd src
           gn gen out/Release --args="
@@ -50,7 +50,7 @@ jobs:
         run: |
           cd src/out/Release
           makensis.exe /DVERSION=${{ github.ref_name }} 
-            ../../../dryft/installer/windows/tungsten.nsi
+            ../../../dryft/installer/windows/dryft.nsi
           
       - name: Sign Binary
         env:
@@ -58,7 +58,7 @@ jobs:
         run: |
           signtool sign /f certificate.pfx /p $env:CERT_PASSWORD 
             /t http://timestamp.digicert.com 
-            tungsten-setup-${{ github.ref_name }}.exe
+            dryft-setup-${{ github.ref_name }}.exe
 
   build-macos:
     runs-on: macos-latest
@@ -77,15 +77,15 @@ jobs:
         run: |
           create-dmg \
             --volname "dryft browser" \
-            --volicon "dryft/assets/tungsten.icns" \
+            --volicon "dryft/assets/dryft.icns" \
             --window-pos 200 120 \
             --window-size 800 400 \
             --icon-size 100 \
-            --icon "Tungsten.app" 200 190 \
-            --hide-extension "Tungsten.app" \
+            --icon "dryft.app" 200 190 \
+            --hide-extension "dryft.app" \
             --app-drop-link 600 185 \
-            "Tungsten-${{ github.ref_name }}.dmg" \
-            "src/out/Release/Tungsten.app"
+            "dryft-${{ github.ref_name }}.dmg" \
+            "src/out/Release/dryft.app"
             
       - name: Notarize App
         env:
@@ -93,10 +93,10 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
         run: |
           xcrun altool --notarize-app \
-            --primary-bundle-id "com.tungsten.browser" \
+            --primary-bundle-id "com.dryft.browser" \
             --username "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
-            --file "Tungsten-${{ github.ref_name }}.dmg"
+            --file "dryft-${{ github.ref_name }}.dmg"
 
   build-linux:
     runs-on: ubuntu-latest
@@ -125,7 +125,7 @@ jobs:
           rpmbuild -bb \
             --define "_version ${{ github.ref_name }}" \
             --define "_arch ${{ matrix.arch }}" \
-            tungsten.spec
+            dryft.spec
             
       - name: Create AppImage
         run: |
@@ -264,24 +264,24 @@ class StagedUpdateManager {
 {
   "channels": {
     "stable": {
-      "update_url": "https://updates.tungsten-browser.org/stable/",
+      "update_url": "https://updates.dryft-browser.org/stable/",
       "update_interval_hours": 24,
       "rollout_percentage": 100
     },
     "beta": {
-      "update_url": "https://updates.tungsten-browser.org/beta/",
+      "update_url": "https://updates.dryft-browser.org/beta/",
       "update_interval_hours": 12,
       "rollout_percentage": 100,
       "features": ["experimental_nips"]
     },
     "dev": {
-      "update_url": "https://updates.tungsten-browser.org/dev/",
+      "update_url": "https://updates.dryft-browser.org/dev/",
       "update_interval_hours": 6,
       "rollout_percentage": 100,
       "features": ["experimental_nips", "debug_tools"]
     },
     "canary": {
-      "update_url": "https://updates.tungsten-browser.org/canary/",
+      "update_url": "https://updates.dryft-browser.org/canary/",
       "update_interval_hours": 1,
       "rollout_percentage": 100,
       "features": ["all_experimental"],
@@ -296,7 +296,7 @@ class PlatformDistributor {
   // Windows: MSI/EXE installer
   void DistributeWindows() {
     // Upload to:
-    // - tungsten-browser.org/download/windows/
+    // - dryft-browser.org/download/windows/
     // - Microsoft Store (MSIX package)
     // - Chocolatey package repository
     // - Winget package repository
@@ -305,7 +305,7 @@ class PlatformDistributor {
   // macOS: DMG/PKG installer  
   void DistributeMacOS() {
     // Upload to:
-    // - tungsten-browser.org/download/mac/
+    // - dryft-browser.org/download/mac/
     // - Mac App Store (if approved)
     // - Homebrew cask
   }
@@ -313,7 +313,7 @@ class PlatformDistributor {
   // Linux: Multiple package formats
   void DistributeLinux() {
     // Upload to:
-    // - tungsten-browser.org/download/linux/
+    // - dryft-browser.org/download/linux/
     // - Flathub (Flatpak)
     // - Snap Store (Snap)
     // - AUR (Arch Linux)
@@ -397,7 +397,7 @@ class RolloutController {
 <!-- Enterprise policy template -->
 <policyDefinitions>
   <policy name="TungstenUpdatePolicy">
-    <parentCategory ref="tungsten"/>
+    <parentCategory ref="dryft"/>
     <supportedOn ref="SUPPORTED_DRYFT_1_0"/>
     <elements>
       <enum id="UpdateChannel" valueName="UpdateChannel">
@@ -409,7 +409,7 @@ class RolloutController {
       <decimal id="UpdateIntervalHours" valueName="UpdateInterval" 
                minValue="1" maxValue="168"/>
       <boolean id="NostrFeaturesEnabled" valueName="EnableNostr"/>
-      <list id="AllowedRelays" key="Software\Policies\Tungsten\NostrRelays"/>
+      <list id="AllowedRelays" key="Software\Policies\dryft\NostrRelays"/>
     </elements>
   </policy>
 </policyDefinitions>
@@ -417,9 +417,9 @@ class RolloutController {
 <!-- Group Policy ADMX -->
 <policy name="TungstenNostrConfiguration" 
         displayName="Configure Nostr Features"
-        key="Software\Policies\Tungsten\Nostr"
+        key="Software\Policies\dryft\Nostr"
         valueName="Configuration">
-  <parentCategory ref="tungsten-nostr"/>
+  <parentCategory ref="dryft-nostr"/>
   <supportedOn ref="SUPPORTED_DRYFT_1_0"/>
   <enabledValue>
     <decimal value="1"/>
@@ -484,14 +484,14 @@ class UpdateServer:
     
     def get_download_url(self, release, os, arch):
         """Generate platform-specific download URL"""
-        base_url = f"https://cdn.tungsten-browser.org/releases/{release['version']}/"
+        base_url = f"https://cdn.dryft-browser.org/releases/{release['version']}/"
         
         if os == 'windows':
-            return f"{base_url}tungsten-{release['version']}-win-{arch}.exe"
+            return f"{base_url}dryft-{release['version']}-win-{arch}.exe"
         elif os == 'macos':
-            return f"{base_url}tungsten-{release['version']}-mac-universal.dmg"
+            return f"{base_url}dryft-{release['version']}-mac-universal.dmg"
         elif os == 'linux':
-            return f"{base_url}tungsten-{release['version']}-linux-{arch}.AppImage"
+            return f"{base_url}dryft-{release['version']}-linux-{arch}.AppImage"
     
     def is_eligible_for_update(self, client_id, release):
         """Check if client should receive this update"""
@@ -520,11 +520,11 @@ class CDNConfig:
     """
     
     cdn_endpoints = {
-        'primary': 'https://cdn.tungsten-browser.org',
+        'primary': 'https://cdn.dryft-browser.org',
         'fallback': 'https://d1234567890.cloudfront.net',
         'mirrors': [
-            'https://mirror1.tungsten-browser.org',
-            'https://mirror2.tungsten-browser.org'
+            'https://mirror1.dryft-browser.org',
+            'https://mirror2.dryft-browser.org'
         ]
     }
 ```
@@ -538,7 +538,7 @@ class TungstenCrashReporter {
   void ConfigureCrashReporting() {
     // Use Chromium's crash reporting with custom endpoint
     crash_reporter::SetCrashServerURL(
-        "https://crashes.tungsten-browser.org/submit");
+        "https://crashes.dryft-browser.org/submit");
     
     // Add Nostr-specific metadata
     crash_reporter::AddCrashMetadata("nostr_enabled", 
@@ -650,7 +650,7 @@ class SecurityUpdateManager {
         prefs_->SetBoolean(prefs::kNostrEnabled, false);
         ShowSecurityWarning(
             "Nostr features temporarily disabled due to security update. "
-            "Please update Tungsten to re-enable.");
+            "Please update dryft to re-enable.");
       }
     }
   }
@@ -708,7 +708,7 @@ class MigrationManager {
       status = db->Get(leveldb::ReadOptions(), "nostr_keys", &key_data);
       
       if (status.ok()) {
-        // Import into Tungsten's key manager
+        // Import into dryft's key manager
         key_manager_->ImportKeys(key_data, KeyFormat::ALBY);
       }
     }
@@ -726,12 +726,12 @@ VERSION=$1
 PLATFORMS=("windows" "macos" "linux")
 ARCHITECTURES=("x64" "arm64")
 
-echo "Verifying Tungsten $VERSION deployment..."
+echo "Verifying dryft $VERSION deployment..."
 
 # Check all platform binaries
 for platform in "${PLATFORMS[@]}"; do
   for arch in "${ARCHITECTURES[@]}"; do
-    URL="https://cdn.tungsten-browser.org/releases/$VERSION/tungsten-$VERSION-$platform-$arch"
+    URL="https://cdn.dryft-browser.org/releases/$VERSION/dryft-$VERSION-$platform-$arch"
     
     # Download and verify hash
     echo "Checking $platform-$arch..."
@@ -747,7 +747,7 @@ done
 
 # Test update server
 echo "Testing update server..."
-curl -X POST https://updates.tungsten-browser.org/check \
+curl -X POST https://updates.dryft-browser.org/check \
   -H "Content-Type: application/json" \
   -d '{
     "current_version": "1.0.0",
@@ -758,7 +758,7 @@ curl -X POST https://updates.tungsten-browser.org/check \
 
 # Verify CDN propagation
 echo "Checking CDN propagation..."
-for endpoint in $(dig +short cdn.tungsten-browser.org); do
+for endpoint in $(dig +short cdn.dryft-browser.org); do
   response=$(curl -s -o /dev/null -w "%{http_code}" \
     "http://$endpoint/releases/$VERSION/manifest.json")
   if [ "$response" != "200" ]; then

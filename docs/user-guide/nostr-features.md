@@ -1,10 +1,10 @@
 # Nostr Features
 
-Complete guide to using Tungsten's built-in Nostr capabilities.
+Complete guide to using dryft's built-in Nostr capabilities.
 
 ## Overview
 
-Tungsten provides native Nostr protocol support without requiring extensions. All Nostr features are built directly into the browser core for maximum performance and security.
+dryft provides native Nostr protocol support without requiring extensions. All Nostr features are built directly into the browser core for maximum performance and security.
 
 ## Available Features
 
@@ -70,7 +70,7 @@ console.log('Your npub:', npub);
 const event = {
   kind: 1,
   created_at: Math.floor(Date.now() / 1000),
-  tags: [['t', 'tungsten'], ['t', 'nostr']],
+  tags: [['t', 'dryft'], ['t', 'nostr']],
   content: 'Hello from dryft browser! 🚀'
 };
 
@@ -81,7 +81,7 @@ console.log('Signed event:', signedEvent);
 
 ## Using Pre-loaded Libraries
 
-Tungsten includes popular Nostr libraries for instant use:
+dryft includes popular Nostr libraries for instant use:
 
 ### Available Libraries
 
@@ -145,7 +145,7 @@ console.log('Parsed content:', parsed);
 
 ## Local Relay Features
 
-Tungsten's built-in relay provides enhanced functionality:
+dryft's built-in relay provides enhanced functionality:
 
 ### Query Local Events
 
@@ -195,7 +195,7 @@ const taggedEvents = await window.nostr.relay.query({
 ### Account Information
 
 ```javascript
-// Get current account info (Tungsten Pro feature)
+// Get current account info (dryft Pro feature)
 if (window.nostr.accounts) {
   const current = await window.nostr.accounts.current();
   console.log('Current account:', current.displayName);
@@ -207,7 +207,7 @@ if (window.nostr.accounts) {
 
 ### Account Switching
 
-Use the account switcher in Tungsten's toolbar, or programmatically:
+Use the account switcher in dryft's toolbar, or programmatically:
 
 ```javascript
 // Switch to a specific account
@@ -339,7 +339,7 @@ async function publishNote() {
       content: content
     };
     
-    // Sign with Tungsten
+    // Sign with dryft
     const signedEvent = await window.nostr.signEvent(event);
     
     // Publish to relays (implementation needed)

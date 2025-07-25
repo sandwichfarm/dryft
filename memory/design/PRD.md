@@ -3,7 +3,7 @@
 
 ### 1. Executive Summary
 
-Tungsten is a fork of the Thorium browser that integrates native Nostr protocol capabilities, enabling decentralized social communication and content storage directly within the browser. This browser will serve as a gateway to the Nostr ecosystem while maintaining full compatibility with the traditional web.
+dryft is a fork of the Thorium browser that integrates native Nostr protocol capabilities, enabling decentralized social communication and content storage directly within the browser. This browser will serve as a gateway to the Nostr ecosystem while maintaining full compatibility with the traditional web.
 
 ### 2. Product Vision
 

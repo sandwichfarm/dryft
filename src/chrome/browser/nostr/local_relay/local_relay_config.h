@@ -22,31 +22,31 @@ namespace local_relay {
 class LocalRelayConfigManager {
  public:
   // Preference keys
-  static constexpr char kRelayEnabledPref[] = "tungsten.relay.enabled";
-  static constexpr char kRelayPortPref[] = "tungsten.relay.port";
-  static constexpr char kRelayInterfacePref[] = "tungsten.relay.interface";
-  static constexpr char kRelayExternalAccessPref[] = "tungsten.relay.external_access";
+  static constexpr char kRelayEnabledPref[] = "dryft.relay.enabled";
+  static constexpr char kRelayPortPref[] = "dryft.relay.port";
+  static constexpr char kRelayInterfacePref[] = "dryft.relay.interface";
+  static constexpr char kRelayExternalAccessPref[] = "dryft.relay.external_access";
   
   // Storage preferences
-  static constexpr char kMaxStorageGBPref[] = "tungsten.relay.max_storage_gb";
-  static constexpr char kMaxEventsPref[] = "tungsten.relay.max_events";
-  static constexpr char kRetentionDaysPref[] = "tungsten.relay.retention_days";
+  static constexpr char kMaxStorageGBPref[] = "dryft.relay.max_storage_gb";
+  static constexpr char kMaxEventsPref[] = "dryft.relay.max_events";
+  static constexpr char kRetentionDaysPref[] = "dryft.relay.retention_days";
   
   // Performance preferences  
-  static constexpr char kMaxConnectionsPref[] = "tungsten.relay.max_connections";
-  static constexpr char kMaxSubscriptionsPerConnectionPref[] = "tungsten.relay.max_subs_per_conn";
-  static constexpr char kMaxMessageSizePref[] = "tungsten.relay.max_message_size";
-  static constexpr char kMaxEventSizePref[] = "tungsten.relay.max_event_size";
+  static constexpr char kMaxConnectionsPref[] = "dryft.relay.max_connections";
+  static constexpr char kMaxSubscriptionsPerConnectionPref[] = "dryft.relay.max_subs_per_conn";
+  static constexpr char kMaxMessageSizePref[] = "dryft.relay.max_message_size";
+  static constexpr char kMaxEventSizePref[] = "dryft.relay.max_event_size";
   
   // Rate limiting preferences
-  static constexpr char kMaxEventsPerMinutePref[] = "tungsten.relay.max_events_per_minute";
-  static constexpr char kMaxReqPerMinutePref[] = "tungsten.relay.max_req_per_minute";
+  static constexpr char kMaxEventsPerMinutePref[] = "dryft.relay.max_events_per_minute";
+  static constexpr char kMaxReqPerMinutePref[] = "dryft.relay.max_req_per_minute";
   
   // Access control preferences
-  static constexpr char kAllowedOriginsPref[] = "tungsten.relay.allowed_origins";
-  static constexpr char kRequireAuthPref[] = "tungsten.relay.require_auth";
-  static constexpr char kBlockedPubkeysPref[] = "tungsten.relay.blocked_pubkeys";
-  static constexpr char kAllowedKindsPref[] = "tungsten.relay.allowed_kinds";
+  static constexpr char kAllowedOriginsPref[] = "dryft.relay.allowed_origins";
+  static constexpr char kRequireAuthPref[] = "dryft.relay.require_auth";
+  static constexpr char kBlockedPubkeysPref[] = "dryft.relay.blocked_pubkeys";
+  static constexpr char kAllowedKindsPref[] = "dryft.relay.allowed_kinds";
   
   // Default values
   static constexpr int kDefaultPort = 8081;
